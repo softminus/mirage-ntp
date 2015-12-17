@@ -1,0 +1,19 @@
+Name: mirage-ntp
+Version: 0.0.1
+Synopsis: an NTP implementation
+Authors: Kia <sadieperkins@riseup.net>
+License: ISC
+
+Description: implements NTPv4 (rfc5905)
+
+OASISFormat: 0.4
+Plugins: META (0.4), DevFiles (0.4)
+BuildTools: ocamlbuild
+AlphaFeatures: pure_interface
+
+
+Library "mirage-ntp"
+  Path: lib
+  Modules: Ntp_wire
+  BuildDepends: cstruct, cstruct.syntax
+
