@@ -14,6 +14,6 @@ AlphaFeatures: pure_interface
 
 Library "mirage-ntp"
   Path: lib
-  Modules: Ntp_wire
+  Modules: Wire_structs
   BuildDepends: cstruct, cstruct.syntax
 
