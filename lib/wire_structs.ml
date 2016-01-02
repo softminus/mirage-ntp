@@ -38,8 +38,8 @@ type pkt = {
     stratum         : int;
     poll            : int;
     precision       : int;
-    root_delay      : int32;
-    root_dispersion : int32;
+    root_delay      : short_ts;
+    root_dispersion : short_ts;
     refid           : int32;
 
     reference_ts    : ts;
