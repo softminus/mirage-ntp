@@ -16,4 +16,3 @@ Library "mirage-ntp"
   Path: lib
   Modules: Wire_structs
   BuildDepends: cstruct, cstruct.syntax
-
