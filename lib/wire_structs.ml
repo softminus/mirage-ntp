@@ -83,19 +83,19 @@ let buf_of_pkt p =
 
 
 
-(*
 let pkt_of_buf b =
     if Cstruct.len b <> sizeof_ntp then
         None
     else
-        let flags           = get_ntp_flags     b in
-        let stratum         = get_ntp_stratum   b in
-        let poll            = get_ntp_poll      b in
-        let precision       = get_ntp_precision b in
-        let root_delay      = get_root_delay
-        let root_dispersion =
-        let refid           
-        let reference_ts    
-        let origin_ts       
-        let recv_ts         
-        let trans_ts        *)
+        let flags           = get_ntp_flags             b                       in
+        let stratum         = get_ntp_stratum           b                       in
+        let poll            = get_ntp_poll              b                       in
+        let precision       = get_ntp_precision         b                       in
+        let root_delay      = get_ntp_root_delay        b |> int32_to_short_ts  in
+        let root_dispersion = get_ntp_root_dispersion   b |> int32_to_short_ts  in
+        let refid           = get_ntp_refid             b                       in
+        let reference_ts    = get_ntp_reference_ts      b |> int64_to_ts        in
+        let origin_ts       = get_ntp_origin_ts         b |> int64_to_ts        in
+        let recv_ts         = get_ntp_recv_ts           b |> int64_to_ts        in
+        let trans_ts        = get_ntp_trans_ts          b |> int64_to_ts        in
+        Some {flags; stratum; poll; precision; root_delay; root_dispersion; refid; reference_ts; origin_ts; recv_ts; trans_ts}
