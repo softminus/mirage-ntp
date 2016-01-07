@@ -12,7 +12,7 @@ BuildTools: ocamlbuild
 AlphaFeatures: pure_interface
 
 
-Library "mirage-ntp"
-  Path: lib
-  Modules: Wire_structs
-  BuildDepends: cstruct, cstruct.syntax
+Library "ntp"
+    Path: lib
+    Modules: Ntp_wire
+    BuildDepends: cstruct, cstruct.syntax
