@@ -18,7 +18,7 @@ module Main (C: V1_LWT.CONSOLE) (S: V1_LWT.STACKV4) = struct
         let pkt = pkt_of_buf data in
         match pkt with
         | None -> C.log_s c (yellow "fail")
-        | Some f -> C.log_s c (green "works")
+        | Some f -> C.log_s c (Printf.sprintf "field %Lu" (ts_to_int64 f.origin_ts))
         >>
         Lwt.return_unit
       );
