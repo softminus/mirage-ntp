@@ -37,6 +37,49 @@ type version = int
 
 type mode = Reserved | SymA | SymP | Client | Server | Broadcast | Control | Private
 
+let lvm_to_int l v m =
+    let li = match l with
+    | NoWarning -> 0 lsl 6
+    | Minute61  -> 1 lsl 6
+    | Minute59  -> 2 lsl 6
+    | Unknown   -> 3 lsl 6 in
+    let vi = v lsl 3 in
+    let mi = match m with
+    | Reserved  -> 0
+    | SymA      -> 1
+    | SymP      -> 2
+    | Client    -> 3
+    | Server    -> 4
+    | Broadcast -> 5
+    | Control   -> 6
+    | Private   -> 7 in
+
+    li + vi + mi
+
+
+let flags_to_leap       f =
+    match f lsr 6 with
+    | 0 -> NoWarning
+    | 1 -> Minute61
+    | 2 -> Minute59
+    | 3 -> Unknown
+    | _ -> failwith ":("
+
+let flags_to_version    f = (f land 0x38) lsr 3
+let flags_to_mode       f =
+    match (f land 0x07) with
+    | 0 -> Reserved
+    | 1 -> SymA
+    | 2 -> SymP
+    | 3 -> Client
+    | 4 -> Server
+    | 5 -> Broadcast
+    | 6 -> Control
+    | 7 -> Private
+    | _ -> failwith ":("
+
+
+
 type stratum = Invalid | Primary | Secondary of int | Unsynchronized | Reserved of int
 
 let int_to_stratum (i: Cstruct.uint8) = match i with
@@ -76,7 +119,9 @@ cstruct ntp {
 
 
 type pkt = {
-    flags           : int;
+    leap            : leap;
+    version         : version;
+    mode            : mode;
     stratum         : stratum;
     poll            : int;
     precision       : int;
@@ -91,7 +136,7 @@ type pkt = {
 
 let buf_of_pkt p =
     let buf = Cstruct.create sizeof_ntp in
-    set_ntp_flags           buf                     p.flags;
+    set_ntp_flags           buf  (lvm_to_int p.leap p.version p.mode);
     set_ntp_stratum         buf     (stratum_to_int p.stratum);
     set_ntp_poll            buf                     p.poll;
     set_ntp_precision       buf                     p.precision;
@@ -112,7 +157,9 @@ let pkt_of_buf b =
     if Cstruct.len b <> sizeof_ntp then
         None
     else
-        let flags           = get_ntp_flags             b                       in
+        let leap            = get_ntp_flags             b |> flags_to_leap      in
+        let version         = get_ntp_flags             b |> flags_to_version   in
+        let mode            = get_ntp_flags             b |> flags_to_mode      in
         let stratum         = get_ntp_stratum           b |> int_to_stratum     in
         let poll            = get_ntp_poll              b                       in
         let precision       = get_ntp_precision         b                       in
@@ -123,4 +170,4 @@ let pkt_of_buf b =
         let origin_ts       = get_ntp_origin_ts         b |> int64_to_ts        in
         let recv_ts         = get_ntp_recv_ts           b |> int64_to_ts        in
         let trans_ts        = get_ntp_trans_ts          b |> int64_to_ts        in
-        Some {flags; stratum; poll; precision; root_delay; root_dispersion; refid; reference_ts; origin_ts; recv_ts; trans_ts}
+        Some {leap;version;mode; stratum; poll; precision; root_delay; root_dispersion; refid; reference_ts; origin_ts; recv_ts; trans_ts}
