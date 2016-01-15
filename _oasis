@@ -14,5 +14,5 @@ AlphaFeatures: pure_interface
 
 Library "ntp"
     Path: lib
-    Modules: Ntp_wire
+    Modules: Ntp_wire, Ntp_types
     BuildDepends: cstruct, cstruct.syntax

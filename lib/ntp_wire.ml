@@ -30,6 +30,9 @@ type date = {
     offset: Cstruct.uint32;
     fraction: Cstruct.uint64;
 }
+
+type leap = NoWarning | Minute61 | Minute59 | Unknown (* leap seconds were a mistake *)
+
 cstruct ntp {
     uint8_t     flags;
     uint8_t     stratum;
