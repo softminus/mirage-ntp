@@ -33,6 +33,28 @@ type date = {
 
 type leap = NoWarning | Minute61 | Minute59 | Unknown (* leap seconds were a mistake *)
 
+type version = int
+
+type mode = Reserved | SymA | SymP | Client | Server | Broadcast | Control | Private
+
+type stratum = Invalid | Primary | Secondary of int | Unsynchronized | Reserved of int
+
+let int_to_stratum (i: Cstruct.uint8) = match i with
+    | 0 -> Invalid
+    | 1 -> Primary
+    | n1 when ((n1 > 1) && (n1 < 16)) -> Secondary n1
+    | 16 -> Unsynchronized
+    | n2  -> Reserved n2
+
+let stratum_to_int s = match s with
+    | Invalid -> 0
+    | Primary -> 1
+    | Secondary n -> n
+    | Unsynchronized -> 16
+    | Reserved n -> n
+
+
+
 cstruct ntp {
     uint8_t     flags;
     uint8_t     stratum;
@@ -55,7 +77,7 @@ cstruct ntp {
 
 type pkt = {
     flags           : int;
-    stratum         : int;
+    stratum         : stratum;
     poll            : int;
     precision       : int;
     root_delay      : short_ts;
@@ -70,7 +92,7 @@ type pkt = {
 let buf_of_pkt p =
     let buf = Cstruct.create sizeof_ntp in
     set_ntp_flags           buf                     p.flags;
-    set_ntp_stratum         buf                     p.stratum;
+    set_ntp_stratum         buf     (stratum_to_int p.stratum);
     set_ntp_poll            buf                     p.poll;
     set_ntp_precision       buf                     p.precision;
     set_ntp_root_delay      buf (short_ts_to_int32  p.root_delay);
@@ -91,7 +113,7 @@ let pkt_of_buf b =
         None
     else
         let flags           = get_ntp_flags             b                       in
-        let stratum         = get_ntp_stratum           b                       in
+        let stratum         = get_ntp_stratum           b |> int_to_stratum     in
         let poll            = get_ntp_poll              b                       in
         let precision       = get_ntp_precision         b                       in
         let root_delay      = get_ntp_root_delay        b |> int32_to_short_ts  in
