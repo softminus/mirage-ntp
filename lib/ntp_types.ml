@@ -49,6 +49,15 @@ type stats = {
     filter:     f_point array;
 }
 
+type pollvars = {
+    hpoll:      int;
+    burst:      int;
+    reach:      int;
+    ttl:        int;
+    unreach:    int;
+    outdate:    int;
+    nextdate:   int;
+}
 
 type port = Cstruct.uint16
 
@@ -61,4 +70,5 @@ type peerstate = {
 
     last:       lastrecv;
     stats:      stats;
+    poll:       pollvars;
 }
