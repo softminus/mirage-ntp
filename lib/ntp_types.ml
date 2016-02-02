@@ -9,19 +9,10 @@ open Ntp_wire
      * peer jitter      = psi
  *  
  *  variables with _i    suffix are samples
- *  variables with _hat  suffix are estimates/averages
+ *  variables with _e suffix are estimates/averages
  *)
 
-
-type port = Cstruct.uint16
-
-type peerstate = {
-    (* config *)
-    srcaddr:    Ipaddr.t;
-    srcport:    port;
-    dstaddr:    Ipaddr.t;
-    dstport:    port;
-
+type lastrecv = {
     (* packet variables *)
     leap:       leap;
     version:    version;
@@ -38,26 +29,36 @@ type peerstate = {
     xmt:        ts;     (* their time, when their reply left them *)
 
     (* computed stuff from now on *)
-    return:     ts;     (* our time,   when their reply hit us *)
-
-    (* statistics variables *)
-    offset:     double; (* offset from us *)
-    delay:      double; (* delay  away from us *)
-    disp:       double; (* peer dispersion *)   
-    jitter:     double; (* RMS jitter *)
-
-
+    return_i:   ts;     (* our time,   when their reply hit us *)
 }
+
 type f_point = {
     t_i:        ts;
-    offset_i:   double; (* clock offset *)
-    delay_i:    double; (* round-trip delay *)
-    disp_i:     double; (* dispersion *)
+    offset_i:   float; (* clock offset *)
+    delay_i:    float; (* round-trip delay *)
+    disp_i:     float; (* dispersion *)
+}
+
+type stats = {
+    (* statistics variables *)
+    offset_e:   float; (* offset from us *)
+    delay_e:    float; (* delay  away from us *)
+    disp_e:     float; (* peer dispersion *)
+    jitter_e:   float; (* RMS jitter *)
+
+    filter:     f_point array;
 }
 
 
+type port = Cstruct.uint16
 
+type peerstate = {
+    (* config *)
+    srcaddr:    Ipaddr.t;
+    srcport:    port;
+    dstaddr:    Ipaddr.t;
+    dstport:    port;
 
-
-
-
+    last:       lastrecv;
+    stats:      stats;
+}
