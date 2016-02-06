@@ -89,8 +89,9 @@ type peerstate = {
     dstaddr:    Ipaddr.t;
     dstport:    port;
 
-    recv:       recv;
-    sent:       sent;
-    stats:      stats;
     poll:       poll;
+
+    sent:       sent;
+    recv:       recv;
+    stats:      stats;
 }
