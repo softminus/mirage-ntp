@@ -8,29 +8,50 @@ open Ntp_wire
      * dispersion       = epsilon
      * peer jitter      = psi
  *  
- *  variables with _i    suffix are samples
+ *  variables with _i suffix are samples
  *  variables with _e suffix are estimates/averages
+ *
+ *  Also, nomenclature like "origin timestamp", "receive timestamp", "transmit timestamp",
+ *  and "destination timestamp" is confusing and ambiguous. Instead, here:
+     *  variables beginning with ne_ (near end) are times measured/struck on/by our host
+     *  variables beginning with fe_ (far  end) are times measured/struck on/by the server we query
+ *
+ *  Therefore, when we create a packet, we strike   ne_transmit
+ *  when it arrives at the server,      it strikes  fe_receive
+ *  when it sends back a reply,         it strikes  fe_transmit
+ *  when we receive the reply,          we strike   ne_receive
+ *
+ *
+ *
  *)
 
-type lastrecv = {
+type recv = {           (* we update this when we RECEIVE a packet from the server *)
     (* packet variables *)
-    leap:       leap;
-    version:    version;
-    mode:       mode;
-    stratum:    stratum;
-    ppoll:      int;
-    rootdelay:  short_ts;
-    rootdisp:   short_ts;
-    refid:      Cstruct.uint32;
-    reftime:    ts;
-    (* timestamps *)
-    orgn:       ts;     (* our time,   when our packet left us *)
-    recv:       ts;     (* their time, when our packet hit them *)
-    xmt:        ts;     (* their time, when their reply left them *)
+    leap:           leap;
+    version:        version;
+    mode:           mode;
+    stratum:        stratum;
+    ppoll:          int;
+    rootdelay:      short_ts;
+    rootdisp:       short_ts;
 
-    (* computed stuff from now on *)
-    return_i:   ts;     (* our time,   when their reply hit us *)
+
+
+    refid:          Cstruct.uint32;
+    reftime:        ts;
+    (* timestamps in packet*)
+    ne_transmit:    ts;     (* known in NTP docs as "origin timestamp"      or "T_1" *)
+    fe_receive:     ts;     (*                  aka "receive timestamp"     or "T_2" *) 
+    fe_transmit:    ts;     (*                  aka "transmit timestamp"    or "T_3" *) 
+
+    (* timestamp that we measure when the reply gets back to us *)
+    ne_receive:     ts;     (*                  aka "destination timestamp" or "T_4" *)
 }
+
+type sent = {           (* we update this when we SEND a packet to the server *)
+    ne_transmit:    ts;
+}
+
 
 type f_point = {
     t_i:        ts;
@@ -49,7 +70,7 @@ type stats = {
     filter:     f_point array;
 }
 
-type pollvars = {
+type poll = {
     hpoll:      int;
     burst:      int;
     reach:      int;
@@ -68,7 +89,8 @@ type peerstate = {
     dstaddr:    Ipaddr.t;
     dstport:    port;
 
-    last:       lastrecv;
+    recv:       recv;
+    sent:       sent;
     stats:      stats;
-    poll:       pollvars;
+    poll:       poll;
 }
