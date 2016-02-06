@@ -48,7 +48,7 @@ type recv = {           (* we update this when we RECEIVE a packet from the serv
     ne_receive:     ts;     (*                  aka "destination timestamp" or "T_4" *)
 }
 
-type sent = {           (* we update this when we SEND a packet to the server *)
+type send = {           (* we update this when we SEND a packet to the server *)
     ne_transmit:    ts;
 }
 
@@ -91,7 +91,7 @@ type peerstate = {
 
     poll:       poll;
 
-    sent:       sent;
+    send:       send;
     recv:       recv;
     stats:      stats;
 }
