@@ -21,7 +21,33 @@ open Ntp_wire
  *  when it sends back a reply,         it strikes  fe_transmit
  *  when we receive the reply,          we strike   ne_receive
  *
+ *  Due to the symmetry of the NTP wire protocol, ne_transmit is in the
+ *  "transmit timestamp" field when we sent a packet but is returned to us
+ *  in the "origin timestamp" field.
  *
+ *
+ *
+ *  We implement a useful and clean subset (not SNTP!) of the NTP protocol that
+ *  only permits use of the server and client modes. Nothing in the NTP wire
+ *  protocol is asymmetric -- it permits two hosts that are exchanging NTP
+ *  packets to each measure the offset and delay between each other, However,
+ *  this symmetry is not needed in either the client or server modes and
+ *  implementing it adds needless complexity.
+ *
+ *  Rather, the packets we send when in client mode only have a *single*
+ *  timestamp field filled out -- the "origin timestamp" field that we fill out
+ *  with a timestamp we strike when we create that packet. (We could actually
+ *  fill it with a completely random number/nonce and store a nonce->timestamp
+ *  mapping table locally)
+ *
+ *  We don't fill out the other two timestamp fields in the NTP packet that
+ *  would let the server measure our offset/delay, nor do we fill out the
+ *  "reference timestamp" field.
+ *
+ *  The server will reply with a packet with the same information in the
+ *  timestamps as it would for a packet with the "originator" and "receive"
+ *  timestamps filled -- indeed, the first packet every NTP client sends to a
+ *  server can't have those fields filled.
  *
  *)
 
