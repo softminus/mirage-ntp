@@ -1,6 +1,5 @@
 open Ntp_wire
 open Ntp_types
-open Ntp_constants
 
 let validate_packet b ctx =
     let pkt = pkt_of_buf b in
@@ -33,8 +32,11 @@ let update_state_in p ctx =
      *)
     let delay  = Int64.to_float(delta_ts ctx.recv.ne_receive ctx.send.ne_transmit) -.
                  Int64.to_float(delta_ts p.trans_ts          p.recv_ts           ) in
-    delay +. offset
-    
-    
-                    
+
+    let disp   = log_to_float p.precision               (* the precision of their clock *)
+                +. log_to_float Ntp_constants.rho       (* and that of ours *)
+                (* and the dispersion error, based on the time between the two timestamps we strike *)
+                +. Ntp_constants.phi *. Int64.to_float(delta_ts ctx.recv.ne_receive ctx.send.ne_transmit) in
+    disp
+
 
