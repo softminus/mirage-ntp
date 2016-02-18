@@ -20,24 +20,22 @@ let validate_packet b ctx =
 
 
 
-let update_state_in p ctx =
-    (*
-     *      2*offset    = (fe_receive - ne_transmit) + (fe_transmit - ne_receive)
-     *)
+(*
+ *      2*offset    = (fe_receive - ne_transmit) + (fe_transmit - ne_receive)
+ *)
 
-    let offset p ctx = (Int64.to_float(delta_ts p.recv_ts          ctx.send.ne_transmit) +.
-                        Int64.to_float(delta_ts p.trans_ts         ctx.recv.ne_receive )) /. 2.0 in
-    (*
-     *      delay       = (ne_receive - ne_transmit) - (fe_transmit - fe_receive)
-     *)
-    let delay  p ctx = max (log_to_float Ntp_constants.rho)
-                              (Int64.to_float(delta_ts ctx.recv.ne_receive ctx.send.ne_transmit)
-                            -. Int64.to_float(delta_ts p.trans_ts          p.recv_ts           )) in
+let offset p ctx = (Int64.to_float(delta_ts p.recv_ts          ctx.send.ne_transmit) +.
+                    Int64.to_float(delta_ts p.trans_ts         ctx.recv.ne_receive )) /. 2.0
+(*
+ *      delay       = (ne_receive - ne_transmit) - (fe_transmit - fe_receive)
+ *)
+let delay  p ctx = max (log_to_float Ntp_constants.rho)
+                            (Int64.to_float(delta_ts ctx.recv.ne_receive ctx.send.ne_transmit)
+                          -. Int64.to_float(delta_ts p.trans_ts          p.recv_ts           ))
 
-    let disp   p ctx = log_to_float p.precision                 (* the precision of their clock *)
-                    +. log_to_float Ntp_constants.rho           (* and that of ours *)
-                    (* and the dispersion error, based on the time between the two timestamps we strike *)
-                    +. Ntp_constants.phi *. Int64.to_float(delta_ts ctx.recv.ne_receive ctx.send.ne_transmit) in
-    disp p ctx
+let disp   p ctx = log_to_float p.precision                 (* the precision of their clock *)
+                +. log_to_float Ntp_constants.rho           (* and that of ours *)
+                (* and the dispersion error, based on the time between the two timestamps we strike *)
+                +. Ntp_constants.phi *. Int64.to_float(delta_ts ctx.recv.ne_receive ctx.send.ne_transmit)
 
 
