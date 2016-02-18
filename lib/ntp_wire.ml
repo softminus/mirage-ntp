@@ -33,6 +33,9 @@ type date = {
     fraction: Cstruct.uint64;
 }
 
+let log_to_float x =
+    2. ** (float x)
+
 type leap = NoWarning | Minute61 | Minute59 | Unknown (* leap seconds were a mistake *)
 
 type version = int
