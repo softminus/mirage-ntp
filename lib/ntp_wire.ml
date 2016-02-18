@@ -11,7 +11,7 @@ let int64_to_ts i =
     let fraction =  Int64.to_int32 i in
     {seconds; fraction}
 
-let delta_ts a b =
+let delta_ts a b =                              (* returns a - b *)
     Int64.sub (ts_to_int64 a) (ts_to_int64 b)
 
 type short_ts = {

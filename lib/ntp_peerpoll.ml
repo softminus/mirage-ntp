@@ -1,5 +1,6 @@
 open Ntp_wire
 open Ntp_types
+open Ntp_constants
 
 let validate_packet b ctx =
     let pkt = pkt_of_buf b in
@@ -21,5 +22,4 @@ let validate_packet b ctx =
 
 
 let update_state_in p ctx =
-
 
