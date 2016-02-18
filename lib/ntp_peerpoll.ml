@@ -22,4 +22,19 @@ let validate_packet b ctx =
 
 
 let update_state_in p ctx =
+    (*
+     *      2*offset    = (fe_receive - ne_transmit) + (fe_transmit - ne_receive)
+     *)
+
+    let offset = (Int64.to_float(delta_ts p.recv_ts          ctx.send.ne_transmit) +.
+                  Int64.to_float(delta_ts p.trans_ts         ctx.recv.ne_receive )) /. 2.0 in
+    (*
+     *      delay       = (ne_receive - ne_transmit) - (fe_transmit - fe_receive)
+     *)
+    let delay  = Int64.to_float(delta_ts ctx.recv.ne_receive ctx.send.ne_transmit) -.
+                 Int64.to_float(delta_ts p.trans_ts          p.recv_ts           ) in
+    delay +. offset
+    
+    
+                    
 
