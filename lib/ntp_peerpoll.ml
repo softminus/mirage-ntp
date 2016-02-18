@@ -30,8 +30,9 @@ let update_state_in p ctx =
     (*
      *      delay       = (ne_receive - ne_transmit) - (fe_transmit - fe_receive)
      *)
-    let delay  p ctx = Int64.to_float(delta_ts ctx.recv.ne_receive ctx.send.ne_transmit) -.
-                       Int64.to_float(delta_ts p.trans_ts          p.recv_ts           ) in
+    let delay  p ctx = max (log_to_float Ntp_constants.rho)
+                              (Int64.to_float(delta_ts ctx.recv.ne_receive ctx.send.ne_transmit)
+                            -. Int64.to_float(delta_ts p.trans_ts          p.recv_ts           )) in
 
     let disp   p ctx = log_to_float p.precision                 (* the precision of their clock *)
                     +. log_to_float Ntp_constants.rho           (* and that of ours *)
