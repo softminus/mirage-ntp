@@ -7,3 +7,12 @@
  * frequency error, termed "dispersion"
  *)
 let phi = 15E-6
+
+
+(* rho, in seconds, represents the maximum error in each local clock measurement
+ *
+ * the error in a time measurement we took t seconds ago thus is
+ * error(t) = rho + phi * t
+ * 
+ *)
+let rho = 3.8E-6 (*from #define PRECISION       -18 *)
