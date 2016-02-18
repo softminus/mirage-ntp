@@ -91,10 +91,10 @@ type send = {           (* we update this when we SEND a packet to the server *)
 
 
 type f_point = {
-    t_i:        ts;
-    offset_i:   float; (* clock offset *)
-    delay_i:    float; (* round-trip delay *)
-    disp_i:     float; (* dispersion *)
+    t_i:        ts;     (* ne_recv of the packet that gave us this sample *)
+    offset_i:   float;  (* clock offset *)
+    delay_i:    float;  (* round-trip delay *)
+    disp_i:     float;  (* dispersion *)
 }
 
 type stats = {
