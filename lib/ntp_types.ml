@@ -104,7 +104,7 @@ type stats = {
     disp_e:     float; (* peer dispersion *)
     jitter_e:   float; (* RMS jitter *)
 
-    filter:     f_point array;
+    filter:     f_point list;
 }
 
 type poll = {
