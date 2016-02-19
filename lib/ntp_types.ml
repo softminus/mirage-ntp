@@ -91,7 +91,7 @@ type send = {           (* we update this when we SEND a packet to the server *)
 
 
 type sample = {
-    ne_recv_i:      ts;     (* ne_recv of the packet that gave us this sample *)
+    ne_recv_i:      float;  (* the time we received the packet that gave us this sample *)
     offset_i:       float;  (* clock offset *)
     delay_i:        float;  (* round-trip delay *)
     dispersion_i:   float;  (* dispersion *)
