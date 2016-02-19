@@ -95,7 +95,7 @@ type sample = {
     offset_i:           float;  (* clock offset *)
     delay_i:            float;  (* round-trip delay *)
     p_dispersion_i:     float;  (* dispersion in the original measurement *)
-    total_dispersion_i  float;  (* total dispersion = p_dispersion_i + phi*(t - t_0)        *)
+    total_dispersion_i: float;  (* total dispersion = p_dispersion_i + phi*(t - t_0)        *)
 }
 
 type stats = {
