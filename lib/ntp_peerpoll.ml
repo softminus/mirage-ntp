@@ -47,6 +47,16 @@ let p_dispersion    p ctx = log_to_float p.precision                (* the preci
 
 
 
+(* this *only* returns a new filter list and does not calculate anything beyond what's needed
+ * to do so.
+ *
+ * to calculate new filter list we remove the oldest sample, add the newest, and update all the dispersion
+ * values. the dispersion/error of a value measured at t_0 is given by:
+ *
+     * dispersion(t) = p_dispersion + phi * (t - t_0)
+ *
+ * so each dispersion value stored in the filter list is incremented by phi for each second it's been
+ * staying in the filter list
+ *)
 
 let update_filter filter offset_i delay_i dispersion_i ne_recv_i =
-
