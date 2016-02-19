@@ -90,21 +90,21 @@ type send = {           (* we update this when we SEND a packet to the server *)
 }
 
 
-type f_point = {
-    ne_recv_i:        ts;     (* ne_recv of the packet that gave us this sample *)
-    offset_i:   float;  (* clock offset *)
-    delay_i:    float;  (* round-trip delay *)
-    disp_i:     float;  (* dispersion *)
+type sample = {
+    ne_recv_i:      ts;     (* ne_recv of the packet that gave us this sample *)
+    offset_i:       float;  (* clock offset *)
+    delay_i:        float;  (* round-trip delay *)
+    dispersion_i:   float;  (* dispersion *)
 }
 
 type stats = {
     (* statistics variables *)
-    offset_e:   float; (* offset from us *)
-    delay_e:    float; (* delay  away from us *)
-    disp_e:     float; (* peer dispersion *)
-    jitter_e:   float; (* RMS jitter *)
+    offset_e:       float; (* offset from us *)
+    delay_e:        float; (* delay  away from us *)
+    dispersion_e:   float; (* peer dispersion *)
+    jitter_e:       float; (* RMS jitter *)
 
-    filter:     f_point list;
+    filter:     sample list;
 }
 
 type poll = {
