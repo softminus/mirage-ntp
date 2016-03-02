@@ -12,7 +12,7 @@ let int64_to_ts i =
     {seconds; fraction}
 
 let delta_ts a b =                              (* returns a - b *)
-    Int64.sub (ts_to_int64 a) (ts_to_int64 b)
+    Int64.to_float (Int64.sub (ts_to_int64 a) (ts_to_int64 b))
 
 type short_ts = {
     seconds: Cstruct.uint16; 
@@ -35,6 +35,9 @@ type date = {
 
 let log_to_float x =
     2. ** (float x)
+
+type span    = Span    of int64 (* span represents a monotonic time value as measured by our clock -- what RFC 5905 calls "process time" *)
+type seconds = Seconds of float (* all the statistical calculations are on floats *)
 
 type leap = NoWarning | Minute61 | Minute59 | Unknown (* leap seconds were a mistake *)
 
