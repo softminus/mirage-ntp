@@ -91,19 +91,19 @@ type send = {           (* we update this when we SEND a packet to the server *)
 
 
 type sample = {
-    ne_recv_i:          float;  (* the time we received the packet that gave us this sample *)
-    offset_i:           float;  (* clock offset *)
-    delay_i:            float;  (* round-trip delay *)
-    p_dispersion_i:     float;  (* dispersion in the original measurement *)
-    total_dispersion_i: float;  (* total dispersion = p_dispersion_i + phi*(t - t_0)        *)
+    ne_recv_i:          Ntp_wire.span;      (* the time we received the packet that gave us this sample *)
+    offset_i:           Ntp_wire.seconds;   (* clock offset *)
+    delay_i:            Ntp_wire.seconds;   (* round-trip delay *)
+    p_dispersion_i:     Ntp_wire.seconds;   (* dispersion in the original measurement *)
+    total_dispersion_i: Ntp_wire.seconds;   (* total dispersion = p_dispersion_i + phi*(t - t_0)        *)
 }
 
 type stats = {
     (* statistics variables *)
-    offset_e:       float; (* offset from us *)
-    delay_e:        float; (* delay  away from us *)
-    dispersion_e:   float; (* peer dispersion *)
-    jitter_e:       float; (* RMS jitter *)
+    offset_e:       Ntp_wire.seconds; (* offset from us *)
+    delay_e:        Ntp_wire.seconds; (* delay  away from us *)
+    dispersion_e:   Ntp_wire.seconds; (* peer dispersion *)
+    jitter_e:       Ntp_wire.seconds; (* RMS jitter *)
 
     filter:     sample list;
 }
