@@ -24,8 +24,8 @@ let validate_packet b ctx =
  *      2*offset    = (fe_receive - ne_transmit) + (fe_transmit - ne_receive)
  *)
 
-let p_offset        p ctx = (Int64.to_float(delta_ts p.recv_ts          ctx.send.ne_transmit) +.
-                    Int64.to_float(delta_ts p.trans_ts         ctx.recv.ne_receive )) /. 2.0
+let p_offset        p ctx = ((delta_ts p.recv_ts          ctx.send.ne_transmit) +.
+                             (delta_ts p.trans_ts         ctx.recv.ne_receive )) /. 2.0
 (*
  *      delay       = (ne_receive - ne_transmit) - (fe_transmit - fe_receive)
  *
@@ -34,13 +34,13 @@ let p_offset        p ctx = (Int64.to_float(delta_ts p.recv_ts          ctx.send
  * clamp the output of p_delay to rho.
  *)
 let p_delay         p ctx = max (log_to_float Ntp_constants.rho)
-                            (Int64.to_float(delta_ts ctx.recv.ne_receive ctx.send.ne_transmit)
-                          -. Int64.to_float(delta_ts p.trans_ts          p.recv_ts           ))
+                            ((delta_ts ctx.recv.ne_receive ctx.send.ne_transmit)
+                          -. (delta_ts p.trans_ts          p.recv_ts           ))
 
 let p_dispersion    p ctx = log_to_float p.precision                (* the precision of their clock *)
                             +. log_to_float Ntp_constants.rho       (* and that of ours *)
                             (* and the dispersion error, based on the time between the two timestamps we strike *)
-                            +. Ntp_constants.phi *. Int64.to_float(delta_ts ctx.recv.ne_receive ctx.send.ne_transmit)
+                            +. Ntp_constants.phi *. (delta_ts ctx.recv.ne_receive ctx.send.ne_transmit)
 
 
 
@@ -59,4 +59,10 @@ let p_dispersion    p ctx = log_to_float p.precision                (* the preci
  * staying in the filter list
  *)
 
-let update_filter filter offset_i delay_i dispersion_i ne_recv_i =
+let updated_filter time filter sample =
+    let filter_trimmed = List.rev (List.tl (List.rev filter)) in
+    let updated_sample t s = match (s.dispersion, s.ne_recv, t) with (Ntp_wire.Seconds disp, Ntp_wire.Span recv, Ntp_wire.Span current_time) ->
+        {s with total_dispersion = Ntp_wire.Seconds (disp +. Ntp_constants.phi *. (Int64.to_float current_time -. Int64.to_float recv))}
+    in
+    let d_updated = List.map (updated_sample time) filter_trimmed in
+    d_updated
