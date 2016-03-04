@@ -60,9 +60,9 @@ let p_dispersion    p ctx = log_to_float p.precision                (* the preci
  *)
 
 let updated_filter time filter sample =
-    let filter_trimmed = List.rev (List.tl (List.rev filter)) in
     let updated_sample t s = match (s.dispersion, s.ne_recv, t) with (Ntp_wire.Seconds disp, Ntp_wire.Span recv, Ntp_wire.Span current_time) ->
         {s with total_dispersion = Ntp_wire.Seconds (disp +. Ntp_constants.phi *. (Int64.to_float current_time -. Int64.to_float recv))}
     in
-    let d_updated = List.map (updated_sample time) filter_trimmed in
-    d_updated
+    let updated = List.map (updated_sample time) filter in
+    let with_new = [sample] @ List.rev (List.tl (List.rev updated)) in
+    with_new
