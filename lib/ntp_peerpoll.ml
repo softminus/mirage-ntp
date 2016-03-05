@@ -73,15 +73,15 @@ let updated_filter time filter sample =
  * to reuse samples -- it must be fresh)
  *)
 
-let sample_of_filter time filter =
+let best_sample_of_filter time filter =
     let newer a b = match (a.delay, b.delay) with (Ntp_wire.Seconds a_delay, Ntp_wire.Seconds b_delay) -> compare a_delay b_delay
     in
-    let best = List.hd (List.sort newer filter) in
-    match best.ne_recv with (Ntp_wire.Span sample_time) ->
+    List.hd (List.sort newer filter)
+
+let fresh_or_not time sample =
+    match sample.ne_recv with (Ntp_wire.Span sample_time) ->
         match (sample_time > time) with
-        | true -> Some best
+        | true -> Some sample
         | false -> None
-
-
 
 
