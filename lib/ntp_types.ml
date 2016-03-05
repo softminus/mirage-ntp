@@ -105,7 +105,6 @@ type stats = {
     dispersion_e:   Ntp_wire.seconds; (* peer dispersion *)
     jitter_e:       Ntp_wire.seconds; (* RMS jitter *)
 
-    filter:     sample list;
 }
 
 type poll = {
@@ -132,4 +131,5 @@ type peerstate = {
     send:       send;
     recv:       recv;
     stats:      stats;
+    filter:     sample list;
 }
