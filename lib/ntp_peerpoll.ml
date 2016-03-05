@@ -90,8 +90,11 @@ let fresh_or_not time sample =
 
 
 
-let getDispersion sample=
+let getDispersion sample =
     match sample.total_dispersion with Ntp_wire.Seconds d -> d
+
+let getOffset sample =
+    match sample.offset with Ntp_wire.Seconds d -> d
 
 let dispersion_of_filter filter =
     let dispersions = List.map getDispersion (sorted_filter filter) in
@@ -99,4 +102,6 @@ let dispersion_of_filter filter =
     let scaled = List.mapi bias dispersions in
     let total = List.fold_left (fun a b -> a +. b) 0.0 scaled in
     total
+
+
     
