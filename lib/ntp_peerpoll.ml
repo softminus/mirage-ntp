@@ -66,3 +66,22 @@ let updated_filter time filter sample =
     let updated = List.map (updated_sample time) filter in
     let with_new = [sample] @ List.rev (List.tl (List.rev updated)) in
     with_new
+
+
+(* to select a sample from the filter, we look at the sample with the *lowest delay*
+ * that is still in the filter. If we've used it before, we return None (as it's not OK
+ * to reuse samples -- it must be fresh)
+ *)
+
+let sample_of_filter time filter =
+    let newer a b = match (a.delay, b.delay) with (Ntp_wire.Seconds a_delay, Ntp_wire.Seconds b_delay) -> compare a_delay b_delay
+    in
+    let best = List.hd (List.sort newer filter) in
+    match best.ne_recv with (Ntp_wire.Span sample_time) ->
+        match (sample_time > time) with
+        | true -> Some best
+        | false -> None
+
+
+
+
