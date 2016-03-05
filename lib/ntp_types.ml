@@ -99,11 +99,13 @@ type sample = {
 }
 
 type stats = {
+    freshness:      bool;               (* true iff the best sample in the filter hasn't already been used *)
+
     (* statistics variables *)
-    offset_e:       Ntp_wire.seconds; (* offset from us *)
-    delay_e:        Ntp_wire.seconds; (* delay  away from us *)
-    dispersion_e:   Ntp_wire.seconds; (* peer dispersion *)
-    jitter_e:       Ntp_wire.seconds; (* RMS jitter *)
+    offset_e:       Ntp_wire.seconds;   (* offset from us *)
+    delay_e:        Ntp_wire.seconds;   (* delay  away from us *)
+    dispersion_e:   Ntp_wire.seconds;   (* peer dispersion *)
+    jitter_e:       Ntp_wire.seconds;   (* RMS jitter *)
 
 }
 
