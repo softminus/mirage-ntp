@@ -88,6 +88,15 @@ let fresh_or_not time sample =
 
 (* generate dispersion and jitter statistics *)
 
+
+
+let getDispersion sample=
+    match sample.total_dispersion with Ntp_wire.Seconds d -> d
+
 let dispersion_of_filter filter =
-    
+    let dispersions = List.map getDispersion (sorted_filter filter) in
+    let bias i s = s *. 2. ** (-.(1.0 +. float i)) in
+    let scaled = List.mapi bias dispersions in
+    let total = List.fold_left (fun a b -> a +. b) 0.0 scaled in
+    total
     
