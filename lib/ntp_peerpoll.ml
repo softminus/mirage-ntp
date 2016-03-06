@@ -101,7 +101,13 @@ let dispersion_of_filter filter =
     let bias i s = s *. 2. ** (-.(1.0 +. float i)) in
     let scaled = List.mapi bias dispersions in
     let total = List.fold_left (fun a b -> a +. b) 0.0 scaled in
-    total
+    Ntp_wire.Seconds total
+
+(* ll_sample is the sample with lowest latency in the filter *)
+
+let jitter_of_filter' ll_sample filter =
 
 
-    
+
+let jitter_of_filter filter =
+    jitter_of_filter' (List.hd (sorted_filter filter)) filter
