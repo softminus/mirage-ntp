@@ -90,35 +90,6 @@ type send = {           (* we update this when we SEND a packet to the server *)
 }
 
 
-type sample = {
-    ne_recv:            Ntp_wire.span;      (* the time we received the packet that gave us this sample *)
-    offset:             Ntp_wire.seconds;   (* clock offset *)
-    delay:              Ntp_wire.seconds;   (* round-trip delay *)
-    dispersion:         Ntp_wire.seconds;   (* dispersion in the original measurement *)
-    total_dispersion:   Ntp_wire.seconds;   (* total dispersion = p_dispersion_i + phi*(t - t_0)        *)
-}
-
-type stats = {
-    freshness:      bool;               (* true iff the best sample in the filter hasn't already been used *)
-
-    (* statistics variables *)
-    offset_e:       Ntp_wire.seconds;   (* offset from us *)
-    delay_e:        Ntp_wire.seconds;   (* delay  away from us *)
-    dispersion_e:   Ntp_wire.seconds;   (* peer dispersion *)
-    jitter_e:       Ntp_wire.seconds;   (* RMS jitter *)
-
-}
-
-type poll = {
-    hpoll:      int;
-    burst:      int;
-    reach:      int;
-    ttl:        int;
-    unreach:    int;
-    outdate:    int;
-    nextdate:   int;
-}
-
 type port = Cstruct.uint16
 
 type peerstate = {
@@ -128,10 +99,7 @@ type peerstate = {
     dstaddr:    Ipaddr.t;
     dstport:    port;
 
-    poll:       poll;
 
     send:       send;
     recv:       recv;
-    stats:      stats;
-    filter:     sample list;
 }
