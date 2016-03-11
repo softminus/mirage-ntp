@@ -1,5 +1,5 @@
 open Ntp_wire
-open Ntp_types
+open Ntp_client
 
 let validate_packet b ctx =
     let pkt = pkt_of_buf b in
