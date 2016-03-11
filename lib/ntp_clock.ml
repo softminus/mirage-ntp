@@ -3,13 +3,13 @@
 open Ntp_wire
 
 type clockstate = {
-    stratum:    stratum;
-    precision:  int;
-    rootdelay:  short_ts;
-    rootdisp:   short_ts;
-    refid:      int32;
-    reftime:    ts;
-    leap:       leap;
+    stratum:            stratum;
+    precision:          int;
+    root_delay:         short_ts;
+    root_dispersion:    short_ts;
+    refid:              int32;
+    reftime:            ts;
+    leap:               leap;
 }
 
 
