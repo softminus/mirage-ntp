@@ -1,0 +1,12 @@
+# OASIS_START
+# DO NOT EDIT (digest: 3a66a04f32179c3dec7e944f243c65ad)
+version = "0.0.2"
+description = "RADclock-based NTP client/server"
+requires = "ipaddr tcpip cstruct cstruct.ppx"
+archive(byte) = "wire.cma"
+archive(byte, plugin) = "wire.cma"
+archive(native) = "wire.cmxa"
+archive(native, plugin) = "wire.cmxs"
+exists_if = "wire.cma"
+# OASIS_STOP
+

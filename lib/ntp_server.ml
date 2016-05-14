@@ -15,4 +15,9 @@ let reply_of_query p cs time =
     let root_dispersion =   cs.root_dispersion in
     let refid =             cs.refid in
     let reference_ts =      cs.reftime in
-    3
+
+    let poll = p.poll in
+
+    let origin_ts = p.trans_ts in
+    let recv_ts = time in 
+    let trans_ts = time in

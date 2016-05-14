@@ -22,7 +22,7 @@
  * tries its best to obscure the simplicity. Every packet sent by a full
  * implementation contains:
 
-     * a timestamp struck by the sender when it is created 
+     * a timestamp struck by the sender when it is created
         (known as "transmit timestamp")
      * a timestamp struck by the sender when the last packet from its interlocutor was received
         (known as "receive timestamp")
@@ -62,7 +62,7 @@
 
 
 type ts = {
-    seconds: Cstruct.uint32; 
+    seconds: Cstruct.uint32;
     fraction: Cstruct.uint32;
 }
 
@@ -78,7 +78,7 @@ let delta_ts a b =                              (* returns a - b *)
     Int64.to_float (Int64.sub (ts_to_int64 a) (ts_to_int64 b))
 
 type short_ts = {
-    seconds: Cstruct.uint16; 
+    seconds: Cstruct.uint16;
     fraction: Cstruct.uint16;
 }
 
@@ -169,24 +169,23 @@ let stratum_to_int s = match s with
 
 
 
-cstruct ntp {
-    uint8_t     flags;
-    uint8_t     stratum;
-    int8_t      poll;
-    int8_t      precision;
-    uint32_t    root_delay;
-    uint32_t    root_dispersion;
-    uint32_t    refid;
-
-    uint64_t    reference_ts;    (* not really an important timestamp *)
-
+[%%cstruct
+type ntp = {
+    flags:              uint8_t;
+    stratum:            uint8_t;
+    poll:               int8_t;
+    precision:          int8_t;
+    root_delay:         uint32_t;
+    root_dispersion:    uint32_t;
+    refid:              uint32_t;
+    reference_ts:       uint64_t;   (* not really an important timestamp *)
 
     (* the important timestamps *)
 
-    uint64_t    origin_ts;   (* T1: client-measured time when request departs *)
-    uint64_t    recv_ts;     (* T2: server-measured time when request arrives *)
-    uint64_t    trans_ts;    (* T3: server-measured time when reply   departs *)
-} as big_endian
+    origin_ts:          uint64_t;   (* T1: client-measured time when request departs *)
+    recv_ts:            uint64_t;   (* T2: server-measured time when request arrives *)
+    trans_ts:           uint64_t;   (* T3: server-measured time when reply   departs *)
+} [@@big_endian]]
 
 
 type pkt = {

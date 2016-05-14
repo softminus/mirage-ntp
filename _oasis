@@ -1,10 +1,10 @@
 Name: mirage-ntp
-Version: 0.0.1
-Synopsis: an NTP implementation
+Version: 0.0.2
+Synopsis: RADclock-based NTP client/server
 Authors: Kia <sadieperkins@riseup.net>
 License: ISC
 
-Description: implements NTPv4 (rfc5905)
+Description: an independent implementation of RADclock in OCaml for use as an NTP client and/or server in Mirage unikernels
 
 OASISFormat: 0.4
 Plugins: META (0.4), DevFiles (0.4)
@@ -12,7 +12,12 @@ BuildTools: ocamlbuild
 AlphaFeatures: pure_interface
 
 
-Library "ntp"
-    Path: lib
-    Modules: Ntp_constants, Ntp_wire, Ntp_clock, Ntp_peerpoll, Ntp_client, Ntp_server
-    BuildDepends: ipaddr, tcpip, cstruct, cstruct.syntax
+Library "wire"
+    Path: lib/NTP/
+    Modules: Wire
+    BuildDepends: ipaddr, tcpip, cstruct (>= 2.1.0), cstruct.ppx
+
+Library "RADclock"
+    Path: lib/RADclock/
+    Modules: Types, History
+    BuildDepends: wire, ipaddr

@@ -1,2 +1,3 @@
-Eventually this will be an NTP reference implementation fit for using in MirageOS.
-
+This is an independent reimplementation of RADclock
+(https://github.com/synclab/radclock, http://www.synclab.org/radclock/) in
+OCaml, meant to be integrated in a MirageOS unikernel.
