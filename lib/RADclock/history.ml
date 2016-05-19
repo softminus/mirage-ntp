@@ -9,8 +9,13 @@
  *
  *)
 
-type 'a history = History of int * 'a list
+type 'a history = History of int * int * 'a list (* History (length, felloff, List) *)
 
+type point = Now | Ago of point * int | Fixed of int
+
+type range = Range of point * point
+
+type status = Ready of int | NotReady of int | NeverReady
 
 
 let rec init_aux a b =
@@ -32,6 +37,14 @@ let take n li =
     match (n > 0) with
     | true  ->  take_aux n li
     | false ->  []
+
+let rec idx_of_point h p =
+    match p with
+    | Now           ->  0
+    | Ago (z, zd)   ->  idx_of_point h z + zd
+(*    | Fixed (i)     ->  *)
+
+
 
 
 let nth h n =
@@ -56,3 +69,7 @@ let min_by extractor hist =
         match l with
         | z::zs -> List.fold_left cmp z zs
         | [] -> failwith "min_by"
+
+
+
+
