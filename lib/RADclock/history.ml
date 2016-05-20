@@ -46,12 +46,15 @@ let rec idx_of_point h p =
             match h with History(sz, fixup, l) ->
                 fixup + i
 
-
-
+let rawlist h =
+    match h with History(sz, fizup, l) -> l
 
 let nth h n =
     match h with History(sz, fixup, l) ->
         List.nth l n
+
+let at h p =
+    nth h (idx_of_point h p)
 
 let hcons a h =
     match h with History(sz, fixup, l) ->
