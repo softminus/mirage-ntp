@@ -9,7 +9,7 @@
  *
  *)
 
-type 'a history = History of int * int * 'a list (* History (length, felloff, List) *)
+type 'a history = History of int * int * 'a list (* History (length, fixup, List) *)
 
 type point = Now | Ago of point * int | Fixed of int
 
@@ -42,30 +42,32 @@ let rec idx_of_point h p =
     match p with
     | Now           ->  0
     | Ago (z, zd)   ->  idx_of_point h z + zd
-(*    | Fixed (i)     ->  *)
+    | Fixed (i)     ->
+            match h with History(sz, fixup, l) ->
+                fixup + i
 
 
 
 
 let nth h n =
-    match h with History(sz, l) ->
+    match h with History(sz, fixup, l) ->
         List.nth l n
 
 let hcons a h =
-    match h with History(sz, l) ->
+    match h with History(sz, fixup, l) ->
         match (sz > List.length(l)) with
-        | true -> History(sz, a :: l)
-        | false -> History (sz, a :: (init l))
+        | true -> History(sz, fixup, a :: l)
+        | false -> History (sz, fixup + 1, a :: (init l))
 
 let resize h nsz =
-    match h with History(sz, l) ->
-        History(nsz, take nsz l)
+    match h with History(sz, fixup, l) ->
+        History(nsz, fixup, take nsz l)
 
 
 let min_by extractor hist =
     let cmp x y = if (compare (extractor x) (extractor y) ) > 0 then y else x
     in
-    match hist with History(sz, l) ->
+    match hist with History(sz, fixup, l) ->
         match l with
         | z::zs -> List.fold_left cmp z zs
         | [] -> failwith "min_by"
