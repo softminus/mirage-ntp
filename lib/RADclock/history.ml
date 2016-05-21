@@ -53,8 +53,7 @@ let length h =
     List.length @@ rawlist h
 
 let nth h n =
-    match h with History(cap, fixup, l) ->
-        List.nth l n
+    List.nth (rawlist h) n
 
 let validity h p =
     match (length h > idx_of_point h p) with
