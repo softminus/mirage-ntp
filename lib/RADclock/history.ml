@@ -61,7 +61,9 @@ let nth h n =
 let validity h p =
     match (length h > idx_of_point h p) with
     | true  -> Valid
-    | false -> match (
+    | false -> match (capacity h > idx_of_point h p) with
+        | true  -> NotReady
+        | false -> Invalid
 
 let at h p =
     match validity h p with
