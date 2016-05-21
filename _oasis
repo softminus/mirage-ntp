@@ -19,5 +19,5 @@ Library "wire"
 
 Library "RADclock"
     Path: lib/RADclock/
-    Modules: Types, History
+    Modules: Util, Types, History
     BuildDepends: wire, ipaddr
