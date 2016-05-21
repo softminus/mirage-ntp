@@ -47,10 +47,10 @@ let rec idx_of_point h p =
                 fixup + i
 
 let rawlist h =
-    match h with History(cap, fixup, l) -> l
+    match h with History (cap, fixup, l) -> l
 
 let capacity h =
-    match h with History(cap, fixup, l) -> cap
+    match h with History (cap, fixup, l) -> cap
 
 let length h =
     List.length @@ rawlist h
@@ -71,24 +71,29 @@ let at h p =
     | _     -> None
 
 let hcons a h =
-    match h with History(cap, fixup, l) ->
+    match h with History (cap, fixup, l) ->
         match (cap > List.length(l)) with
-        | true -> History(cap, fixup, a :: l)
+        | true  -> History (cap, fixup, a :: l)
         | false -> History (cap, fixup + 1, a :: (init l))
 
 let resize h ncap =
-    match h with History(cap, fixup, l) ->
-        History(ncap, fixup, take ncap l)
+    match h with History (cap, fixup, l) ->
+        History (ncap, fixup, take ncap l)
 
 
 let min_by extractor hist =
     let cmp x y = if (compare (extractor x) (extractor y) ) > 0 then y else x
     in
-    match hist with History(cap, fixup, l) ->
+    match hist with History (cap, fixup, l) ->
         match l with
         | z::zs -> List.fold_left cmp z zs
         | [] -> failwith "min_by"
 
-(* let range_of hist left right = *)
+let range_of hist left right =
+    match (validity hist left, validity hist right) with
+    | (Invalid, _)          -> NeverReady
+    | (_,       Invalid)    -> NeverReady
+    | (_,       _)          ->
+
 
 
