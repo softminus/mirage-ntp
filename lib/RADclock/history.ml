@@ -27,13 +27,15 @@
 
 open Util
 
-type 'a history = History of int * int * 'a list (* History (length, fixup, List) *)
+type 'a history = History of int * int * 'a list (* History (capacity, fixup, List) *)
 
 type point = Now | Ago of point * int | Fixed of int
 
+type validity = Valid | NotReady | Invalid
+
 type range = Range of point * point
 
-type status = Ready of int | NotReady of int | NeverReady
+type range_status = Ready of int | NotReady of int | NeverReady
 
 
 let rec idx_of_point h p =
@@ -41,42 +43,44 @@ let rec idx_of_point h p =
     | Now           ->  0
     | Ago (z, zd)   ->  idx_of_point h z + zd
     | Fixed (i)     ->
-            match h with History(sz, fixup, l) ->
+            match h with History(cap, fixup, l) ->
                 fixup + i
 
 let rawlist h =
-    match h with History(sz, fizup, l) -> l
+    match h with History(cap, fizup, l) -> l
 
 let length h =
     List.length @@ rawlist h
 
 let nth h n =
-    match h with History(sz, fixup, l) ->
+    match h with History(cap, fixup, l) ->
         List.nth l n
 
-let valid_point h p =
-    length h > idx_of_point h p
+let validity h p =
+    match (length h > idx_of_point h p) with
+    | true  -> Valid
+    | false -> Invalid
 
 let at h p =
-    match valid_point h p with
-    | true  -> Some (nth h @@ idx_of_point h p)
-    | false -> None
+    match validity h p with
+    | Valid -> Some (nth h @@ idx_of_point h p)
+    | _     -> None
 
 let hcons a h =
-    match h with History(sz, fixup, l) ->
-        match (sz > List.length(l)) with
-        | true -> History(sz, fixup, a :: l)
-        | false -> History (sz, fixup + 1, a :: (init l))
+    match h with History(cap, fixup, l) ->
+        match (cap > List.length(l)) with
+        | true -> History(cap, fixup, a :: l)
+        | false -> History (cap, fixup + 1, a :: (init l))
 
-let resize h nsz =
-    match h with History(sz, fixup, l) ->
-        History(nsz, fixup, take nsz l)
+let resize h ncap =
+    match h with History(cap, fixup, l) ->
+        History(ncap, fixup, take ncap l)
 
 
 let min_by extractor hist =
     let cmp x y = if (compare (extractor x) (extractor y) ) > 0 then y else x
     in
-    match hist with History(sz, fixup, l) ->
+    match hist with History(cap, fixup, l) ->
         match l with
         | z::zs -> List.fold_left cmp z zs
         | [] -> failwith "min_by"
