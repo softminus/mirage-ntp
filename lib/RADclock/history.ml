@@ -7,6 +7,22 @@
  * The most recent items are at the head of the list, the oldest are at the tail.
  * When we add a sample, we add it at the head and drop a tail element if necessary
  *
+ *          _L*           _R*                        Oldest sample
+ *         /             /                           |
+ *         V             V                           V
+ *         *      *      *
+ *  H------G------F------E------D------C------B------A
+ *                       #      #      #      #
+ *  ^                    ^                    ^
+ *  |                    |                    |
+ *  Now                  \_L#                 \_R#
+ *
+ * Windows defined between two points include both points.
+ *
+ *
+ * FIXME: write quickcheck tests for this
+ *
+ *
  *)
 
 type 'a history = History of int * int * 'a list (* History (length, fixup, List) *)
@@ -38,6 +54,9 @@ let take n li =
     | true  ->  take_aux n li
     | false ->  []
 
+
+
+
 let rec idx_of_point h p =
     match p with
     | Now           ->  0
@@ -49,12 +68,20 @@ let rec idx_of_point h p =
 let rawlist h =
     match h with History(sz, fizup, l) -> l
 
+let length h =
+    List.length @@ rawlist h
+
 let nth h n =
     match h with History(sz, fixup, l) ->
         List.nth l n
 
+let valid_point h p =
+    length h > idx_of_point h p
+
 let at h p =
-    nth h (idx_of_point h p)
+    match valid_point h p with
+    | true  -> Some (nth h @@ idx_of_point h p)
+    | false -> None
 
 let hcons a h =
     match h with History(sz, fixup, l) ->
@@ -75,6 +102,6 @@ let min_by extractor hist =
         | z::zs -> List.fold_left cmp z zs
         | [] -> failwith "min_by"
 
-
+(* let range_of hist left right = *)
 
 
