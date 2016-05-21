@@ -47,7 +47,10 @@ let rec idx_of_point h p =
                 fixup + i
 
 let rawlist h =
-    match h with History(cap, fizup, l) -> l
+    match h with History(cap, fixup, l) -> l
+
+let capacity h =
+    match h with History(cap, fixup, l) -> cap
 
 let length h =
     List.length @@ rawlist h
@@ -58,7 +61,7 @@ let nth h n =
 let validity h p =
     match (length h > idx_of_point h p) with
     | true  -> Valid
-    | false -> Invalid
+    | false -> match (
 
 let at h p =
     match validity h p with
