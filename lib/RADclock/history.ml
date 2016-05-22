@@ -9,11 +9,11 @@
  *
  *          _L*           _R*                        Oldest sample
  *         /             /                           |
- *         V             V                           V
+ *         V             V       right -->           V
  *         *      *      *
  *  H------G------F------E------D------C------B------A
  *                       #      #      #      #
- *  ^                    ^                    ^
+ *  ^     <--left        ^                    ^
  *  |                    |                    |
  *  Now                  \_L#                 \_R#
  *
@@ -31,11 +31,11 @@ type 'a history = History of int * int * 'a list (* History (capacity, fixup, Li
 
 type point = Now | Ago of point * int | Fixed of int
 
-type validity = Valid | NotReady | Invalid
+type point_validity = Valid | NotReady | Invalid
 
-type range = Range of point * point
+type range_spec = Range of point * point
 
-type range_status = Ready of int | NotReady of int | NeverReady
+type 'a range = Full of 'a history | NotFull | InvalidEdges
 
 
 let rec idx_of_point h p =
@@ -59,6 +59,7 @@ let nth h n =
     List.nth (rawlist h) n
 
 let validity h p =
+    if idx_of_point h p < 0 then invalid_arg "validity" else
     match (length h > idx_of_point h p) with
     | true  -> Valid
     | false -> match (capacity h > idx_of_point h p) with
@@ -89,11 +90,17 @@ let min_by extractor hist =
         | z::zs -> List.fold_left cmp z zs
         | [] -> failwith "min_by"
 
+
+let range_slice hist left right =
+
+
 let range_of hist left right =
     match (validity hist left, validity hist right) with
-    | (Invalid, _)          -> NeverReady
-    | (_,       Invalid)    -> NeverReady
-    | (_,       _)          ->
-
-
-
+    | (Invalid,     _)          -> InvalidEdges
+    | (_,           Invalid)    -> InvalidEdges
+    | (NotReady,    _)          -> NotFull
+    | (_,           NotReady)   -> NotFull
+    | (Valid,       Valid)          ->
+            match (idx_of_point hist left < idx_of_point hist right) with
+            | false -> invalid_arg "range ordering invalid"
+            | true  -> Full (range_slice hist left right)
