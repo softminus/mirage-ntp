@@ -29,7 +29,7 @@ open Util
 
 type 'a history = History of int * int * 'a list (* History (capacity, offset, List) *)
 
-type point = Now | Ago of point * int | Fixed of int
+type point = Now | Ago of point * int | Fixed of int * int (* Fixed (index, oldoffset) *)
 
 type point_validity = Valid | NotReady | Invalid
 
@@ -42,9 +42,9 @@ let rec idx_of_point h p =
     match p with
     | Now           ->  0
     | Ago (z, zd)   ->  idx_of_point h z + zd
-    | Fixed (i)     ->
+    | Fixed (idx, oldoffset)     ->
             match h with History(cap, offset, l) ->
-                offset + i
+                idx + (offset - oldoffset)
 
 let rawlist h =
     match h with History (cap, offset, l) -> l
@@ -90,7 +90,7 @@ let min_by extractor hist =
         | z::zs -> List.fold_left cmp z zs
         | [] -> failwith "min_by"
 
-
+(*
 let range_slice hist left right =
 
 
@@ -103,4 +103,4 @@ let range_of hist left right =
     | (Valid,       Valid)          ->
             match (idx_of_point hist left < idx_of_point hist right) with
             | false -> invalid_arg "range ordering invalid"
-            | true  -> Full (range_slice hist left right)
+            | true  -> Full (range_slice hist left right) *)
