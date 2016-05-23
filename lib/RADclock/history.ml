@@ -74,7 +74,7 @@ let at h p =
 let hcons a h =
     match h with History (cap, offset, l) ->
         match (cap > List.length(l)) with
-        | true  -> History (cap, offset, a :: l)
+        | true  -> History (cap, offset + 1, a :: l)
         | false -> History (cap, offset + 1, a :: (init l))
 
 let resize h ncap =
