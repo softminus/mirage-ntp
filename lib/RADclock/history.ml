@@ -90,8 +90,16 @@ let min_by extractor hist =
         | z::zs -> List.fold_left cmp z zs
         | [] -> failwith "min_by"
 
-(*
 let range_slice hist left right =
+    let idx_l = idx_of_point hist left in
+    let idx_r = idx_of_point hist right in
+    match hist with History (cap, offset, l) ->
+        let head_taken_off = drop idx_l l in
+        let slice = take (idx_r - idx_l + 1) head_taken_off in
+        let slice_offset = offset - idx_l in
+        let capacity = List.length slice in
+        History (capacity, slice_offset, slice)
+
 
 
 let range_of hist left right =
@@ -103,4 +111,4 @@ let range_of hist left right =
     | (Valid,       Valid)          ->
             match (idx_of_point hist left < idx_of_point hist right) with
             | false -> invalid_arg "range ordering invalid"
-            | true  -> Full (range_slice hist left right) *)
+            | true  -> Full (range_slice hist left right)
