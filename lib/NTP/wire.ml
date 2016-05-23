@@ -181,7 +181,7 @@ type ntp = {
     reference_ts:       uint64_t;   (* not really an important timestamp *)
 
     (* the important timestamps *)
-
+                                    (* the below annotations only apply on a packet we're receiving! *)
     origin_ts:          uint64_t;   (* T1: client-measured time when request departs *)
     recv_ts:            uint64_t;   (* T2: server-measured time when request arrives *)
     trans_ts:           uint64_t;   (* T3: server-measured time when reply   departs *)
