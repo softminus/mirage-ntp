@@ -14,9 +14,9 @@ let rec take_aux n li =
     | (n, z::zs)    ->  z :: take_aux (n - 1) zs
 
 let take n li =
-    match (n > 0) with
+    match (0 < n) with
     | true  ->  take_aux n li
-    | false ->  failwith "take"
+    | false ->  []
 
 let rec drop_aux n li =
     match (n, li) with
@@ -26,5 +26,5 @@ let rec drop_aux n li =
 
 let drop n li =
     match (n > 0) with
-    | true  -> drop_aux n li
-    | false -> failwith "drop"
+    | true  ->  drop_aux n li
+    | false ->  li
