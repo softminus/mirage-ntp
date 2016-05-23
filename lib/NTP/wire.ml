@@ -22,10 +22,10 @@
  * tries its best to obscure the simplicity. Every packet sent by a full
  * implementation contains:
 
-     * a timestamp struck by the sender when it is created
-        (known as "transmit timestamp")
      * a timestamp struck by the sender when the last packet from its interlocutor was received
         (known as "receive timestamp")
+     * a timestamp struck by the sender when it is created
+        (known as "transmit timestamp")
      * a copy of what was in the "transmit timestamp" field in the last packet received from its interlocutor
         (known as "originator timestamp")
 
