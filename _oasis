@@ -26,3 +26,9 @@ Library "tsc"
     Path: lib/tsc/
     Modules: Tsc
     CSources: rdtsc_caml.c
+
+Executable "h"
+    Path: lib/tsc/
+    MainIs: h.ml
+    CompiledObject: best
+    BuildDepends: tsc
