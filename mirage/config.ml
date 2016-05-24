@@ -1,29 +1,15 @@
 open Mirage
 
-let main = foreign "Unikernel.Main" (console @-> stackv4 @-> job)
+let stack = generic_stackv4 default_console tap0
 
-let net =
-  try match Sys.getenv "NET" with
-    | "direct" -> `Direct
-    | "socket" -> `Socket
-    | _        -> `Direct
-  with Not_found -> `Direct
-
-let dhcp =
-  try match Sys.getenv "ADDR" with
-    | "dhcp"   -> `Dhcp
-    | "static" -> `Static
-  with Not_found -> `Dhcp
-
-let stack console =socket_stackv4 console [Ipaddr.V4.any]
-(*  match net, dhcp with
-  | `Direct, `Dhcp   -> direct_stackv4_with_dhcp console tap0
-  | `Direct, `Static -> direct_stackv4_with_default_ipv4 console tap0
-  | `Socket, _       -> socket_stackv4 console [Ipaddr.V4.any]
-*)
+let client =
+    let libraries = ["wire" ;"tsc" ] in
+  let packages = [  ] in
+  foreign
+    ~libraries ~packages
+    "Unikernel.Main" @@ console @-> stackv4 @-> job
 
 let () =
-   add_to_ocamlfind_libraries["ntp"];
-  register "network" [
-    main $ default_console $ stack default_console
+    register "network" [
+        client $ default_console $ stack
   ]
