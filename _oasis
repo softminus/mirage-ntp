@@ -14,10 +14,15 @@ AlphaFeatures: pure_interface
 
 Library "wire"
     Path: lib/NTP/
-    Modules: Wire
+    Modules: Wire, Ntp_client
     BuildDepends: ipaddr, tcpip, cstruct (>= 2.1.0), cstruct.ppx
 
 Library "RADclock"
     Path: lib/RADclock/
     Modules: Util, Types, History
     BuildDepends: wire, ipaddr
+
+Library "tsc"
+    Path: lib/tsc/
+    Modules: Tsc
+    CSources: rdtsc_caml.c
