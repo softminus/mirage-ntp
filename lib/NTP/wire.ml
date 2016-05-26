@@ -67,7 +67,13 @@ type ts = {
 }
 
 let ts_to_int64 ts =
-    Int64.add (Int64.of_int32 ts.fraction) (Int64.shift_left (Int64.of_int32 ts.seconds) 32)
+    let lowside = Int64.of_int32 ts.fraction in
+    let fixed =
+        match (lowside < 0x0L) with
+        | true -> Int64.add lowside 0x100000000L
+        | false ->  lowside
+    in
+    Int64.add (fixed) (Int64.shift_left (Int64.of_int32 ts.seconds) 32)
 
 let int64_to_ts i =
     let seconds =   Int64.to_int32 (Int64.shift_right_logical i 32) in
