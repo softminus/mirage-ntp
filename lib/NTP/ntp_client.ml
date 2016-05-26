@@ -37,7 +37,7 @@ let new_query x =
     let precision = -6 in
     let root_delay = {seconds = 1; fraction = 0} in
     let root_dispersion = {seconds = 1; fraction = 0} in
-    let refid = Int32.of_string "0xfeedface" in
+    let refid = Int32.of_string "0x43414d4c" in
     let reference_ts = allzero in
 
     let origin_ts = allzero in
@@ -62,7 +62,7 @@ let new_reply rxtime txtime qp curtime =
     let trans_ts = txtime in
     {leap;version;mode; stratum; poll; precision; root_delay; root_dispersion; refid; reference_ts; origin_ts; recv_ts; trans_ts}
 
-
+let stamp_of_packet hist txt pkt rxt 
 
 
 
