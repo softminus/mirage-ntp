@@ -19,7 +19,7 @@ Library "wire"
 
 Library "RADclock"
     Path: lib/RADclock/
-    Modules: Util, Types, History
+    Modules: Util, Types, History, Ingest
     BuildDepends: wire, ipaddr
 
 Library "tsc"
