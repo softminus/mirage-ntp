@@ -18,3 +18,29 @@ _build/
 # oasis generated files
 setup.data
 setup.log
+_build
+.*.swp
+.merlin
+*.xe
+*.xml
+backend.ml
+main.ml
+myocamlbuild.ml
+**/Makefile
+!lwt/Makefile
+
+# Generated outputs
+*.native
+*.cfg
+*.xen
+*.map
+*.img
+*.xl
+*.xl.in
+static*.ml
+static*.mli
+mir-*
+**/log
+make-fat*-image.sh
+*_gen.ml
+
