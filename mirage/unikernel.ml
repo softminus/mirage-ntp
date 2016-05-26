@@ -17,16 +17,16 @@ module Main (C: V1_LWT.CONSOLE) (S: V1_LWT.STACKV4) = struct
         C.log_s c (green "new UDP frame from %s %d"
                      (Ipaddr.V4.to_string src) src_port)
         >>= fun () ->
-            let thetsc = 243798691869712 in 
+            let tsc_ts:ts = {seconds = Int32.of_int 3673250845; fraction = Int32.of_int 0} in
             let udp = S.udpv4 s in
-            U.write ~source_port:123 ~dest_ip:src ~dest_port:123 udp (buf_of_pkt(new_query @@ int64_to_ts (Int64.of_int thetsc )))
-            >>= fun () ->
-        C.log_s c (yellow "data: %d\n" (thetsc)) 
-        >>= fun () ->
-        let pkt = pkt_of_buf data in
-        match pkt with
+            let pkt = pkt_of_buf data in
+            match pkt with
         | None -> C.log_s c (yellow "fail")
-        | Some f -> C.log_s c (Printf.sprintf "field %Lu" (ts_to_int64 f.trans_ts))
+        | Some f -> U.write ~source_port:123 ~dest_ip:src ~dest_port:123 udp (buf_of_pkt(new_reply tsc_ts tsc_ts f tsc_ts))
+                
+
+
+
       );
 
     S.listen s
