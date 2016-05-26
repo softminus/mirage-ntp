@@ -80,8 +80,8 @@ let int64_to_ts i =
     let fraction =  Int64.to_int32 i in
     {seconds; fraction}
 
-let delta_ts a b =                              (* returns a - b *)
-    Int64.to_float (Int64.sub (ts_to_int64 a) (ts_to_int64 b))
+let to_float a =
+    Int64.to_float (ts_to_int64 a)
 
 type short_ts = {
     seconds: Cstruct.uint16;
@@ -90,6 +90,9 @@ type short_ts = {
 
 let short_ts_to_int32 ts =
     Int32.add (Int32.of_int ts.fraction) (Int32.shift_left (Int32.of_int ts.seconds) 16)
+
+let short_ts_to_float a =
+    Int32.to_float (short_ts_to_int32 a)
 
 let int32_to_short_ts i =
     let seconds =  Int32.to_int(Int32.shift_right_logical i 16) in

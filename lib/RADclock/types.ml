@@ -12,7 +12,7 @@ type quality = NG | OK
 type sample = {
     quality:    quality;
     ttl:        int;
-    stratum:    int;
+    stratum:    Wire.stratum;
     leap:       Wire.leap;
     refid:      Cstruct.uint32;
     rootdelay:  float;
