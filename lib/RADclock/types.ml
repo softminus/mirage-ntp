@@ -11,7 +11,6 @@ type quality = NG | OK
 
 type sample = {
     quality:    quality;
-    ip:         Ipaddr.V6.t;
     ttl:        int;
     stratum:    int;
     leap:       Wire.leap;
