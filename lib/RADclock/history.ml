@@ -66,7 +66,7 @@ let validity h p =
         | true  -> NotReady
         | false -> Invalid
 
-let at h p =
+let get h p =
     match validity h p with
     | Valid -> Some (nth h @@ idx_of_point h p)
     | _     -> None
