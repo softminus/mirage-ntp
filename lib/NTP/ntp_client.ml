@@ -7,7 +7,6 @@
 
 open Wire
 
-
 (* 
  * Generation of query packets (with us as client) to a server:
  *
@@ -61,10 +60,6 @@ let new_reply rxtime txtime qp curtime =
     let recv_ts = rxtime in
     let trans_ts = txtime in
     {leap;version;mode; stratum; poll; precision; root_delay; root_dispersion; refid; reference_ts; origin_ts; recv_ts; trans_ts}
-
-let stamp_of_packet hist txt pkt rxt 
-
-
 
 let validate_packet buf nonce=
     let pkt = pkt_of_buf buf in
