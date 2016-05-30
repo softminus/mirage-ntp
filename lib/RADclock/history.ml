@@ -46,6 +46,11 @@ let rec idx_of_point h p =
             match h with History(cap, offset, l) ->
                 idx + (offset - oldoffset)
 
+let fixed_of_point h p =
+    let idx = idx_of_point h p in
+    match h with History(cap, offset, l) ->
+        Fixed(idx, offset)
+
 let rawlist h =
     match h with History (cap, offset, l) -> l
 
