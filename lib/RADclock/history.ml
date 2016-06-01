@@ -29,27 +29,13 @@ open Util
 
 type 'a history = History of int * int * 'a list (* History (capacity, offset, List) *)
 
-type point = Now | Ago of point * int | Fixed of int * int (* Fixed (index, oldoffset) *)
+type point = Now | Last | Ago of point * int | Fixed of int * int (* Fixed (index, oldoffset) *)
 
 type point_validity = Valid | NotReady | Invalid
 
 type range_spec = Range of point * point
 
 type 'a range = Full of 'a history | NotFull | InvalidEdges
-
-
-let rec idx_of_point h p =
-    match p with
-    | Now           ->  0
-    | Ago (z, zd)   ->  idx_of_point h z + zd
-    | Fixed (idx, oldoffset)     ->
-            match h with History(cap, offset, l) ->
-                idx + (offset - oldoffset)
-
-let fixed_of_point h p =
-    let idx = idx_of_point h p in
-    match h with History(cap, offset, l) ->
-        Fixed(idx, offset)
 
 let rawlist h =
     match h with History (cap, offset, l) -> l
@@ -62,6 +48,21 @@ let length h =
 
 let nth h n =
     List.nth (rawlist h) n
+
+let rec idx_of_point h p =
+    match p with
+    | Now           ->  0
+    | Ago (z, zd)   ->  idx_of_point h z + zd
+    | Last          ->  length h - 1
+    | Fixed (idx, oldoffset)     ->
+            match h with History(cap, offset, l) ->
+                idx + (offset - oldoffset)
+
+let fixed_of_point h p =
+    let idx = idx_of_point h p in
+    match h with History(cap, offset, l) ->
+        Fixed(idx, offset)
+
 
 let validity h p =
     if idx_of_point h p < 0 then invalid_arg "validity" else
