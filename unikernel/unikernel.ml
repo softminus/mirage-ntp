@@ -18,13 +18,14 @@ module Main (C: V1_LWT.CONSOLE) (S: V1_LWT.STACKV4) = struct
       let udp = S.udpv4 s in
       let nonce = Int64.of_int @@ Tsc.rdtsc() in
       let txts:ts = int64_to_ts nonce in
+      C.log_s c (Printf.sprintf "send %Lx" (Int64.of_int @@ Tsc.rdtsc())) >>= fun () ->
       U.write ~source_port:123 ~dest_ip:server ~dest_port:123 udp (buf_of_pkt (new_query txts)) >>= fun () ->
 
           S.listen_udpv4 s ~port:123 (fun ~src ~dst ~src_port data ->
               let packet = validate_packet data txts in
               match packet with
               | None -> C.log_s c (yellow "fail")
-              | Some pkt -> C.log_s c (Printf.sprintf "recv %Lx\ntrans %Lx" (ts_to_int64 pkt.recv_ts) (ts_to_int64 pkt.trans_ts))
+              | Some pkt -> C.log_s c (Printf.sprintf "recv %Lx\ntrans %Lx\ntime %Lx" (ts_to_int64 pkt.recv_ts) (ts_to_int64 pkt.trans_ts)(Int64.of_int @@ Tsc.rdtsc()))
           );
               
     
