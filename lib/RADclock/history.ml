@@ -82,6 +82,16 @@ let hcons a h =
         | true  -> History (cap, offset + 1, a :: l)
         | false -> History (cap, offset + 1, a :: (init l))
 
+let rec synth_aux element h n =
+    match n with
+    | 1     -> hcons element h
+    | n     -> synth_aux element (hcons element h) (n-1)
+
+let synthetic element h n =
+    match (0 < n) with
+    | false -> invalid_arg "synthetic"
+    | true -> synth_aux element h n
+
 let resize h ncap =
     match h with History (cap, offset, l) ->
         History (ncap, offset, take ncap l)
