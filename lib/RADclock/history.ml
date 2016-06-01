@@ -125,6 +125,9 @@ let slice_map hist left right f =
         let slice = take (idx_r - idx_l + 1) head_taken_off in
         History (cap, offset, left_untouched @ (List.map f slice) @ right_untouched)
 
+let map hist f =
+    match hist with History (cap, offset, l) ->
+        History(cap, offset, List.map f l)
 
 let range_of hist left right =
     match (validity hist left, validity hist right) with
