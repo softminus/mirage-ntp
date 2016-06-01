@@ -105,6 +105,15 @@ let range_slice hist left right =
         let capacity = List.length slice in
         History (capacity, slice_offset, slice)
 
+let slice_map hist left right f =
+    let idx_l = idx_of_point hist left in
+    let idx_r = idx_of_point hist right in
+    match hist with History (cap, offset, l) ->
+        let left_untouched = take idx_l l in
+        let right_untouched = drop (idx_r + 1) l in
+        let head_taken_off = drop idx_l l in
+        let slice = take (idx_r - idx_l + 1) head_taken_off in
+        History (cap, offset, left_untouched @ (List.map f slice) @ right_untouched)
 
 
 let range_of hist left right =
