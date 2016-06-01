@@ -29,7 +29,7 @@ open Util
 
 type 'a history = History of int * int * 'a list (* History (capacity, offset, List) *)
 
-type point = Now | Last | Full_last | Ago of point * int | Fixed of int * int (* Fixed (index, oldoffset) *)
+type point = Now | Last | Full_last | Ago of point * int | Hence of point * int | Fixed of int * int (* Fixed (index, oldoffset) *)
 
 type point_validity = Valid | NotReady | Invalid
 
@@ -52,7 +52,8 @@ let nth h n =
 let rec idx_of_point h p =
     match p with
     | Now           ->  0
-    | Ago (z, zd)   ->  idx_of_point h z + zd
+    | Ago   (z, zd)   ->  idx_of_point h z + zd
+    | Hence (z, zd)   ->  idx_of_point h z - zd
     | Last          ->  length h - 1
     | Full_last          ->  capacity h - 1
     | Fixed (idx, oldoffset)     ->
