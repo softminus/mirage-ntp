@@ -30,8 +30,8 @@ let run_estimator estimator win =
     | (_     , _     ) -> failwith "invalid windows passed"
 
 (* WARMUP *)
-let warmup_pstamp_i sample_list =           snd @@ min_and_where rtt_of sample_list
-let warmup_rtt      sample_list = rtt_of @@ fst @@ min_and_where rtt_of sample_list
+let warmup_pstamp_i win =           snd @@ min_and_where rtt_of win
+let warmup_rtt      win = rtt_of @@ fst @@ min_and_where rtt_of win
 
 (* FIXME define a set of functions that generates all the intervals/windows
  * ever used in terms of the current intervals and if an update generated
@@ -40,8 +40,8 @@ let warmup_rtt      sample_list = rtt_of @@ fst @@ min_and_where rtt_of sample_l
  * produce a result.
  *)
 
-let warmup_rtt_windows warmup_samples =
-    warmup_samples
+let warmup_rtt_windows ts =
+    ts
 
 let warmup_p_hat_windows ts =
     let wwidth = 1 + (length ts) / 4 in
