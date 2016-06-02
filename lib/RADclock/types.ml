@@ -1,3 +1,4 @@
+open History
 type counter = Cstruct.uint64
 
 type stamp = {
@@ -21,3 +22,24 @@ type sample = {
 }
 
 
+type regime = ZERO | WARMUP | NORMAL
+
+type sync_state = {
+    regime:         regime;
+    stamps:         sample  history;
+    rtt_hat:        counter history;
+    theta_naive:    float   history;
+}
+
+(* packet zero gets stamps, rtt, and theta_naive.
+ * packets > 0 get stamps, rtt
+ * packets in warmup mode also get theta_naive
+ * when switching from warmup mode, a synthetic history RTT_hat is created in end_warmup_thetahat
+ * packets in normal mode also get theta_naive, RTT_hat.
+ *
+ * also process_RTT_full rewrites RTThat_hist on upward shift detected
+
+type rtt_state = {
+    rtt_hat:        float;
+    rtt
+ *)
