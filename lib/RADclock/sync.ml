@@ -27,8 +27,14 @@ let rate_of_pair newer older =
 let warmup_pstamp_i sample_list =           snd @@ min_and_where rtt_of sample_list
 let warmup_rtt      sample_list = rtt_of @@ fst @@ min_and_where rtt_of sample_list
 
+(* FIXME define a set of functions that generates all the intervals/windows
+ * ever used in terms of the current intervals and if an update generated
+ * correct data -- in a way that doesn't depend on any of the actual data. make
+ * sure they always remain valid regardless of if things like rtt_of fail to
+ * produce a result.
+ *)
 
-
+let warmup_rtt_windows 
 (* NORMAL *)
 
 
