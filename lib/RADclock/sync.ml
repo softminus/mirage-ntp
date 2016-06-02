@@ -23,6 +23,12 @@ let rate_of_pair newer older =
             (forwards +. reverse) /. 2.0
     | (_,   _,    _,    _   ) -> failwith "invalid timestamps provided"
 
+
+let run_estimator estimator win =
+    match win with
+    | (Full a, Full b) -> estimator a b
+    | (_     , _     ) -> failwith "invalid windows passed"
+
 (* WARMUP *)
 let warmup_pstamp_i sample_list =           snd @@ min_and_where rtt_of sample_list
 let warmup_rtt      sample_list = rtt_of @@ fst @@ min_and_where rtt_of sample_list
