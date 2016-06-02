@@ -4,6 +4,11 @@ open Types
 open History
 
 (* SHARED *)
+let run_estimator estimator win =
+    match win with
+    | (Full a, Full b) -> estimator a b
+    | (_     , _     ) -> failwith "invalid windows passed"
+
 let rtt_of sa =
     let del = Int64.sub (sa.tf) (sa.ta) in
     match (del > 0L) with
@@ -24,10 +29,6 @@ let rate_of_pair newer older =
     | (_,   _,    _,    _   ) -> failwith "invalid timestamps provided"
 
 
-let run_estimator estimator win =
-    match win with
-    | (Full a, Full b) -> estimator a b
-    | (_     , _     ) -> failwith "invalid windows passed"
 
 (* WARMUP *)
 let warmup_pstamp_i win =           snd @@ min_and_where rtt_of win
