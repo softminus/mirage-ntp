@@ -34,7 +34,15 @@ let warmup_rtt      sample_list = rtt_of @@ fst @@ min_and_where rtt_of sample_l
  * produce a result.
  *)
 
-let warmup_rtt_windows 
+let warmup_rtt_windows warmup_samples =
+    warmup_samples
+
+let warmup_p_hat_windows ts =
+    let wwidth = 1 + (length ts) / 4 in
+    let near    = range_of ts Newest @@ Older(Newest, wwidth - 1)                                       in
+    let far     = range_of ts                                       (Newer(Oldest, wwidth - 1)) Oldest  in
+    (near, far)
+
 (* NORMAL *)
 
 
