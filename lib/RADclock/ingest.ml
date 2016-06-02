@@ -8,7 +8,7 @@ open Types
 
 
 let sample_of_packet history txt (pkt : pkt) rxt =
-    let l = get history Now in
+    let l = get history Newest in
     let quality = match l with
     | None -> OK
     | Some last ->
