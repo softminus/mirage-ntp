@@ -12,8 +12,8 @@ let run_estimator estimator win =
 let rtt_of sa =
     let del = Int64.sub (sa.tf) (sa.ta) in
     match (del > 0L) with
-    | true  -> del
-    | false -> failwith "invalid TSC values for sample"
+    | true  -> Some del
+    | false -> None
 
 let rate_of_pair newer older =
     let delTa = Int64.sub newer.ta  older.ta in
@@ -30,29 +30,25 @@ let rate_of_pair newer older =
 
 
 
-(* WARMUP *)
+(* WARMUP ESTIMATORS *)
 let warmup_pstamp_i win =           snd @@ min_and_where rtt_of win
 let warmup_rtt      win = rtt_of @@ fst @@ min_and_where rtt_of win
 
-(* FIXME define a set of functions that generates all the intervals/windows
- * ever used in terms of the current intervals and if an update generated
- * correct data -- in a way that doesn't depend on any of the actual data. make
- * sure they always remain valid regardless of if things like rtt_of fail to
- * produce a result.
- *)
 
-let warmup_rtt_windows ts =
+let warmup_p_hat near far =
+    let best_in_near = snd
+
+(* WARMUP WINDOWS *)
+
+let warmup_rtt_window ts =      (* FOR: warmup_pstamp_i warmup_rtt *)
     ts
 
-let warmup_p_hat_windows ts =
+let warmup_p_hat_windows ts =   (* FOR: warmup_p_hat *)
     let wwidth = 1 + (length ts) / 4 in
     let near    = range_of ts Newest @@ Older(Newest, wwidth - 1)                                       in
     let far     = range_of ts                                       (Newer(Oldest, wwidth - 1)) Oldest  in
     (near, far)
 
-(* NORMAL *)
+(* NORMAL ESTIMATORS *)
+(* NORMAL WINDOWS *)
 
-
-(* let step_state state sa =
-    match state.regime with
-    | ZERO  *)
