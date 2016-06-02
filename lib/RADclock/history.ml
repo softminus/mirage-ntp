@@ -51,12 +51,12 @@ let nth h n =
 
 let rec idx_of_point h p =
     match p with
-    | Newest                       ->  0
-    | Older   (z, zd)             ->  idx_of_point h z + zd
+    | Newest                    ->  0
+    | Older   (z, zd)           ->  idx_of_point h z + zd
     | Newer (z, zd)             ->  idx_of_point h z - zd
-    | Oldest                      ->  length h - 1
+    | Oldest                    ->  length h - 1
     | Full_last                 ->  capacity h - 1
-    | Fixed (idx, oldoffset)    -> match h with History(cap, offset, l) -> idx + (offset - oldoffset)
+    | Fixed (idx, oldoffset)    ->  match h with History(cap, offset, l) -> idx + (offset - oldoffset)
 
 let fixed_of_point h p =
     let idx = idx_of_point h p in
