@@ -15,7 +15,7 @@
  *                       #      #      #      #
  *  ^     <--left        ^                    ^
  *  |                    |                    |
- *  Now                  \_L#                 \_R#
+ *  Newest               \_L#                 \_R#
  *
  * Windows defined between two points include both points.
  *
@@ -29,7 +29,7 @@ open Util
 
 type 'a history = History of int * int * 'a list (* History (capacity, offset, List) *)
 
-type point = Now | Last | Full_last | Ago of point * int | Hence of point * int | Fixed of int * int (* Fixed (index, oldoffset) *)
+type point = Newest | Oldest | Full_last | Older of point * int | Newer of point * int | Fixed of int * int (* Fixed (index, oldoffset) *)
 
 type point_validity = Valid | NotReady | Invalid
 
@@ -51,13 +51,12 @@ let nth h n =
 
 let rec idx_of_point h p =
     match p with
-    | Now                       ->  0
-    | Ago   (z, zd)             ->  idx_of_point h z + zd
-    | Hence (z, zd)             ->  idx_of_point h z - zd
-    | Last                      ->  length h - 1
+    | Newest                       ->  0
+    | Older   (z, zd)             ->  idx_of_point h z + zd
+    | Newer (z, zd)             ->  idx_of_point h z - zd
+    | Oldest                      ->  length h - 1
     | Full_last                 ->  capacity h - 1
-    | Fixed (idx, oldoffset)    -> match h with History(cap, offset, l) ->
-            idx + (offset - oldoffset)
+    | Fixed (idx, oldoffset)    -> match h with History(cap, offset, l) -> idx + (offset - oldoffset)
 
 let fixed_of_point h p =
     let idx = idx_of_point h p in
@@ -149,6 +148,6 @@ let range_of hist left right =
     | (NotReady,    _)          -> NotFull
     | (_,           NotReady)   -> NotFull
     | (Valid,       Valid)          ->
-            match (idx_of_point hist left < idx_of_point hist right) with
+            match (idx_of_point hist left <= idx_of_point hist right) with
             | false -> invalid_arg "range ordering invalid"
             | true  -> Full (range_slice hist left right)
