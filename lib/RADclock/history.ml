@@ -52,7 +52,7 @@ let nth h n =
 let rec idx_of_point h p =
     match p with
     | Newest                    ->  0
-    | Older   (z, zd)           ->  idx_of_point h z + zd
+    | Older (z, zd)             ->  idx_of_point h z + zd
     | Newer (z, zd)             ->  idx_of_point h z - zd
     | Oldest                    ->  length h - 1
     | Full_last                 ->  capacity h - 1
