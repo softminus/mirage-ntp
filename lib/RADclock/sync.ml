@@ -4,13 +4,15 @@ open Types
 open History
 
 (* SHARED *)
+
 let run_estimator estimator win =
     match win with
     | (Full a, Full b) -> estimator a b
     | (_     , _     ) -> failwith "invalid windows passed"
 
-let rtt_of sa =
-    let del = Int64.sub (sa.tf) (sa.ta) in
+let rtt_of sample =
+    let ts = sample.timestamps in
+    let del = Int64.sub (ts.tf) (ts.ta) in
     match (del > 0L) with
     | true  -> del
     | false -> failwith "invalid RTT / causality error. This is a bug"
@@ -19,7 +21,9 @@ let error_of packet rtt_hat =
     delta_TSC (rtt_of packet) rtt_hat
 
 
-let rate_of_pair newer older =
+let rate_of_pair newer_sample older_sample =
+    let newer = newer_sample.timestamps in
+    let older = older_sample.timestamps in
     let delTa = Int64.sub newer.ta  older.ta in
     let delTb = newer.tb -.         older.tb in
     let delTe = newer.te -.         older.te in
@@ -46,7 +50,7 @@ let warmup_p_hat rtt_hat near far =
     match p_hat with
     | None -> None
     | Some p ->
-            let del_tb      = best_in_near.tb -. best_in_far.tb in
+            let del_tb      = best_in_near.timestamps.tb -. best_in_far.timestamps.tb in
             let far_error   = Int64.to_float @@ error_of best_in_far  rtt_hat in
             let near_error  = Int64.to_float @@ error_of best_in_near rtt_hat in
             let p_hat_error = (p /. del_tb) *. (far_error +. near_error) in
