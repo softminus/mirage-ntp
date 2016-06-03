@@ -54,7 +54,7 @@ let new_query =
     let txts:ts = int64_to_ts nonce in
     (txts, buf_of_pkt @@ query_pkt txts)
 
-let validate_packet buf nonce=
+let validate_packet buf nonce =
     let pkt = pkt_of_buf buf in
     match pkt with
     | None -> None
