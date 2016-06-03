@@ -10,17 +10,17 @@ open Tsc
  *
  *)
 
-(* 
+(*
  * Generation of query packets (with us as client) to a server:
  *
  * We are mildly hostile here for simplicity purposes and we fill out the
  * reference timestamp with zeroes. Similarly, we fill the receive timestamp
- * and originator timestamp with zeroes. 
+ * and originator timestamp with zeroes.
  *
  * The only timestamp that needs to not be zeroes is the transmit timestamp
  * because it'll get copied and returned to us in the server's reply (in the
  * "originator timestamp" field) and we need to remember it so we can bind each
- * reply packet from the server to the correct query packet we sent. 
+ * reply packet from the server to the correct query packet we sent.
  *
  * However, it need not be a timestamp, and indeed, we just choose a random
  * number to make off-path attacks a little more difficult.
@@ -44,7 +44,7 @@ let query_pkt x =
 
     let origin_ts = allzero in
     let recv_ts = allzero in
-    let trans_ts = x in 
+    let trans_ts = x in
     {leap;version;mode; stratum; poll; precision; root_delay; root_dispersion; refid; reference_ts; origin_ts; recv_ts; trans_ts}
 
 let reply_pkt rxtime txtime qp curtime =
@@ -89,15 +89,15 @@ let process_reply state buf txts =
     | None -> state
     | Some pkt ->
 
-let handle_history 
+let handle_history
 
 let sample_of_packet history txt (pkt : pkt) rxt =
     let l = get history Newest in
     let quality = match l with
     | None -> OK
     | Some last ->
-            (* FIXME: check for TTL changes when we have a way to get ttl of 
-             * received packet from mirage UDP stack 
+            (* FIXME: check for TTL changes when we have a way to get ttl of
+             * received packet from mirage UDP stack
              *)
             if pkt.leap     <> last.leap    then NG else
             if pkt.refid    <> last.refid   then NG else
