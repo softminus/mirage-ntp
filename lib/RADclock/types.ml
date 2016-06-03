@@ -8,7 +8,7 @@ let delta_TSC newer older =
     | false -> failwith "invalid ΔTSC!"
 
 
-type stamp = {
+type timestamps = {
     ta:     counter;
     tb:     float;
     te:     float;
@@ -25,7 +25,7 @@ type sample = {
     refid:      Cstruct.uint32;
     rootdelay:  float;
     rootdisp:   float;
-    stamp:      stamp;
+    timestamps: timestamps;
 }
 
 
