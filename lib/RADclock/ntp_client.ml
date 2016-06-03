@@ -67,7 +67,7 @@ let validate_reply buf nonce =
                                                                           we struck in it *)
             Some p
 
-let sample_of_packet history nonce (pkt : pkt) rxt =
+let sample_of_packet history nonce (pkt : pkt) rx_tsc =
     let l = get history Newest in
     let quality = match l with
     | None -> OK
@@ -85,7 +85,7 @@ let sample_of_packet history nonce (pkt : pkt) rxt =
     let refid       = pkt.refid in
     let rootdelay   = short_ts_to_float pkt.root_delay in
     let rootdisp    = short_ts_to_float pkt.root_dispersion in
-    let timestamps  = {ta = nonce.tsc; tb = to_float pkt.recv_ts; te = to_float pkt.trans_ts; tf = rxt} in
+    let timestamps  = {ta = nonce.tsc; tb = to_float pkt.recv_ts; te = to_float pkt.trans_ts; tf = rx_tsc} in
     {quality; ttl; stratum; leap; refid; rootdelay; rootdisp; timestamps}
 
 let new_history state buf nonce =
