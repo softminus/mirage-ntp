@@ -18,12 +18,12 @@ Library "tsc"
 
 Library "wire"
     Path: lib/NTP/
-    Modules: Wire, Ntp_client
+    Modules: Wire
     BuildDepends: ipaddr, tcpip, cstruct (>= 2.1.0), cstruct.ppx
 
 Library "RADclock"
     Path: lib/RADclock/
-    Modules: Util, Types, History, Ingest, Sync
+    Modules: Util, Types, History, Ntp_client, Sync
     BuildDepends: wire, tsc, ipaddr
 
 

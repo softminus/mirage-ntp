@@ -47,50 +47,6 @@ let query_pkt x =
     let trans_ts = x in
     {leap;version;mode; stratum; poll; precision; root_delay; root_dispersion; refid; reference_ts; origin_ts; recv_ts; trans_ts}
 
-let reply_pkt rxtime txtime qp curtime =
-    let leap = NoWarning in
-    let version = 4 in
-    let mode = Server in
-    let stratum = Primary in
-    let poll = qp.poll in
-    let precision = -6 in
-    let root_delay = {seconds = 1; fraction = 0} in
-    let root_dispersion = {seconds = 1; fraction = 0} in
-    let refid = Int32.of_string "0x43414d4c" in
-
-    let reference_ts = curtime in
-    let origin_ts = qp.trans_ts in
-    let recv_ts = rxtime in
-    let trans_ts = txtime in
-    {leap;version;mode; stratum; poll; precision; root_delay; root_dispersion; refid; reference_ts; origin_ts; recv_ts; trans_ts}
-
-let validate_packet buf nonce=
-    let pkt = pkt_of_buf buf in
-    match pkt with
-    | None -> None
-    | Some p ->
-            if p.version    <>  4                       then None else
-
-            if p.trans_ts   =   int64_to_ts Int64.zero  then None else (* server not sync'd *)
-            if p.recv_ts    =   int64_to_ts Int64.zero  then None else (* server not sync'd *)
-
-            if p.origin_ts  <>  nonce                   then None else (* this packet doesn't have the timestamp
-                                                                          we struck in it *)
-            Some p
-
-let new_query =
-    let nonce = Int64.of_int @@ rdtsc() in
-    let txts:ts = int64_to_ts nonce in
-    (txts, buf_of_pkt @@ query_pkt txts)
-
-
-let process_reply state buf txts =
-    match (validate_packet buf txts) with
-    | None -> state
-    | Some pkt ->
-
-let handle_history
-
 let sample_of_packet history txt (pkt : pkt) rxt =
     let l = get history Newest in
     let quality = match l with
@@ -112,4 +68,33 @@ let sample_of_packet history txt (pkt : pkt) rxt =
     let stamp       = {ta = txt; tb = to_float pkt.recv_ts; te = to_float pkt.trans_ts; tf = rxt} in
     {quality; ttl; stratum; leap; refid; rootdelay; rootdisp; stamp}
 
+
+let new_query =
+    let nonce = Int64.of_int @@ rdtsc() in (* later this will be a random number, and we'll just return
+                                            * the value of the TSC and the random nonce to our caller
+                                            *)
+    let txts:ts = int64_to_ts nonce in
+    (txts, buf_of_pkt @@ query_pkt txts)
+
+let validate_packet buf nonce=
+    let pkt = pkt_of_buf buf in
+    match pkt with
+    | None -> None
+    | Some p ->
+            if p.version    <>  4                       then None else
+
+            if p.trans_ts   =   int64_to_ts Int64.zero  then None else (* server not sync'd *)
+            if p.recv_ts    =   int64_to_ts Int64.zero  then None else (* server not sync'd *)
+
+            if p.origin_ts  <>  nonce                   then None else (* this packet doesn't have the timestamp
+                                                                          we struck in it *)
+            Some p
+
+
+let process_reply state buf txts =
+    match (validate_packet buf txts) with
+    | None -> state
+    | Some pkt ->
+
+let handle_history = 3
 
