@@ -39,9 +39,7 @@ type regime = ZERO | WARMUP | NORMAL
 
 type sync_state = {
     regime:         regime;
-    stamps:         sample  history;
-    rtt_hat:        counter history;
-    theta_naive:    float   history;
+    samples:        sample  history;
 }
 
 (* packet zero gets stamps, rtt, and theta_naive.
