@@ -48,13 +48,12 @@ let query_pkt x =
     {leap;version;mode; stratum; poll; precision; root_delay; root_dispersion; refid; reference_ts; origin_ts; recv_ts; trans_ts}
 
 let new_query =
-    let nonce = Int64.of_int @@ rdtsc() in (* later this will be a random number, and we'll just return
-                                            * the value of the TSC and the random nonce to our caller
-                                            *)
-    let txts:ts = int64_to_ts nonce in
-    (txts, buf_of_pkt @@ query_pkt txts)
+    let tsc = Int64.of_int @@ rdtsc() in
+    let txts:ts = int64_to_ts tsc in            (* FIXME: make this a random number *)
+    let nonce = {tsc; txts} in
+    (nonce, buf_of_pkt @@ query_pkt txts)
 
-let validate_packet buf nonce =
+let validate_reply buf nonce =
     let pkt = pkt_of_buf buf in
     match pkt with
     | None -> None
@@ -64,7 +63,7 @@ let validate_packet buf nonce =
             if p.trans_ts   =   int64_to_ts Int64.zero  then None else (* server not sync'd *)
             if p.recv_ts    =   int64_to_ts Int64.zero  then None else (* server not sync'd *)
 
-            if p.origin_ts  <>  nonce                   then None else (* this packet doesn't have the timestamp
+            if p.origin_ts  <>  nonce.txts              then None else (* this packet doesn't have the timestamp
                                                                           we struck in it *)
             Some p
 
@@ -89,11 +88,8 @@ let sample_of_packet history txt (pkt : pkt) rxt =
     let timestamps  = {ta = txt; tb = to_float pkt.recv_ts; te = to_float pkt.trans_ts; tf = rxt} in
     {quality; ttl; stratum; leap; refid; rootdelay; rootdisp; timestamps}
 
-
-let process_reply state buf txts =
-    match (validate_packet buf txts) with
+let new_history state buf nonce =
+    match (validate_reply buf nonce) with
     | None -> state
     | Some pkt ->state
-
-let handle_history = 3
 
