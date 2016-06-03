@@ -1,11 +1,14 @@
+open History
+open Wire
+open Types
+open Tsc
+
 (*
  * This corresponds to RADclock's client_ntp.c
  *
  * this part generates NTP queries and processes replies and creates samples
  *
  *)
-
-open Wire
 
 (* 
  * Generation of query packets (with us as client) to a server:
@@ -27,7 +30,7 @@ open Wire
 
 let allzero:ts = {seconds = Int32.of_int 0; fraction = Int32.of_int 0}
 
-let new_query x = 
+let query_pkt x =
     let leap = Unknown in
     let version = 4 in
     let mode = Client in
@@ -44,7 +47,7 @@ let new_query x =
     let trans_ts = x in 
     {leap;version;mode; stratum; poll; precision; root_delay; root_dispersion; refid; reference_ts; origin_ts; recv_ts; trans_ts}
 
-let new_reply rxtime txtime qp curtime =
+let reply_pkt rxtime txtime qp curtime =
     let leap = NoWarning in
     let version = 4 in
     let mode = Server in
@@ -74,3 +77,39 @@ let validate_packet buf nonce=
             if p.origin_ts  <>  nonce                   then None else (* this packet doesn't have the timestamp
                                                                           we struck in it *)
             Some p
+
+let new_query =
+    let nonce = Int64.of_int @@ rdtsc() in
+    let txts:ts = int64_to_ts nonce in
+    (txts, buf_of_pkt @@ query_pkt txts)
+
+
+let process_reply state buf txts =
+    match (validate_packet buf txts) with
+    | None -> state
+    | Some pkt ->
+
+let handle_history 
+
+let sample_of_packet history txt (pkt : pkt) rxt =
+    let l = get history Newest in
+    let quality = match l with
+    | None -> OK
+    | Some last ->
+            (* FIXME: check for TTL changes when we have a way to get ttl of 
+             * received packet from mirage UDP stack 
+             *)
+            if pkt.leap     <> last.leap    then NG else
+            if pkt.refid    <> last.refid   then NG else
+            if pkt.stratum  <> last.stratum then NG else OK
+    in
+    let ttl         = 64 in
+    let stratum     = pkt.stratum in
+    let leap        = pkt.leap in
+    let refid       = pkt.refid in
+    let rootdelay   = short_ts_to_float pkt.root_delay in
+    let rootdisp    = short_ts_to_float pkt.root_dispersion in
+    let stamp       = {ta = txt; tb = to_float pkt.recv_ts; te = to_float pkt.trans_ts; tf = rxt} in
+    {quality; ttl; stratum; leap; refid; rootdelay; rootdisp; stamp}
+
+
