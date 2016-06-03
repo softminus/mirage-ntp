@@ -11,6 +11,10 @@ Plugins: META (0.4), DevFiles (0.4)
 BuildTools: ocamlbuild
 AlphaFeatures: pure_interface
 
+Library "tsc"
+    Path: lib/tsc/
+    Modules: Tsc
+    CSources: rdtsc_caml.c
 
 Library "wire"
     Path: lib/NTP/
@@ -20,12 +24,8 @@ Library "wire"
 Library "RADclock"
     Path: lib/RADclock/
     Modules: Util, Types, History, Ingest, Sync
-    BuildDepends: wire, ipaddr
+    BuildDepends: wire, tsc, ipaddr
 
-Library "tsc"
-    Path: lib/tsc/
-    Modules: Tsc
-    CSources: rdtsc_caml.c
 
 Executable "h"
     Path: lib/tsc/
