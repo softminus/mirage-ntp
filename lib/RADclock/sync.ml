@@ -51,7 +51,7 @@ let warmup_p_hat rtt_hat near far =
 let warmup_C_fixup latest old_C old_p_hat new_p_hat =
     old_C +. (Int64.to_float latest.ta) *. Int64.to_float (Int64.sub old_p_hat new_p_hat)
 
-
+let warmup_p_local = warmup_p_hat
 
 
 
@@ -71,6 +71,9 @@ let win_warmup_p_hat ts =   (* FOR: warmup_p_hat *)
 
 let win_warmup_C_fixup ts = (* FOR: warmup_C_fixup *)
     get ts Newest
+
+let win_warmup_p_local = win_warmup_p_hat
+
 
 
 (* NORMAL ESTIMATORS *)
