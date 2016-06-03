@@ -88,8 +88,7 @@ let sample_of_packet history nonce (pkt : pkt) rx_tsc =
     let timestamps  = {ta = nonce.tsc; tb = to_float pkt.recv_ts; te = to_float pkt.trans_ts; tf = rx_tsc} in
     {quality; ttl; stratum; leap; refid; rootdelay; rootdisp; timestamps}
 
-let new_history state buf nonce =
+let new_sample_history old buf nonce rx_tsc =
     match (validate_reply buf nonce) with
-    | None -> state
-    | Some pkt ->state
-
+    | None      ->  old
+    | Some pkt  ->  {old with samples = hcons (sample_of_packet old.samples nonce pkt rx_tsc) old.samples}
