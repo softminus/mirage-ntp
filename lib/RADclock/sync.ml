@@ -15,6 +15,10 @@ let rtt_of sa =
     | true  -> del
     | false -> failwith "invalid RTT / causality error. This is a bug"
 
+let error_of packet rtt_hat =
+    delta_TSC (rtt_of packet) rtt_hat
+
+
 let rate_of_pair newer older =
     let delTa = Int64.sub newer.ta  older.ta in
     let delTb = newer.tb -.         older.tb in
@@ -43,8 +47,8 @@ let warmup_p_hat rtt_hat near far =
     | None -> None
     | Some p ->
             let del_tb      = best_in_near.tb -. best_in_far.tb in
-            let rtt_far     = Int64.to_float @@ delta_TSC (rtt_of best_in_far ) rtt_hat in
-            let rtt_near    = Int64.to_float @@ delta_TSC (rtt_of best_in_near) rtt_hat in
+            let rtt_far     = Int64.to_float @@ error_of best_in_far  rtt_hat in
+            let rtt_near    = Int64.to_float @@ error_of best_in_near rtt_hat in
             let p_hat_error = (p /. del_tb) *. (rtt_far +. rtt_near) in
             Some (p, p_hat_error)
 
