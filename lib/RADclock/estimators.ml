@@ -23,6 +23,11 @@ let rtt_of sample =
     | false -> failwith "invalid RTT / causality error. This is a bug"
 
 let check_positive x =
+    match (x > 0.0) with
+    | true -> x
+    | false -> failwith "should be positive!"
+
+let check_non_negative x =
     match (x >= 0.0) with
     | true -> x
     | false -> failwith "should never be negative!"
@@ -82,7 +87,7 @@ let warmup_p_hat rtt_hat near far =
     match p_hat with
     | None -> None
     | Some p ->
-            let del_tb      = check_positive (best_in_near.timestamps.tb -. best_in_far.timestamps.tb) in
+            let del_tb      = check_non_negative (best_in_near.timestamps.tb -. best_in_far.timestamps.tb) in
             let far_error   = Int64.to_float @@ error_of best_in_far  rtt_hat in
             let near_error  = Int64.to_float @@ error_of best_in_near rtt_hat in
             let p_hat_error = (p /. del_tb) *. (far_error +. near_error) in
@@ -110,8 +115,10 @@ let warmup_theta_hat params p_hat rtt_hat c latest win =
         let qual = warmup_theta_quality params p_hat rtt_hat latest sa in
         exp ( (-. qual *. qual) /. (params.e_offset *. params.e_offset))
     in
-    let theta_hat, wtsum = weighted_sum (theta_of p_hat c) (wt params p_hat rtt_hat latest) win in
-    theta_hat
+    let sum, wtsum = weighted_sum (theta_of p_hat c) (wt params p_hat rtt_hat latest) win in
+    let theta_hat = sum / check_positive(sum)
+
+
 
 
 
