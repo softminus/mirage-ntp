@@ -27,8 +27,3 @@ Library "ntp_client"
     BuildDepends: wire, tsc, ipaddr
 
 
-Executable "h"
-    Path: lib/tsc/
-    MainIs: h.ml
-    CompiledObject: best
-    BuildDepends: tsc
