@@ -80,6 +80,14 @@ let warmup_C_fixup old_C old_p_hat new_p_hat latest =
     let newest = point_of_history latest in
     Some (old_C +. (Int64.to_float newest.timestamps.ta) *. Int64.to_float (Int64.sub old_p_hat new_p_hat))
 
+(* C is only estimated once -- with first packet ever received! It is fixed up with
+ * warmup_C_fixup to correct for change in p_hat but warmup_C_oneshot is never called
+ * more than once. No corresponding win_ function exists for it.
+ *)
+let warmup_C_oneshot p_hat first =
+    first.timestamps.tb -. (p_hat *. Int64.to_float first.timestamps.ta)
+
+
 let warmup_theta_hat = 3
 
 
