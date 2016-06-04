@@ -5,10 +5,20 @@ open History
 
 (* SHARED *)
 
-let run_estimator estimator win =
-    match win with
+let run_estimator_2win  estimator wins =
+    match wins with
     | (Full a, Full b) -> estimator a b
     | (_     , _     ) -> failwith "invalid windows passed"
+
+let run_estimator_1win  estimator win =
+    match win with
+    | Full a            -> estimator a
+    | _                 -> failwith "invalid windows passed"
+
+let point_of_history hi = (* takes a single-element history and gives us the point inside *)
+    match (length hi) with
+    | 1     -> nth hi 0
+    | _     -> failwith "invalid list passed to point_of_se_history, this should never happen"
 
 let rtt_of sample =
     let ts = sample.timestamps in
@@ -57,7 +67,8 @@ let warmup_p_hat rtt_hat near far =
             Some (p, p_hat_error)
 
 let warmup_C_fixup latest old_C old_p_hat new_p_hat =
-    old_C +. (Int64.to_float latest.ta) *. Int64.to_float (Int64.sub old_p_hat new_p_hat)
+    let newest = point_of_history latest in
+    Some (old_C +. (Int64.to_float newest.timestamps.ta) *. Int64.to_float (Int64.sub old_p_hat new_p_hat))
 
 let warmup_p_local = warmup_p_hat
 
@@ -69,7 +80,7 @@ let warmup_p_local = warmup_p_hat
 (* WARMUP WINDOWS *)
 
 let win_warmup_rtt ts =     (* FOR: warmup_pstamp_i warmup_rtt *)
-    ts
+    range_of ts Newest Oldest
 
 let win_warmup_p_hat ts =   (* FOR: warmup_p_hat *)
     let wwidth = 1 + (length ts) / 4 in
@@ -78,7 +89,7 @@ let win_warmup_p_hat ts =   (* FOR: warmup_p_hat *)
     (near, far)
 
 let win_warmup_C_fixup ts = (* FOR: warmup_C_fixup *)
-    get ts Newest
+    range_of ts Newest Newest
 
 let win_warmup_p_local = win_warmup_p_hat
 
