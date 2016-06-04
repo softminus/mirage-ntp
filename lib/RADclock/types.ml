@@ -1,5 +1,13 @@
 open History
 open Wire
+
+
+type physical_parameters = {
+    skm_rate:       float;
+}
+
+
+
 type counter = Cstruct.uint64
 
 type nonce = {
@@ -28,7 +36,7 @@ type sample = {
 }
 
 
-type regime = WARMUP | NORMAL
+type regime = ZERO | WARMUP | NORMAL (* turns out we *do* need to distinguish between ZERO and WARMUP *)
 
 
 
