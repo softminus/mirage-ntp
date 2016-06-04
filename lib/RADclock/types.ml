@@ -40,11 +40,10 @@ type regime = WARMUP | NORMAL
 
 
 type estimators = {
-    pstamp:         point   option; (* this is a point within samples, not rtt_hat *)
-    rtt_hat:        float   history;
-    p_hat:          float   option;
-    p_hat_error:    float   option;
-    p_local:        float   option;
+    pstamp:                     point   option; (* this is a point within samples, not rtt_hat *)
+    rtt_hat:                    float   history;
+    p_hat_and_error:    (float * float) option;
+    p_local:                    float   option;
 }
 
 
