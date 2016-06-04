@@ -15,11 +15,6 @@ let run_estimator_1win  estimator win =
     | Full a            -> estimator a
     | _                 -> failwith "invalid windows passed"
 
-let point_of_history hi = (* takes a single-element history and gives us the point inside *)
-    match (length hi) with
-    | 1     -> nth hi 0
-    | _     -> failwith "invalid list passed to point_of_se_history, this should never happen"
-
 let rtt_of sample =
     let ts = sample.timestamps in
     let del = Int64.sub (ts.tf) (ts.ta) in
