@@ -82,7 +82,7 @@ let warmup_p_local = warmup_p_hat
 let win_warmup_pstamp   ts =    (* FOR: warmup_pstamp *)
     range_of ts Newest Oldest
 
-let win_warmup_rtt      ts =    (* FOR: warmup_rtt *)
+let win_warmup_rtt_hat  ts =    (* FOR: warmup_rtt *)
     range_of ts Newest Oldest
 
 let win_warmup_p_hat    ts =    (* FOR: warmup_p_hat *)
