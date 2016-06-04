@@ -120,12 +120,12 @@ let weighted_sum f weight hist =
 
 
 
-let warmup_theta_hat params =
+let warmup_theta_hat params p_hat rtt_hat c latest =
     let wt params p_hat rtt_hat latest sa =
         let qual = warmup_theta_quality params p_hat rtt_hat latest sa in
         exp ( (-. qual *. qual) /. (params.e_offset *. params.e_offset))
     in
-    3
+    weighted_sum (theta_of p_hat c) (wt params p_hat rtt_hat latest)
 
 
 
