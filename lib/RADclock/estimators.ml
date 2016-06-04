@@ -107,7 +107,12 @@ let warmup_theta_quality params p_hat rtt_hat latest sa =
 
 
 
-let warmup_theta_hat = 3
+let warmup_theta_hat params =
+    let wt params p_hat rtt_hat latest sa =
+        let qual = warmup_theta_quality params p_hat rtt_hat latest sa in
+        exp ( (-. qual *. qual) /. (params.e_offset *. params.e_offset))
+    in
+    3
 
 
 

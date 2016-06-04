@@ -4,6 +4,7 @@ open Wire
 
 type physical_parameters = {
     skm_rate:       float;
+    e_offset:       float;
 }
 
 
