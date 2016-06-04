@@ -38,19 +38,28 @@ module Main (C: V1_LWT.CONSOLE) (S: V1_LWT.STACKV4) = struct
         let start c s =
             let st = connect_to_server s server in
             let udp = S.udpv4 s in
-
             let state = blank_state in
 
-            let q = new_query in
+            let q = new_query (Int64.of_int @@ Tsc.rdtsc()) in
             C.log_s c (Printf.sprintf "send ONE %Lx" ((fst q).tsc)) >>= fun () ->
             U.write ~source_port:123 ~dest_ip:server ~dest_port:123 udp (snd q) >>= fun () ->
             rx st >>= fun (rxd) ->
+            C.log_s c (Printf.sprintf "recv ONE %Lx" (snd rxd)) >>= fun () ->
             let state = add_sample state (fst rxd) (fst q) (snd rxd) in
             Lwt.return(update_estimators state) >>= fun(state) ->
             let x = state.estimators.rtt_hat in
-            C.log_s c (Printf.sprintf "rtt hat ONE %Lx" (History.point_of_history x)) >>= fun () ->
+            C.log_s c (Printf.sprintf "rtt hat ONE %Lx" (History.nth x 0)) >>= fun () ->
 
 
+            let q = new_query (Int64.of_int @@ Tsc.rdtsc()) in
+            C.log_s c (Printf.sprintf "send TWO %Lx" ((fst q).tsc)) >>= fun () ->
+            U.write ~source_port:123 ~dest_ip:server ~dest_port:123 udp (snd q) >>= fun () ->
+            rx st >>= fun (rxd) ->
+            C.log_s c (Printf.sprintf "recv TWO %Lx" (snd rxd)) >>= fun () ->
+            let state = add_sample state (fst rxd) (fst q) (snd rxd) in
+            Lwt.return(update_estimators state) >>= fun(state) ->
+            let x = state.estimators.rtt_hat in
+            C.log_s c (Printf.sprintf "rtt hat TWO %Lx" (History.nth x 0)) >>= fun () ->
 
                 S.listen s 
 
