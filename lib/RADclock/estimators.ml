@@ -106,6 +106,19 @@ let warmup_theta_quality params p_hat rtt_hat latest sa =
     rtt_error +. params.skm_rate *. age
 
 
+(* returns (Σ f * weight, Σ weight)  *)
+let weighted_sum f weight hist =
+    let acc f w (sum, norm) sample =
+        let value   = f sample in
+        let weight  = w sample in
+        let weighted = value *. weight in
+        (sum +. weighted, weight)
+    in
+    fold hist (acc f weight) (0.0, 0.0)
+
+
+
+
 
 let warmup_theta_hat params =
     let wt params p_hat rtt_hat latest sa =
