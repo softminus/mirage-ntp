@@ -3,12 +3,18 @@ open Wire
 
 
 type physical_parameters = {
+    ts_limit:       float;
     skm_rate:       float;
     e_offset:       float;
     e_offset_qual:  float;
 }
 
-
+let default_parameters =
+    let ts_limit        = 1.5e-5 in
+    let skm_rate        = 2e-7 in
+    let e_offset        = 6.0 *. ts_limit in
+    let e_offset_qual   = 3.0 *. e_offset in
+    {ts_limit; skm_rate; e_offset; e_offset_qual}
 
 type counter = Cstruct.uint64
 
