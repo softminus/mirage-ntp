@@ -9,7 +9,7 @@ type nonce = {
 
 let delta_TSC newer older =
     let del = Int64.sub newer older in
-    match (del > 0L) with
+    match (del >= 0L) with
     | true  -> del
     | false -> failwith "invalid ΔTSC!"
 
