@@ -107,6 +107,7 @@ let rec min_where_aux extractor li =
             | true  -> (pz + 1, z)
             | false -> (0,      x)
 
+(* min_and_where returns an *element* of the list, without the extractor applied to it *)
 let min_and_where extractor hist =
     match hist with History (cap, offset, l) ->
         match l with
