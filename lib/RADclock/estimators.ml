@@ -25,8 +25,20 @@ let rtt_of sample =
 let error_of packet rtt_hat =
     delta_TSC (rtt_of packet) rtt_hat
 
-(*    th_naive = (peer->phat * ((long double)stamp->Ta + (long double)stamp->Tf) + (2 * peer->C - (stamp->Tb + stamp->Te))) / 2.0; *)
+(*    th_naive = (
+ *    peer->phat * ((long double)stamp->Ta + (long double)stamp->Tf) 
+ *    + (2 * peer->C - (stamp->Tb + stamp->Te))
+ *    ) / 2.0; 
+ *
+ *)
 let theta_of p_hat c sample =
+    let ts = sample.timestamps in
+    let sumLocal    = Int64.to_float    ts.ta   +.  Int64.to_float  ts.tf in
+    let sumFar      =                   ts.tb   +.                  ts.te in
+
+    let twice_theta = p_hat *. sumLocal +. (2.0 *. c -. sumFar) in
+
+    twice_theta /. 2.0
 
 
 let rate_of_pair newer_sample older_sample =
@@ -68,7 +80,7 @@ let warmup_C_fixup old_C old_p_hat new_p_hat latest =
     let newest = point_of_history latest in
     Some (old_C +. (Int64.to_float newest.timestamps.ta) *. Int64.to_float (Int64.sub old_p_hat new_p_hat))
 
-let warmup_theta_hat =
+let warmup_theta_hat = 3
 
 
 
