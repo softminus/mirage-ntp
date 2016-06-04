@@ -7,13 +7,6 @@ type nonce = {
     txts:   ts;         (* the random number that was in the transmit_timestamp of the packet we sent *)
 }
 
-let delta_TSC newer older =
-    let del = Int64.sub newer older in
-    match (del >= 0L) with
-    | true  -> del
-    | false -> failwith "invalid ΔTSC!"
-
-
 type timestamps = {
     ta:     counter;
     tb:     float;
