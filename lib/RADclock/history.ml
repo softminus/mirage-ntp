@@ -141,6 +141,9 @@ let map hist f =
     match hist with History (cap, offset, l) ->
         History(cap, offset, List.map f l)
 
+let fold hist f x0 =
+    List.fold_left f x0 @@ rawlist hist
+
 let range_of hist left right =
     match (validity hist left, validity hist right) with
     | (Invalid,     _)          -> InvalidEdges
