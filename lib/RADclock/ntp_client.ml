@@ -28,6 +28,17 @@ open Sync
  *
  *)
 
+let blank_state =
+    let regime      = WARMUP in
+    let samples     = History (100, 0, []) in
+
+    let pstamp              = None in
+    let rtt_hat             = History (100, 0, []) in
+    let p_hat_and_error     = None in
+    let p_local             = None in
+    let estimators          = {pstamp; rtt_hat; p_hat_and_error; p_local} in
+    {regime; samples; estimators}
+
 
 let allzero:ts = {seconds = Int32.of_int 0; fraction = Int32.of_int 0}
 
