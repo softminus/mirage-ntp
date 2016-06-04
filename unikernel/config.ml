@@ -3,7 +3,7 @@ open Mirage
 let stack = generic_stackv4 default_console tap0
 
 let client =
-    let libraries = ["wire" ;"tsc" ] in
+    let libraries = ["wire" ;"tsc"; "ntp_client" ] in
   let packages = [  ] in
   foreign
     ~libraries ~packages
