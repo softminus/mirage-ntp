@@ -59,8 +59,7 @@ let query_pkt x =
     let trans_ts = x in
     {leap;version;mode; stratum; poll; precision; root_delay; root_dispersion; refid; reference_ts; origin_ts; recv_ts; trans_ts}
 
-let new_query =
-    let tsc = Int64.of_int @@ rdtsc() in
+let new_query tsc =
     let txts:ts = int64_to_ts tsc in            (* FIXME: make this a random number *)
     let nonce = {tsc; txts} in
     (nonce, buf_of_pkt @@ query_pkt txts)
