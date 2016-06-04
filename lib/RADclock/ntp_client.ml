@@ -2,6 +2,7 @@ open History
 open Wire
 open Types
 open Tsc
+open Sync
 
 (*
  * This corresponds to RADclock's client_ntp.c
@@ -93,5 +94,13 @@ let new_sample_history old_state buf nonce rx_tsc =
     | None      ->  old_state
     | Some pkt  ->  {old_state with samples = hcons (sample_of_packet old_state.samples nonce pkt rx_tsc) old_state.samples}
 
-let new_estimators state =
-    match state.regime with
+let new_estimators old_state =
+    match old_state.regime with
+    | WARMUP    ->
+            let pstamp  = Some  (run_estimator_1win warmup_pstamp  (win_warmup_pstamp  old_state.samples)) in
+            let rtt_hat = hcons (run_estimator_1win warmup_rtt_hat (win_warmup_rtt_hat old_state.samples)) old_state.estimators.rtt_hat in
+            let latest_rtt_hat = point_of_range @@ range_of rtt_hat Newest Newest in
+            let p_hat_and_error = run_estimator_2win (warmup_p_hat latest_rtt_hat) (win_warmup_p_hat old_state.samples) in
+            let p_local = None in
+            let new_ests = {pstamp; rtt_hat; p_hat_and_error; p_local} in
+            {old_state with estimators = new_ests}
