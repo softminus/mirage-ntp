@@ -35,7 +35,7 @@ type sample = {
 }
 
 
-type regime = ZERO | WARMUP | NORMAL
+type regime = WARMUP | NORMAL
 
 
 
