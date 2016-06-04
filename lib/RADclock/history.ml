@@ -144,6 +144,16 @@ let map hist f =
 let fold hist f x0 =
     List.fold_left f x0 @@ rawlist hist
 
+(* returns (Σ f * weight, Σ weight)  *)
+let weighted_sum f weight hist =
+    let acc f w (sum, norm) sample =
+        let value   = f sample in
+        let weight  = w sample in
+        let weighted = value *. weight in
+        (sum +. weighted, weight)
+    in
+    fold hist (acc f weight) (0.0, 0.0)
+
 let range_of hist left right =
     match (validity hist left, validity hist right) with
     | (Invalid,     _)          -> InvalidEdges
