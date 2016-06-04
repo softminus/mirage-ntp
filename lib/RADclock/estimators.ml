@@ -22,6 +22,18 @@ let rtt_of sample =
     | true  -> del
     | false -> failwith "invalid RTT / causality error. This is a bug"
 
+let check_positive x =
+    match (x >= 0.0) with
+    | true -> x
+    | false -> failwith "should never be negative!"
+
+let delta_TSC newer older =
+    let del = Int64.sub newer older in
+    match (del >= 0L) with
+    | true  -> del
+    | false -> failwith "invalid ΔTSC!"
+
+
 let error_of packet rtt_hat =
     delta_TSC (rtt_of packet) rtt_hat
 
@@ -70,7 +82,7 @@ let warmup_p_hat rtt_hat near far =
     match p_hat with
     | None -> None
     | Some p ->
-            let del_tb      = best_in_near.timestamps.tb -. best_in_far.timestamps.tb in
+            let del_tb      = check_positive (best_in_near.timestamps.tb -. best_in_far.timestamps.tb) in
             let far_error   = Int64.to_float @@ error_of best_in_far  rtt_hat in
             let near_error  = Int64.to_float @@ error_of best_in_near rtt_hat in
             let p_hat_error = (p /. del_tb) *. (far_error +. near_error) in
@@ -82,10 +94,17 @@ let warmup_C_fixup old_C old_p_hat new_p_hat latest =
 
 (* C is only estimated once -- with first packet ever received! It is fixed up with
  * warmup_C_fixup to correct for change in p_hat but warmup_C_oneshot is never called
- * more than once. No corresponding win_ function exists for it.
+ * more than once. The theta estimators will compensate for the inevitable offset that
+ * is inherent to C. No corresponding win_ function exists for warmup_C_oneshot.
  *)
 let warmup_C_oneshot p_hat first =
     first.timestamps.tb -. (p_hat *. Int64.to_float first.timestamps.ta)
+
+let warmup_theta_quality params p_hat rtt_hat latest sa =
+    let rtt_error   = p_hat *. (Int64.to_float @@ error_of sa rtt_hat) in
+    let age         = p_hat *. Int64.to_float (delta_TSC latest.timestamps.tf sa.timestamps.tf) in
+    rtt_error +. params.skm_rate *. age
+
 
 
 let warmup_theta_hat = 3
