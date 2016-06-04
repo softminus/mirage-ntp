@@ -81,7 +81,7 @@ let int64_to_ts i =
     {seconds; fraction}
 
 let to_float a =
-    Int64.to_float (ts_to_int64 a)
+    (Int64.to_float (ts_to_int64 a)) /. (4294967296.0)
 
 type short_ts = {
     seconds: Cstruct.uint16;
