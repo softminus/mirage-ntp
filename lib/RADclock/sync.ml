@@ -44,8 +44,8 @@ let rate_of_pair newer_sample older_sample =
 
 
 (* WARMUP ESTIMATORS *)
-let warmup_pstamp   win = Some           (snd @@ min_and_where rtt_of win)
-let warmup_rtt_hat  win = Some (rtt_of @@ fst @@ min_and_where rtt_of win)
+let warmup_pstamp   win =           (snd @@ min_and_where rtt_of win)
+let warmup_rtt_hat  win = (rtt_of @@ fst @@ min_and_where rtt_of win)
 
 
 let warmup_p_hat rtt_hat near far =
@@ -64,8 +64,6 @@ let warmup_p_hat rtt_hat near far =
 let warmup_C_fixup latest old_C old_p_hat new_p_hat =
     let newest = point_of_history latest in
     Some (old_C +. (Int64.to_float newest.timestamps.ta) *. Int64.to_float (Int64.sub old_p_hat new_p_hat))
-
-let warmup_p_local = warmup_p_hat
 
 
 
@@ -88,8 +86,6 @@ let win_warmup_p_hat    ts =    (* FOR: warmup_p_hat *)
 
 let win_warmup_C_fixup  ts =    (* FOR: warmup_C_fixup *)
     range_of ts Newest Newest
-
-let win_warmup_p_local = win_warmup_p_hat
 
 
 
