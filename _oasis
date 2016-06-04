@@ -23,7 +23,7 @@ Library "wire"
 
 Library "ntp_client"
     Path: lib/RADclock/
-    Modules: Util, Types, History, Ntp_client, Sync
+    Modules: Util, Types, History, Ntp_client, Estimators
     BuildDepends: wire, tsc, ipaddr
 
 

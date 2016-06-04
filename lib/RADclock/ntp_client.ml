@@ -2,7 +2,7 @@ open History
 open Wire
 open Types
 open Tsc
-open Sync
+open Estimators
 
 (*
  * This corresponds to RADclock's client_ntp.c
