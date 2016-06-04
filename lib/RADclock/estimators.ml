@@ -25,6 +25,9 @@ let rtt_of sample =
 let error_of packet rtt_hat =
     delta_TSC (rtt_of packet) rtt_hat
 
+(*    th_naive = (peer->phat * ((long double)stamp->Ta + (long double)stamp->Tf) + (2 * peer->C - (stamp->Tb + stamp->Te))) / 2.0; *)
+let theta_of p_hat c sample =
+
 
 let rate_of_pair newer_sample older_sample =
     let newer = newer_sample.timestamps in
@@ -61,9 +64,12 @@ let warmup_p_hat rtt_hat near far =
             let p_hat_error = (p /. del_tb) *. (far_error +. near_error) in
             Some (p, p_hat_error)
 
-let warmup_C_fixup latest old_C old_p_hat new_p_hat =
+let warmup_C_fixup old_C old_p_hat new_p_hat latest =
     let newest = point_of_history latest in
     Some (old_C +. (Int64.to_float newest.timestamps.ta) *. Int64.to_float (Int64.sub old_p_hat new_p_hat))
+
+let warmup_theta_hat =
+
 
 
 
