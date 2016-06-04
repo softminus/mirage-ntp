@@ -50,7 +50,7 @@ module Main (C: V1_LWT.CONSOLE) (S: V1_LWT.STACKV4) = struct
             let x = state.estimators.rtt_hat in
             C.log_s c (Printf.sprintf "rtt hat ONE %Lx" (History.nth x 0)) >>= fun () ->
 
-
+            OS.Time.sleep 3.0 >>= fun () ->
             let q = new_query (Int64.of_int @@ Tsc.rdtsc()) in
             C.log_s c (Printf.sprintf "send TWO %Lx" ((fst q).tsc)) >>= fun () ->
             U.write ~source_port:123 ~dest_ip:server ~dest_port:123 udp (snd q) >>= fun () ->
@@ -58,8 +58,9 @@ module Main (C: V1_LWT.CONSOLE) (S: V1_LWT.STACKV4) = struct
             C.log_s c (Printf.sprintf "recv TWO %Lx" (snd rxd)) >>= fun () ->
             let state = add_sample state (fst rxd) (fst q) (snd rxd) in
             Lwt.return(update_estimators state) >>= fun(state) ->
-            let x = state.estimators.rtt_hat in
-            C.log_s c (Printf.sprintf "rtt hat TWO %Lx" (History.nth x 0)) >>= fun () ->
+            let x = state.estimators.p_hat_and_error in
+            match x with
+            | Some (x, y) -> C.log_s c (Printf.sprintf "p_hat %e" ( x)); >>= fun () ->
 
                 S.listen s 
 
