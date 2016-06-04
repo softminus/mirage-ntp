@@ -49,7 +49,7 @@ let rate_of_pair newer_sample older_sample =
 
 
 (* WARMUP ESTIMATORS *)
-let warmup_pstamp_i win = Some           (snd @@ min_and_where rtt_of win)
+let warmup_pstamp   win = Some           (snd @@ min_and_where rtt_of win)
 let warmup_rtt_hat  win = Some (rtt_of @@ fst @@ min_and_where rtt_of win)
 
 
@@ -79,16 +79,19 @@ let warmup_p_local = warmup_p_hat
 
 (* WARMUP WINDOWS *)
 
-let win_warmup_rtt ts =     (* FOR: warmup_pstamp_i warmup_rtt *)
+let win_warmup_pstamp   ts =    (* FOR: warmup_pstamp *)
     range_of ts Newest Oldest
 
-let win_warmup_p_hat ts =   (* FOR: warmup_p_hat *)
+let win_warmup_rtt      ts =    (* FOR: warmup_rtt *)
+    range_of ts Newest Oldest
+
+let win_warmup_p_hat    ts =    (* FOR: warmup_p_hat *)
     let wwidth = 1 + (length ts) / 4 in
     let near    = range_of ts Newest @@ Older(Newest, wwidth - 1)                                       in
     let far     = range_of ts                                       (Newer(Oldest, wwidth - 1)) Oldest  in
     (near, far)
 
-let win_warmup_C_fixup ts = (* FOR: warmup_C_fixup *)
+let win_warmup_C_fixup  ts =    (* FOR: warmup_C_fixup *)
     range_of ts Newest Newest
 
 let win_warmup_p_local = win_warmup_p_hat
