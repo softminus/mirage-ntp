@@ -37,10 +37,23 @@ type sample = {
 
 type regime = ZERO | WARMUP | NORMAL
 
+
+
+type estimators = {
+    pstamp:         point   option; (* this is a point within samples, not rtt_hat *)
+    rtt_hat:        float   history;
+    p_hat:          float   option;
+    p_hat_error:    float   option;
+    p_local:        float   option;
+}
+
+
 type sync_state = {
     regime:         regime;
     samples:        sample  history;
+    estimators:     estimators;
 }
+
 
 (* packet zero gets stamps, rtt, and theta_naive.
  * packets > 0 get stamps, rtt
