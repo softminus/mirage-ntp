@@ -155,6 +155,8 @@ let min_and_where extractor hist =
                 let idx = fst rv in
                 let x   = snd rv in
                 (x, Fixed(idx, offset))
+
+
 let range_of hist left right =
     match (validity hist left, validity hist right) with
     | (Invalid,     _)          -> InvalidEdges
