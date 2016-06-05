@@ -114,6 +114,7 @@ let warmup_theta_point_error params p_hat rtt_hat latest sa =
 
 let warmup_theta_hat ~params ~p_hat ~rtt_hat ~c last win =
     let latest = point_of_history last in
+
     let wt params p_hat rtt_hat latest sa =
         let qual = warmup_theta_point_error params p_hat rtt_hat latest sa in
         let weight = exp ( -. (qual *. qual) /. (params.e_offset *. params.e_offset)) in
@@ -122,8 +123,8 @@ let warmup_theta_hat ~params ~p_hat ~rtt_hat ~c last win =
     in
     let sum, sum_wts =      weighted_sum (theta_of p_hat c) (wt params p_hat rtt_hat latest) win in
 
-    let min        =  min_and_where (warmup_theta_point_error params p_hat rtt_hat latest) win in
-    let minET      =                 warmup_theta_point_error params p_hat rtt_hat latest @@ fst min in
+    let min          =  min_and_where (warmup_theta_point_error params p_hat rtt_hat latest) win in
+    let minET        =                 warmup_theta_point_error params p_hat rtt_hat latest @@ fst min in
 
     let theta_hat  =  sum /. check_positive(sum_wts) in
     match (minET < params.e_offset_qual) with
