@@ -101,7 +101,7 @@ let warmup_p_hat ~rtt_hat near far =
  *)
 let warmup_C_oneshot ~p_hat r =
     let first = point_of_history r in
-    first.timestamps.tb -. (p_hat *. Int64.to_float first.timestamps.ta)
+    Some (first.timestamps.tb -. (p_hat *. Int64.to_float first.timestamps.ta))
 
 let warmup_C_fixup ~old_C ~old_p_hat ~new_p_hat latest =
     let newest = point_of_history latest in
@@ -150,7 +150,7 @@ let win_warmup_C_oneshot    ts =    (* FOR: warmup_C_oneshot *)
 let win_warmup_C_fixup      ts =    (* FOR: warmup_C_fixup *)
     range_of ts Newest Newest
 
-let win_warmup_theta_hat    ts
+let win_warmup_theta_hat    ts = 1
 
 
 
