@@ -43,7 +43,7 @@ let blank_state =
     {regime; parameters; samples; estimators}
 
 
-let allzero:ts = {seconds = Int32.of_int 0; fraction = Int32.of_int 0}
+let allzero:ts = {timestamp = 0x0L}
 
 let query_pkt x =
     let leap = Unknown in
@@ -99,6 +99,7 @@ let sample_of_packet history nonce (pkt : pkt) rx_tsc =
     let refid       = pkt.refid in
     let rootdelay   = short_ts_to_float pkt.root_delay in
     let rootdisp    = short_ts_to_float pkt.root_dispersion in
+    print_string (Printf.sprintf "RECV TS IS %Lx" (ts_to_int64 pkt.recv_ts));
     let timestamps  = {ta = nonce.tsc; tb = to_float pkt.recv_ts; te = to_float pkt.trans_ts; tf = rx_tsc} in
     {quality; ttl; stratum; leap; refid; rootdelay; rootdisp; timestamps}
 
@@ -116,7 +117,7 @@ let update_estimators old_state =
             let rtt_hat = hcons   (run_estimator_1win warmup_rtt_hat               (win_warmup_rtt_hat samples)) old_state.estimators.rtt_hat in
 
             let latest_rtt_hat  = point_of_range @@ range_of rtt_hat Newest Newest in
-            let p_hat_and_error = run_estimator_2win (warmup_p_hat ~rtt_hat:latest_rtt_hat) (win_warmup_p_hat   samples) in
+            let p_hat_and_error = Some (1e-9, 0.0) in
 
             let c                   =
                 match (p_hat_and_error) with
