@@ -99,7 +99,7 @@ let sample_of_packet history nonce (pkt : pkt) rx_tsc =
     let refid       = pkt.refid in
     let rootdelay   = short_ts_to_float pkt.root_delay in
     let rootdisp    = short_ts_to_float pkt.root_dispersion in
-    print_string (Printf.sprintf "RECV TS IS %Lx" (ts_to_int64 pkt.recv_ts));
+    (* print_string (Printf.sprintf "RECV TS IS %Lx" (ts_to_int64 pkt.recv_ts)); *)
     let timestamps  = {ta = nonce.tsc; tb = to_float pkt.recv_ts; te = to_float pkt.trans_ts; tf = rx_tsc} in
     {quality; ttl; stratum; leap; refid; rootdelay; rootdisp; timestamps}
 

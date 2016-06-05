@@ -118,7 +118,7 @@ let warmup_theta_hat ~params ~p_hat ~rtt_hat ~c last win =
     let wt params p_hat rtt_hat latest sa =
         let qual = warmup_theta_point_error params p_hat rtt_hat latest sa in
         let weight = exp ( -. (qual *. qual) /. (params.e_offset *. params.e_offset)) in
-        print_string (Printf.sprintf "weight calc, qual = %.9E, weight = %.9E\n" qual weight);
+        (* print_string (Printf.sprintf "weight calc, qual = %.9E, weight = %.9E\n" qual weight); *)
         weight
     in
     let sum, sum_wts =      weighted_sum (theta_of p_hat c) (wt params p_hat rtt_hat latest) win in
