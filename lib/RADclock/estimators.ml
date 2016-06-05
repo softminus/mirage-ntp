@@ -100,7 +100,7 @@ let warmup_C_fixup ~old_C ~old_p_hat ~new_p_hat latest =
 (* C is only estimated once -- with first packet ever received! It is fixed up with
  * warmup_C_fixup to correct for change in p_hat but warmup_C_oneshot is never called
  * more than once. The theta estimators will compensate for the inevitable offset that
- * is inherent to C. No corresponding win_ function exists for warmup_C_oneshot.
+ * is inherent to C.
  *)
 let warmup_C_oneshot ~p_hat first =
     first.timestamps.tb -. (p_hat *. Int64.to_float first.timestamps.ta)
@@ -139,6 +139,9 @@ let win_warmup_p_hat        ts =    (* FOR: warmup_p_hat *)
     let near    = range_of ts Newest @@ Older(Newest, wwidth - 1)                                       in
     let far     = range_of ts                                       (Newer(Oldest, wwidth - 1)) Oldest  in
     (near, far)
+
+let win_warmup_C_oneshot    ts =    (* FOR: warmup_C_oneshot *)
+    point_of_history ts             (* C is only estimated once, on the first received packet! *)
 
 let win_warmup_C_fixup      ts =    (* FOR: warmup_C_fixup *)
     range_of ts Newest Newest
