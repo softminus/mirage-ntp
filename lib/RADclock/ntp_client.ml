@@ -157,6 +157,5 @@ let update_estimators old_state =
             in
 
             let new_ests = {pstamp; rtt_hat; p_hat_and_error; p_local; c; theta_hat_and_error} in
-            {old_state with estimators = new_ests; regime = WARMUP }
-
+            {old_state with estimators = new_ests}
 
