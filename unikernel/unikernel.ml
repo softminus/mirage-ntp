@@ -46,11 +46,15 @@ module Main (C: V1_LWT.CONSOLE) (S: V1_LWT.STACKV4) = struct
             rx st >>= fun (rxd) ->
             C.log_s c (Printf.sprintf "recv ONE %Lx" (snd rxd)) >>= fun () ->
             let state = add_sample state (fst rxd) (fst q) (snd rxd) in
+            let x = (History.nth state.samples 0)  in
             Lwt.return(update_estimators state) >>= fun(state) ->
-            let x = state.estimators.rtt_hat in
-            C.log_s c (Printf.sprintf "rtt hat ONE %Lx" (History.nth x 0)) >>= fun () ->
 
-            OS.Time.sleep 3.0 >>= fun () ->
+
+
+
+
+            OS.Time.sleep 0.2 >>= fun () ->
+
             let q = new_query (Int64.of_int @@ Tsc.rdtsc()) in
             C.log_s c (Printf.sprintf "send TWO %Lx" ((fst q).tsc)) >>= fun () ->
             U.write ~source_port:123 ~dest_ip:server ~dest_port:123 udp (snd q) >>= fun () ->
@@ -58,10 +62,24 @@ module Main (C: V1_LWT.CONSOLE) (S: V1_LWT.STACKV4) = struct
             C.log_s c (Printf.sprintf "recv TWO %Lx" (snd rxd)) >>= fun () ->
             let state = add_sample state (fst rxd) (fst q) (snd rxd) in
             Lwt.return(update_estimators state) >>= fun(state) ->
-            let x = state.estimators.p_hat_and_error in
-            match x with
-            | Some (x, y) -> C.log_s c (Printf.sprintf "p_hat %e" ( x)); >>= fun () ->
 
+
+            let x = state.estimators.theta_hat_and_error in
+            match x with
+            | Some (x,y) -> C.log_s c (Printf.sprintf "THETA %.15E" (x)) >>= fun () ->
+            let q = new_query (Int64.of_int @@ Tsc.rdtsc()) in
+            C.log_s c (Printf.sprintf "send THREE %Lx" ((fst q).tsc)) >>= fun () ->
+            U.write ~source_port:123 ~dest_ip:server ~dest_port:123 udp (snd q) >>= fun () ->
+            rx st >>= fun (rxd) ->
+            C.log_s c (Printf.sprintf "recv THREE %Lx" (snd rxd)) >>= fun () ->
+            let state = add_sample state (fst rxd) (fst q) (snd rxd) in
+            Lwt.return(update_estimators state) >>= fun(state) ->
+
+
+
+            let x = state.estimators.theta_hat_and_error in
+            match x with
+            | Some (x,y) -> C.log_s c (Printf.sprintf "THETA TWO %.15E" (x)) >>= fun () ->
                 S.listen s 
 
 
