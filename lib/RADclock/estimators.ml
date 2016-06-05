@@ -126,29 +126,23 @@ let warmup_theta_hat ~params ~p_hat ~rtt_hat ~c ~latest win =
     | false -> None
 
 
-
-
-
-
-
-
-
 (* WARMUP WINDOWS *)
 
-let win_warmup_pstamp   ts =    (* FOR: warmup_pstamp *)
+let win_warmup_pstamp       ts =    (* FOR: warmup_pstamp *)
     range_of ts Newest Oldest
 
-let win_warmup_rtt_hat  ts =    (* FOR: warmup_rtt *)
+let win_warmup_rtt_hat      ts =    (* FOR: warmup_rtt *)
     range_of ts Newest Oldest
 
-let win_warmup_p_hat    ts =    (* FOR: warmup_p_hat *)
+let win_warmup_p_hat        ts =    (* FOR: warmup_p_hat *)
     let wwidth = 1 + (length ts) / 4 in
     let near    = range_of ts Newest @@ Older(Newest, wwidth - 1)                                       in
     let far     = range_of ts                                       (Newer(Oldest, wwidth - 1)) Oldest  in
     (near, far)
 
-let win_warmup_C_fixup  ts =    (* FOR: warmup_C_fixup *)
+let win_warmup_C_fixup      ts =    (* FOR: warmup_C_fixup *)
     range_of ts Newest Newest
+let win_warmup_theta_hat    ts
 
 
 
