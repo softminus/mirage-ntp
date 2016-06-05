@@ -53,6 +53,7 @@ type estimators = {
     rtt_hat:                        counter history;
     p_hat_and_error:        (float * float) option;
     p_local:                        float   option;
+    c:                              float   option;
     theta_hat_and_error:    (float * float) option;
 }
 
