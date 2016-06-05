@@ -97,26 +97,6 @@ let resize h ncap =
     match h with History (cap, offset, l) ->
         History (ncap, offset, take ncap l)
 
-let rec min_where_aux extractor li =
-    match li with
-    | []    -> failwith "min_where_aux"
-    | [x]   -> (0, x)
-    | x::xs ->
-            let pz, z = min_where_aux extractor xs in
-            match (compare (extractor z) (extractor x) < 0) with
-            | true  -> (pz + 1, z)
-            | false -> (0,      x)
-
-(* min_and_where returns an *element* of the list, without the extractor applied to it *)
-let min_and_where extractor hist =
-    match hist with History (cap, offset, l) ->
-        match l with
-        | [] -> failwith "min_by"
-        | z ->
-                let rv = min_where_aux extractor z in
-                let idx = fst rv in
-                let x   = snd rv in
-                (x, Fixed(idx, offset))
 
 let range_slice hist left right =
     let idx_l = idx_of_point hist left in
@@ -155,6 +135,26 @@ let weighted_sum f weight hist =
     in
     fold hist (acc f weight) (0.0, 0.0)
 
+let rec min_where_aux extractor li =
+    match li with
+    | []    -> failwith "min_where_aux"
+    | [x]   -> (0, x)
+    | x::xs ->
+            let pz, z = min_where_aux extractor xs in
+            match (compare (extractor z) (extractor x) < 0) with
+            | true  -> (pz + 1, z)
+            | false -> (0,      x)
+
+(* min_and_where returns an *element* of the list, without the extractor applied to it *)
+let min_and_where extractor hist =
+    match hist with History (cap, offset, l) ->
+        match l with
+        | [] -> failwith "min_by"
+        | z ->
+                let rv = min_where_aux extractor z in
+                let idx = fst rv in
+                let x   = snd rv in
+                (x, Fixed(idx, offset))
 let range_of hist left right =
     match (validity hist left, validity hist right) with
     | (Invalid,     _)          -> InvalidEdges
