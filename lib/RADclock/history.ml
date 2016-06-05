@@ -151,7 +151,7 @@ let weighted_sum f weight hist =
         let value   = f sample in
         let weight  = w sample in
         let weighted = value *. weight in
-        (sum +. weighted, weight)
+        (sum +. weighted, norm +. weight)
     in
     fold hist (acc f weight) (0.0, 0.0)
 
