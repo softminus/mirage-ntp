@@ -36,8 +36,9 @@ let blank_state =
     let rtt_hat             = History (100, 0, []) in
     let p_hat_and_error     = None in
     let p_local             = None in
+    let c                   = None in
     let theta_hat_and_error = None in
-    let estimators          = {pstamp; rtt_hat; p_hat_and_error; p_local; theta_hat_and_error} in
+    let estimators          = {pstamp; rtt_hat; p_hat_and_error; p_local; c; theta_hat_and_error} in
     {regime; samples; estimators}
 
 
@@ -116,20 +117,12 @@ let update_estimators old_state =
             let latest_rtt_hat  = point_of_range @@ range_of rtt_hat Newest Newest in
             let p_hat_and_error = run_estimator_2win (warmup_p_hat ~rtt_hat:latest_rtt_hat) (win_warmup_p_hat   samples) in
 
-            let c                   =   Some (run_estimator_1win 
+            let c                   =
+                match (p_hat_and_error) with
+                | Some (p, p_err)  -> run_estimator_1win (warmup_C_oneshot ~p_hat:p) (win_warmup_C_oneshot samples)
+                | None              -> None
+            in
             let p_local             =   None in
             let theta_hat_and_error =   None in
-            let new_ests = {pstamp; rtt_hat; p_hat_and_error; p_local; theta_hat_and_error} in
+            let new_ests = {pstamp; rtt_hat; p_hat_and_error; p_local; c; theta_hat_and_error} in
             {old_state with estimators = new_ests; regime = WARMUP }
-    | WARMUP    ->
-            let samples = old_state.samples in
-
-            let pstamp  = Some    (run_estimator_1win warmup_pstamp                (win_warmup_pstamp  samples)) in
-            let rtt_hat = hcons   (run_estimator_1win warmup_rtt_hat               (win_warmup_rtt_hat samples)) old_state.estimators.rtt_hat in
-
-            let latest_rtt_hat  = point_of_range @@ range_of rtt_hat Newest Newest in
-            let p_hat_and_error = run_estimator_2win (warmup_p_hat ~rtt_hat:latest_rtt_hat) (win_warmup_p_hat   samples) in
-
-            let p_local             =   None in
-            let new_ests = {pstamp; rtt_hat; p_hat_and_error; p_local} in
-            {old_state with estimators = new_ests}
