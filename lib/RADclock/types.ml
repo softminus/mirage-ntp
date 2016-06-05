@@ -60,6 +60,7 @@ type estimators = {
 
 type sync_state = {
     regime:         regime;
+    parameters:     physical_parameters;
     samples:        sample  history;
     estimators:     estimators;
 }

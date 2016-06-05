@@ -39,7 +39,8 @@ let blank_state =
     let c                   = None in
     let theta_hat_and_error = None in
     let estimators          = {pstamp; rtt_hat; p_hat_and_error; p_local; c; theta_hat_and_error} in
-    {regime; samples; estimators}
+    let parameters          = default_parameters in
+    {regime; parameters; samples; estimators}
 
 
 let allzero:ts = {seconds = Int32.of_int 0; fraction = Int32.of_int 0}
@@ -147,7 +148,14 @@ let update_estimators old_state =
                 | _                 -> None
             in
             let p_local             =   None in
-            let theta_hat_and_error =   None in
+
+            let theta_hat_and_error =
+                match (p_hat_and_error, c) with
+                | (Some (new_p, new_err), Some kc)  ->
+                        run_estimator_2win (warmup_theta_hat ~params:old_state.parameters ~p_hat:new_p ~rtt_hat:latest_rtt_hat ~c:kc) (win_warmup_theta_hat samples)
+                | _                 -> None
+            in
+
             let new_ests = {pstamp; rtt_hat; p_hat_and_error; p_local; c; theta_hat_and_error} in
             {old_state with estimators = new_ests; regime = WARMUP }
 
