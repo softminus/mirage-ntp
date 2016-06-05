@@ -62,26 +62,25 @@
 
 
 type ts = {
-    seconds: Cstruct.uint32;
-    fraction: Cstruct.uint32;
+    timestamp:  Cstruct.uint64
 }
 
 let ts_to_int64 ts =
-    let lowside = Int64.of_int32 ts.fraction in
-    let fixed =
-        match (lowside < 0x0L) with
-        | true -> Int64.add lowside 0x100000000L
-        | false ->  lowside
-    in
-    Int64.add (fixed) (Int64.shift_left (Int64.of_int32 ts.seconds) 32)
+    ts.timestamp
 
-let int64_to_ts i =
-    let seconds =   Int64.to_int32 (Int64.shift_right_logical i 32) in
-    let fraction =  Int64.to_int32 i in
-    {seconds; fraction}
+let int64_to_ts timestamp =
+    {timestamp}
 
 let to_float a =
-    (Int64.to_float (ts_to_int64 a)) /. (4294967296.0)
+    let frac = Int64.of_int32 @@ Int64.to_int32 a.timestamp in   (* I'm so sorry. *)
+    let frac = match (frac < 0x0L) with
+    | true  -> Int64.add frac 0x100000000L                       (* I'm so so sorry *)
+    | false -> frac
+    in
+
+    let seconds = Int64.shift_right_logical a.timestamp 32 in
+
+    (Int64.to_float frac) /. (4294967296.0) +. Int64.to_float seconds
 
 type short_ts = {
     seconds: Cstruct.uint16;
