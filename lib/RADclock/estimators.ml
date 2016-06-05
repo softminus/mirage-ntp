@@ -93,17 +93,19 @@ let warmup_p_hat ~rtt_hat near far =
             let p_hat_error = (p /. del_tb) *. (far_error +. near_error) in
             Some (p, p_hat_error)
 
-let warmup_C_fixup ~old_C ~old_p_hat ~new_p_hat latest =
-    let newest = point_of_history latest in
-    Some (old_C +. (Int64.to_float newest.timestamps.ta) *. Int64.to_float (Int64.sub old_p_hat new_p_hat))
 
 (* C is only estimated once -- with first packet ever received! It is fixed up with
  * warmup_C_fixup to correct for change in p_hat but warmup_C_oneshot is never called
  * more than once. The theta estimators will compensate for the inevitable offset that
  * is inherent to C.
  *)
-let warmup_C_oneshot ~p_hat first =
+let warmup_C_oneshot ~p_hat r =
+    let first = point_of_history r in
     first.timestamps.tb -. (p_hat *. Int64.to_float first.timestamps.ta)
+
+let warmup_C_fixup ~old_C ~old_p_hat ~new_p_hat latest =
+    let newest = point_of_history latest in
+    Some (old_C +. (Int64.to_float newest.timestamps.ta) *. Int64.to_float (Int64.sub old_p_hat new_p_hat))
 
 let warmup_theta_point_error params p_hat rtt_hat latest sa =
     let rtt_error   = p_hat *. (Int64.to_float @@ error_of sa rtt_hat) in
@@ -141,10 +143,13 @@ let win_warmup_p_hat        ts =    (* FOR: warmup_p_hat *)
     (near, far)
 
 let win_warmup_C_oneshot    ts =    (* FOR: warmup_C_oneshot *)
-    point_of_history ts             (* C is only estimated once, on the first received packet! *)
+    range_of ts Newest Oldest       (* Newest Oldest is used so if there's more than one sample, point_of_history
+                                     * in warmup_C_oneshot will throw an exception!
+                                     *)
 
 let win_warmup_C_fixup      ts =    (* FOR: warmup_C_fixup *)
     range_of ts Newest Newest
+
 let win_warmup_theta_hat    ts
 
 
