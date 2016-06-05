@@ -112,7 +112,8 @@ let warmup_theta_point_error params p_hat rtt_hat latest sa =
     let age         = p_hat *. Int64.to_float (delta_TSC latest.timestamps.tf sa.timestamps.tf) in
     rtt_error +. params.skm_rate *. age
 
-let warmup_theta_hat ~params ~p_hat ~rtt_hat ~c ~latest win =
+let warmup_theta_hat ~params ~p_hat ~rtt_hat ~c last win =
+    let latest = point_of_history last in
     let wt params p_hat rtt_hat latest sa =
         let qual = warmup_theta_point_error params p_hat rtt_hat latest sa in
         exp ( (-. qual *. qual) /. (params.e_offset *. params.e_offset))
@@ -150,9 +151,9 @@ let win_warmup_C_oneshot    ts =    (* FOR: warmup_C_oneshot *)
 let win_warmup_C_fixup      ts =    (* FOR: warmup_C_fixup *)
     range_of ts Newest Newest
 
-let win_warmup_theta_hat    ts = 1
-
-
+let win_warmup_theta_hat    ts =    (* FOR: warmup_theta_hat *)
+    let last = range_of ts Newest Newest in
+    (last, range_of ts Newest Oldest)
 
 (* NORMAL ESTIMATORS *)
 (* NORMAL WINDOWS *)
