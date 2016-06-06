@@ -100,7 +100,7 @@ let warmup_p_hat ~rtt_hat near far =
  * is inherent to C.
  *)
 let warmup_C_oneshot ~p_hat r =
-    let first = point_of_history r in
+    let first = fst @@ point_of_history r in
     Some (first.timestamps.tb -. (p_hat *. Int64.to_float first.timestamps.ta))
 
 let warmup_C_fixup ~old_C ~old_p_hat ~new_p_hat latest =
