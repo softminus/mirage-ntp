@@ -50,7 +50,6 @@ type regime = ZERO | WARMUP | NORMAL (* turns out we *do* need to distinguish be
 
 type estimators = {
     pstamp:                         point   option; (* this is a point within samples, not rtt_hat *)
-    rtt_hat:                        counter history;
     p_hat_and_error:        (float * float) option;
     p_local:                        float   option;
     c:                              float   option;
@@ -59,10 +58,10 @@ type estimators = {
 
 
 type sync_state = {
-    regime:         regime;
-    parameters:     physical_parameters;
-    samples:        sample  history;
-    estimators:     estimators;
+    regime:                 regime;
+    parameters:             physical_parameters;
+    samples_and_rtt_hat:   (sample * counter option) history;
+    estimators:             estimators;
 }
 
 
