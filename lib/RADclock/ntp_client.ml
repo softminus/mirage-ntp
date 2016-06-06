@@ -29,18 +29,17 @@ open Estimators
  *)
 
 let blank_state =
-    let regime      = ZERO                  in
-    let samples     = History (100, 0, [])  in
+    let regime              = ZERO                  in
+    let samples_and_rtt_hat = History (100, 0, [])  in
 
     let pstamp              = None in
-    let rtt_hat             = History (100, 0, []) in
     let p_hat_and_error     = None in
     let p_local             = None in
     let c                   = None in
     let theta_hat_and_error = None in
-    let estimators          = {pstamp; rtt_hat; p_hat_and_error; p_local; c; theta_hat_and_error} in
+    let estimators          = {pstamp; p_hat_and_error; p_local; c; theta_hat_and_error} in
     let parameters          = default_parameters in
-    {regime; parameters; samples; estimators}
+    {regime; parameters; samples_and_rtt_hat; estimators}
 
 
 let allzero:ts = {timestamp = 0x0L}
@@ -85,7 +84,7 @@ let sample_of_packet history nonce (pkt : pkt) rx_tsc =
     let l = get history Newest in
     let quality = match l with
     | None -> OK
-    | Some last ->
+    | Some (last, _) ->
             (* FIXME: check for TTL changes when we have a way to get ttl of
              * received packet from mirage UDP stack
              *)
@@ -106,17 +105,21 @@ let sample_of_packet history nonce (pkt : pkt) rx_tsc =
 let add_sample old_state buf nonce rx_tsc =
     match (validate_reply buf nonce) with
     | None      ->   old_state
-    | Some pkt  ->  {old_state with samples = hcons (sample_of_packet old_state.samples nonce pkt rx_tsc) old_state.samples}
+    | Some pkt  ->  {old_state with samples_and_rtt_hat = hcons ((sample_of_packet old_state.samples_and_rtt_hat nonce pkt rx_tsc), None) old_state.samples_and_rtt_hat}
 
 let update_estimators old_state =
     match old_state.regime with
     | ZERO      ->
-            let samples = old_state.samples in
+            let samples = old_state.samples_and_rtt_hat in
 
-            let pstamp  = Some    (run_estimator_1win warmup_pstamp                (win_warmup_pstamp  samples)) in
-            let rtt_hat = hcons   (run_estimator_1win warmup_rtt_hat               (win_warmup_rtt_hat samples)) old_state.estimators.rtt_hat in
+            let pstamp  = Some  (run_estimator_1win warmup_pstamp                (win_warmup_pstamp  samples)) in
 
-            let latest_rtt_hat  = point_of_range @@ range_of rtt_hat Newest Newest in
+            let rtt_hat =       (run_estimator_1win warmup_rtt_hat               (win_warmup_rtt_hat samples)) in 
+
+            let latest_sample = fst @@ get_sure samples Newest in
+            let head_cut_off = tl samples in
+            let samples_and_rtt_hat = hcons (latest_sample, Some rtt_hat) head_cut_off in
+
             let p_hat_and_error = Some (1e-9, 0.0) in
 
             let c                   =
@@ -126,7 +129,7 @@ let update_estimators old_state =
             in
             let p_local             =   None in
             let theta_hat_and_error =   None in
-            let new_ests = {pstamp; rtt_hat; p_hat_and_error; p_local; c; theta_hat_and_error} in
+            let new_ests = {pstamp;  p_hat_and_error; p_local; c; theta_hat_and_error} in
             {old_state with estimators = new_ests; regime = WARMUP }
 
 
