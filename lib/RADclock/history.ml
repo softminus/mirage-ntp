@@ -77,6 +77,11 @@ let get h p =
     | Valid -> Some (nth h @@ idx_of_point h p)
     | _     -> None
 
+let get_sure h p =
+    match validity h p with
+    | Valid -> (nth h @@ idx_of_point h p)
+    | _     -> invalid_arg "invalid point!"
+
 let hcons a h =
     match h with History (cap, offset, l) ->
         match (cap > List.length(l)) with
