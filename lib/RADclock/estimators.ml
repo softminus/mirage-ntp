@@ -104,7 +104,7 @@ let warmup_C_oneshot ~p_hat r =
     Some (first.timestamps.tb -. (p_hat *. Int64.to_float first.timestamps.ta))
 
 let warmup_C_fixup ~old_C ~old_p_hat ~new_p_hat latest =
-    let newest = point_of_history latest in
+    let newest = fst @@ point_of_history latest in
     Some (old_C +. (Int64.to_float newest.timestamps.ta) *. (old_p_hat -. new_p_hat))
 
 let warmup_theta_point_error params p_hat rtt_hat latest sa =
