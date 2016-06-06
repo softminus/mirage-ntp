@@ -83,6 +83,12 @@ let hcons a h =
         | true  -> History (cap, offset + 1, a :: l)
         | false -> History (cap, offset + 1, a :: (init l))
 
+let tl h =
+    match h with History (cap, offset, l) ->
+        match (List.length(l) > 0) with
+        | false -> failwith "history.tl"
+        | true  -> History (cap, offset - 1, List.tl l)
+
 let rec synth_aux element h n =
     match n with
     | 1     -> hcons element h
