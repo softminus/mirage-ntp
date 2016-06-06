@@ -53,8 +53,6 @@ module Main (C: V1_LWT.CONSOLE) (S: V1_LWT.STACKV4) = struct
 
 
 
-            OS.Time.sleep 0.2 >>= fun () ->
-
             let q = new_query (Int64.of_int @@ Tsc.rdtsc()) in
             C.log_s c (Printf.sprintf "send TWO %Lx" ((fst q).tsc)) >>= fun () ->
             U.write ~source_port:123 ~dest_ip:server ~dest_port:123 udp (snd q) >>= fun () ->
@@ -67,6 +65,9 @@ module Main (C: V1_LWT.CONSOLE) (S: V1_LWT.STACKV4) = struct
             let x = state.estimators.theta_hat_and_error in
             match x with
             | Some (x,y) -> C.log_s c (Printf.sprintf "THETA %.15E" (x)) >>= fun () ->
+
+
+            OS.Time.sleep 2.0 >>= fun () ->
             let q = new_query (Int64.of_int @@ Tsc.rdtsc()) in
             C.log_s c (Printf.sprintf "send THREE %Lx" ((fst q).tsc)) >>= fun () ->
             U.write ~source_port:123 ~dest_ip:server ~dest_port:123 udp (snd q) >>= fun () ->
@@ -77,9 +78,13 @@ module Main (C: V1_LWT.CONSOLE) (S: V1_LWT.STACKV4) = struct
 
 
 
-            let x = state.estimators.theta_hat_and_error in
+            let x = state.estimators.p_hat_and_error in
             match x with
             | Some (x,y) -> C.log_s c (Printf.sprintf "THETA TWO %.15E" (x)) >>= fun () ->
+
+
+
+
                 S.listen s 
 
 
