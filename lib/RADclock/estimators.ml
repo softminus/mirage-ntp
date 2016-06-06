@@ -16,7 +16,7 @@ let run_estimator_1win  estimator win =
     | _                 -> failwith "invalid windows passed"
 
 let rtt_of sample =
-    let ts = sample.timestamps in
+    let ts = (fst sample).timestamps in
     let del = Int64.sub (ts.tf) (ts.ta) in
     match (del > 0L) with
     | true  -> del
@@ -49,7 +49,7 @@ let error_of packet rtt_hat =
  *
  *)
 let theta_of p_hat c sample =
-    let ts = sample.timestamps in
+    let ts = (fst sample).timestamps in
     let sumLocal    = Int64.to_float    ts.ta   +.  Int64.to_float  ts.tf in
     let sumFar      =                   ts.tb   +.                  ts.te in
 
@@ -59,8 +59,8 @@ let theta_of p_hat c sample =
 
 
 let rate_of_pair newer_sample older_sample =
-    let newer = newer_sample.timestamps in
-    let older = older_sample.timestamps in
+    let newer = (fst newer_sample).timestamps in
+    let older = (fst older_sample).timestamps in
     let delTa = Int64.sub newer.ta  older.ta in
     let delTb = newer.tb -.         older.tb in
     let delTe = newer.te -.         older.te in
@@ -87,7 +87,7 @@ let warmup_p_hat ~rtt_hat near far =
     match p_hat with
     | None -> None
     | Some p ->
-            let del_tb      = check_non_negative (best_in_near.timestamps.tb -. best_in_far.timestamps.tb) in
+            let del_tb      = check_non_negative ((fst best_in_near).timestamps.tb -. (fst best_in_far).timestamps.tb) in
             let far_error   = Int64.to_float @@ error_of best_in_far  rtt_hat in
             let near_error  = Int64.to_float @@ error_of best_in_near rtt_hat in
             let p_hat_error = (p /. del_tb) *. (far_error +. near_error) in
@@ -109,7 +109,7 @@ let warmup_C_fixup ~old_C ~old_p_hat ~new_p_hat latest =
 
 let warmup_theta_point_error params p_hat rtt_hat latest sa =
     let rtt_error   = p_hat *. (Int64.to_float @@ error_of sa rtt_hat) in
-    let age         = p_hat *. Int64.to_float (delta_TSC latest.timestamps.tf sa.timestamps.tf) in
+    let age         = p_hat *. Int64.to_float (delta_TSC (fst latest).timestamps.tf (fst sa).timestamps.tf) in
     rtt_error +. params.skm_rate *. age
 
 let warmup_theta_hat ~params ~p_hat ~rtt_hat ~c last win =
@@ -159,5 +159,9 @@ let win_warmup_theta_hat    ts =    (* FOR: warmup_theta_hat *)
     (last, range_of ts Newest Oldest)
 
 (* NORMAL ESTIMATORS *)
+
+let normal_RTT_hat  params  offset_win  shift_win = 3
+
+
 (* NORMAL WINDOWS *)
 
