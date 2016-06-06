@@ -118,7 +118,7 @@ let update_estimators old_state =
 
             let latest_sample = fst @@ get_sure samples Newest in
             let head_cut_off = tl samples in
-            let samples_and_rtt_hat = hcons (latest_sample, Some rtt_hat) head_cut_off in
+            let updated_samples = hcons (latest_sample, Some rtt_hat) head_cut_off in
 
             let p_hat_and_error = Some (1e-9, 0.0) in
 
@@ -130,20 +130,23 @@ let update_estimators old_state =
             let p_local             =   None in
             let theta_hat_and_error =   None in
             let new_ests = {pstamp;  p_hat_and_error; p_local; c; theta_hat_and_error} in
-            {old_state with estimators = new_ests; regime = WARMUP }
+            {old_state with samples_and_rtt_hat = updated_samples; estimators = new_ests; regime = WARMUP }
 
 
     | WARMUP    ->
-            let samples     = old_state.samples in
+            let samples     = old_state.samples_and_rtt_hat in
             let old_ests    = old_state.estimators in
 
             let pstamp  = Some    (run_estimator_1win warmup_pstamp                (win_warmup_pstamp  samples)) in
-            let rtt_hat = hcons   (run_estimator_1win warmup_rtt_hat               (win_warmup_rtt_hat samples)) old_state.estimators.rtt_hat in
+            let rtt_hat =         (run_estimator_1win warmup_rtt_hat               (win_warmup_rtt_hat samples)) in
+
+            let latest_sample = fst @@ get_sure samples Newest in
+            let head_cut_off = tl samples in
+            let updated_samples = hcons (latest_sample, Some rtt_hat) head_cut_off in
 
             (* Second stage estimators: *)
 
-            let latest_rtt_hat  = point_of_range @@ range_of rtt_hat Newest Newest in
-            let p_hat_and_error = run_estimator_2win (warmup_p_hat ~rtt_hat:latest_rtt_hat) (win_warmup_p_hat   samples) in
+            let p_hat_and_error = run_estimator_2win (warmup_p_hat ~rtt_hat:rtt_hat) (win_warmup_p_hat   samples) in
 
             let c                   =
                 match (old_ests.c, old_ests.p_hat_and_error, p_hat_and_error) with
@@ -156,10 +159,9 @@ let update_estimators old_state =
             let theta_hat_and_error =
                 match (p_hat_and_error, c) with
                 | (Some (new_p, new_err), Some kc)  ->
-                        run_estimator_2win (warmup_theta_hat ~params:old_state.parameters ~p_hat:new_p ~rtt_hat:latest_rtt_hat ~c:kc) (win_warmup_theta_hat samples)
+                        run_estimator_2win (warmup_theta_hat ~params:old_state.parameters ~p_hat:new_p ~rtt_hat:rtt_hat ~c:kc) (win_warmup_theta_hat samples)
                 | _                 -> None
             in
 
-            let new_ests = {pstamp; rtt_hat; p_hat_and_error; p_local; c; theta_hat_and_error} in
-            {old_state with estimators = new_ests}
-
+            let new_ests = {pstamp; p_hat_and_error; p_local; c; theta_hat_and_error} in
+            {old_state with samples_and_rtt_hat = updated_samples; estimators = new_ests}
