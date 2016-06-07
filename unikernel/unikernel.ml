@@ -1,5 +1,6 @@
 open Lwt
 open Tsc
+open Types
 open Wire
 open Int64
 open Ntp_client
@@ -46,7 +47,6 @@ module Main (C: V1_LWT.CONSOLE) (S: V1_LWT.STACKV4) = struct
             rx st >>= fun (rxd) ->
             C.log_s c (Printf.sprintf "recv ONE %Lx" (snd rxd)) >>= fun () ->
             let state = add_sample state (fst rxd) (fst q) (snd rxd) in
-            let x = (History.nth state.samples 0)  in
             Lwt.return(update_estimators state) >>= fun(state) ->
 
 
@@ -78,9 +78,7 @@ module Main (C: V1_LWT.CONSOLE) (S: V1_LWT.STACKV4) = struct
 
 
 
-            let x = state.estimators.p_hat_and_error in
-            match x with
-            | Some (x,y) -> C.log_s c (Printf.sprintf "THETA TWO %.15E" (x)) >>= fun () ->
+            C.log_s c (show_sync_state state) >>= fun ()->
 
 
 
