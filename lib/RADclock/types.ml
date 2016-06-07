@@ -17,7 +17,7 @@ let default_parameters =
     let e_offset_qual   = 3.0 *. e_offset in
     {ts_limit; skm_rate; e_offset; e_offset_qual}
 
-type counter = Cstruct.uint64 [@printer fun fmt -> fprintf fmt "0%Lx"]
+type counter = Cstruct.uint64 [@printer fun fmt -> fprintf fmt "0x%Lx"]
 [@@deriving show]
 
 type nonce = {
@@ -27,8 +27,8 @@ type nonce = {
 
 type timestamps = {
     ta:     counter;
-    tb:     float;
-    te:     float;
+    tb:     float               [@printer fun fmt -> fprintf fmt "%.09f"];
+    te:     float               [@printer fun fmt -> fprintf fmt "%.09f"];
     tf:     counter;
 }
 [@@deriving show]
@@ -41,7 +41,7 @@ type sample = {
     ttl:        int;
     stratum:    Wire.stratum;
     leap:       Wire.leap;
-    refid:      Cstruct.uint32 [@printer fun fmt -> fprintf fmt "0%lx"];
+    refid:      Cstruct.uint32  [@printer fun fmt -> fprintf fmt "0x%lx"];
     rootdelay:  float;
     rootdisp:   float;
     timestamps: timestamps;
