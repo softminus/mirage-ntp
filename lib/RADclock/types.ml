@@ -8,6 +8,7 @@ type physical_parameters = {
     e_offset:       float;
     e_offset_qual:  float;
 }
+[@@deriving show]
 
 let default_parameters =
     let ts_limit        = 1.5e-5 in
@@ -16,7 +17,8 @@ let default_parameters =
     let e_offset_qual   = 3.0 *. e_offset in
     {ts_limit; skm_rate; e_offset; e_offset_qual}
 
-type counter = Cstruct.uint64
+type counter = Cstruct.uint64 [@printer fun fmt -> fprintf fmt "0%Lx"]
+[@@deriving show]
 
 type nonce = {
     tsc:    counter;    (* the TSC value when we send it *)
@@ -29,22 +31,26 @@ type timestamps = {
     te:     float;
     tf:     counter;
 }
+[@@deriving show]
 
 type quality = NG | OK
+[@@deriving show]
 
 type sample = {
     quality:    quality;
     ttl:        int;
     stratum:    Wire.stratum;
     leap:       Wire.leap;
-    refid:      Cstruct.uint32;
+    refid:      Cstruct.uint32 [@printer fun fmt -> fprintf fmt "0%lx"];
     rootdelay:  float;
     rootdisp:   float;
     timestamps: timestamps;
 }
+[@@deriving show]
 
 
 type regime = ZERO | WARMUP | NORMAL (* turns out we *do* need to distinguish between ZERO and WARMUP *)
+[@@deriving show]
 
 
 
@@ -55,6 +61,7 @@ type estimators = {
     c:                              float   option;
     theta_hat_and_error:    (float * float) option;
 }
+[@@deriving show]
 
 
 type sync_state = {
@@ -63,7 +70,7 @@ type sync_state = {
     samples_and_rtt_hat:   (sample * counter option) history;
     estimators:             estimators;
 }
-
+[@@deriving show]
 
 (* packet zero gets stamps, rtt, and theta_naive.
  * packets > 0 get stamps, rtt

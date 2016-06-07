@@ -28,8 +28,10 @@
 open Util
 
 type 'a history = History of int * int * 'a list (* History (capacity, offset, List) *)
+[@@deriving show]
 
 type point = Newest | Oldest | Full_last | Older of point * int | Newer of point * int | Fixed of int * int (* Fixed (index, oldoffset) *)
+[@@deriving show]
 
 type point_validity = Valid | NotReady | Invalid
 

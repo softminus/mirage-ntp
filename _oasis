@@ -19,11 +19,11 @@ Library "tsc"
 Library "wire"
     Path: lib/NTP/
     Modules: Wire
-    BuildDepends: ipaddr, tcpip, cstruct (>= 2.1.0), cstruct.ppx
+    BuildDepends: ipaddr, tcpip, cstruct (>= 2.1.0), cstruct.ppx, ppx_deriving.std
 
 Library "ntp_client"
     Path: lib/RADclock/
     Modules: Util, Types, History, Ntp_client, Estimators
-    BuildDepends: wire, tsc, ipaddr
+    BuildDepends: wire, tsc, ipaddr, ppx_deriving.std
 
 

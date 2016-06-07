@@ -111,6 +111,7 @@ type span    = Span    of int64 (* span represents a monotonic time value as mea
 type seconds = Seconds of float (* all the statistical calculations are on floats *)
 
 type leap = NoWarning | Minute61 | Minute59 | Unknown (* leap seconds were a mistake *)
+[@@deriving show]
 
 type version = int
 
@@ -160,6 +161,7 @@ let flags_to_mode       f =
 
 
 type stratum = Invalid | Primary | Secondary of int | Unsynchronized | Reserved of int
+[@@deriving show]
 
 let int_to_stratum (i: Cstruct.uint8) = match i with
     | 0 -> Invalid
