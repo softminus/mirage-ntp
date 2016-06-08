@@ -52,14 +52,20 @@ type sample = {
 type regime = ZERO | WARMUP | NORMAL (* turns out we *do* need to distinguish between ZERO and WARMUP *)
 [@@deriving show]
 
-
-
 type estimators = {
-    pstamp:                         point   option; (* this is a point within samples, not rtt_hat *)
+    pstamp:                          point  option; (* this is a point within samples, not rtt_hat *)
     p_hat_and_error:        (float * float) option;
-    p_local:                        float   option;
-    c:                              float   option;
+    p_local:                (float * float) option;
+    c:                               float  option;
     theta_hat_and_error:    (float * float) option;
+}
+[@@deriving show]
+
+type output = {
+    p_hat_and_error:        (float * float) option;
+    p_local:                (float * float) option;
+    c_and_error:            (float * float) option;
+    freshness:                      counter option;
 }
 [@@deriving show]
 
