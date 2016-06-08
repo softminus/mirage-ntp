@@ -65,7 +65,7 @@ type output = {
     freshness:                      counter option;
     p_hat_and_error:        (float * float) option;
     p_local:                (float * float) option;
-    c_and_error:            (float * float) option;
+    ca_and_error:           (float * float) option;
 }
 [@@deriving show]
 
