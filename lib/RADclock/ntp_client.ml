@@ -107,6 +107,24 @@ let add_sample old_state buf nonce rx_tsc =
     | None      ->   old_state
     | Some pkt  ->  {old_state with samples_and_rtt_hat = hcons ((sample_of_packet old_state.samples_and_rtt_hat nonce pkt rx_tsc), None) old_state.samples_and_rtt_hat}
 
+let output_of_state state =
+    let c_of_estimators esti =
+        match (esti.c, esti.theta_hat_and_error) with
+        | (Some c, Some (theta_hat, theta_error))   -> Some (c -. theta_hat, theta_error)
+        | (_     , _                            )   -> None
+    in
+    match get state.samples_and_rtt_hat Newest with
+    | None                      -> None
+    | Some (sample, rtt_hat)    ->
+            match state.estimators.p_hat_and_error with
+            | None -> None
+            | Some (p_hat, p_error) ->
+                    let c_and_error = c_of_estimators state.estimators in
+                    let p_hat_and_error = Some (p_hat, p_error) in
+                    let freshness = Some sample.timestamps.tf in
+                    let p_local     = state.estimators.p_local in
+                    Some {freshness; p_hat_and_error; p_local; c_and_error}
+
 let update_estimators old_state =
     match old_state.regime with
     | ZERO      ->
