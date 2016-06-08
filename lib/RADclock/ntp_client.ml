@@ -119,10 +119,10 @@ let output_of_state state =
             match state.estimators.p_hat_and_error with
             | None -> None
             | Some (p_hat, p_error) ->
-                    let c_and_error = c_of_estimators state.estimators in
+                    let c_and_error     = c_of_estimators state.estimators in
                     let p_hat_and_error = Some (p_hat, p_error) in
-                    let freshness = Some sample.timestamps.tf in
-                    let p_local     = state.estimators.p_local in
+                    let freshness       = Some sample.timestamps.tf in
+                    let p_local         = state.estimators.p_local in
                     Some {freshness; p_hat_and_error; p_local; c_and_error}
 
 let update_estimators old_state =
