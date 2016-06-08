@@ -62,10 +62,10 @@ type estimators = {
 [@@deriving show]
 
 type output = {
-    freshness:                      counter option;
-    p_hat_and_error:        (float * float) option;
+    freshness:                      counter;
+    p_hat_and_error:        (float * float);
     p_local:                (float * float) option;
-    ca_and_error:           (float * float) option;
+    ca_and_error:           (float * float);
 }
 [@@deriving show]
 

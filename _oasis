@@ -26,4 +26,7 @@ Library "ntp_client"
     Modules: Util, Types, History, Ntp_client, Estimators
     BuildDepends: wire, tsc, ipaddr, ppx_deriving.std
 
-
+Library "clocklib"
+    Path: lib/clocklib/
+    Modules: Clock
+    BuildDepends: ntp_client, tsc
