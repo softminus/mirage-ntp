@@ -17,7 +17,7 @@ Library "tsc"
     CSources: rdtsc_caml.c
 
 Library "wire"
-    Path: lib/NTP/
+    Path: lib/wire/
     Modules: Wire
     BuildDepends: ipaddr, tcpip, cstruct (>= 2.1.0), cstruct.ppx, ppx_deriving.std
 
