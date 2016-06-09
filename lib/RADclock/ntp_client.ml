@@ -118,7 +118,9 @@ let output_of_state state =
                     let p_hat_and_error = (p_hat, p_error) in
                     let freshness       = sample.timestamps.tf in
                     let p_local         = state.estimators.p_local in
-                    Some {freshness; p_hat_and_error; p_local; ca_and_error}
+                    let skm_scale       = state.parameters.skm_scale in
+                    Some {skm_scale; freshness; p_hat_and_error; p_local; ca_and_error}
+            | _ ->  None
 
 let update_estimators old_state =
     match old_state.regime with

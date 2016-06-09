@@ -28,5 +28,5 @@ Library "ntp_client"
 
 Library "clocklib"
     Path: lib/clocklib/
-    Modules: Clock
+    Modules: Diffabs
     BuildDepends: ntp_client, tsc

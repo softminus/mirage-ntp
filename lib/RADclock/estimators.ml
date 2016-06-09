@@ -32,11 +32,6 @@ let check_non_negative x =
     | true -> x
     | false -> failwith "should never be negative!"
 
-let delta_TSC newer older =
-    let del = Int64.sub newer older in
-    match (del >= 0L) with
-    | true  -> del
-    | false -> failwith "invalid ΔTSC!"
 
 
 let error_of packet rtt_hat =

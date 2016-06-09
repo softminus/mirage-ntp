@@ -75,10 +75,11 @@ module Main (C: V1_LWT.CONSOLE) (S: V1_LWT.STACKV4) = struct
             C.log_s c (Printf.sprintf "recv THREE %Lx" (snd rxd)) >>= fun () ->
             let state = add_sample state (fst rxd) (fst q) (snd rxd) in
             Lwt.return(update_estimators state) >>= fun(state) ->
-
-
-
-            C.log_s c (show_sync_state state) >>= fun ()->
+                C.log_s c (show_sync_state state) >>= fun () ->
+            let output = output_of_state state in
+            match output with
+            | Some o -> C.log_s c (show_output o) >>= fun ()->
+                    let 
 
 
 

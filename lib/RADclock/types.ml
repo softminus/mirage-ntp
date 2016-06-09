@@ -3,6 +3,7 @@ open Wire
 
 
 type physical_parameters = {
+    skm_scale:      float;
     ts_limit:       float;
     skm_rate:       float;
     e_offset:       float;
@@ -11,14 +12,21 @@ type physical_parameters = {
 [@@deriving show]
 
 let default_parameters =
+    let skm_scale       = 1024.0 in
     let ts_limit        = 1.5e-5 in
     let skm_rate        = 2e-7 in
     let e_offset        = 6.0 *. ts_limit in (* 6 = offset_ratio *)
     let e_offset_qual   = 3.0 *. e_offset in
-    {ts_limit; skm_rate; e_offset; e_offset_qual}
+    {skm_scale; ts_limit; skm_rate; e_offset; e_offset_qual}
 
 type counter = Cstruct.uint64 [@printer fun fmt -> fprintf fmt "0x%Lx"]
 [@@deriving show]
+
+let delta_TSC newer older =
+    let del = Int64.sub newer older in
+    match (del >= 0L) with
+    | true  -> del
+    | false -> failwith "invalid ΔTSC!"
 
 type nonce = {
     tsc:    counter;    (* the TSC value when we send it *)
@@ -62,6 +70,7 @@ type estimators = {
 [@@deriving show]
 
 type output = {
+    skm_scale:                      float;
     freshness:                      counter;
     p_hat_and_error:        (float * float);
     p_local:                (float * float) option;
