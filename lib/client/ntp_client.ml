@@ -122,6 +122,16 @@ let output_of_state state =
                     Some {skm_scale; freshness; p_hat_and_error; p_local; ca_and_error}
             | _ ->  None
 
+
+let fixup_warmup rtt_hat sample_list =
+    let latest = get sample_list Newest in
+    let head_cut_off = tl sample_list in
+    match latest with
+    | None                  ->  failwith "state inconsistent!"
+    | Some (sample, None)   ->  hcons (sample, Some rtt_hat) head_cut_off
+    | _                     ->  failwith "state inconsistent!!"
+
+
 let update_estimators old_state =
     match old_state.regime with
     | ZERO      ->
@@ -131,9 +141,7 @@ let update_estimators old_state =
 
             let rtt_hat =       (run_estimator_1win warmup_rtt_hat               (win_warmup_rtt_hat samples)) in
 
-            let latest_sample = fst @@ get_sure samples Newest in
-            let head_cut_off = tl samples in
-            let updated_samples = hcons (latest_sample, Some rtt_hat) head_cut_off in
+            let updated_samples = fixup_warmup rtt_hat samples in
 
             let p_hat_and_error = Some (1e-9, 0.0) in
 
@@ -155,9 +163,7 @@ let update_estimators old_state =
             let pstamp  = Some    (run_estimator_1win warmup_pstamp                (win_warmup_pstamp  samples)) in
             let rtt_hat =         (run_estimator_1win warmup_rtt_hat               (win_warmup_rtt_hat samples)) in
 
-            let latest_sample = fst @@ get_sure samples Newest in
-            let head_cut_off = tl samples in
-            let updated_samples = hcons (latest_sample, Some rtt_hat) head_cut_off in
+            let updated_samples = fixup_warmup rtt_hat samples in
 
             (* Second stage estimators: *)
 
