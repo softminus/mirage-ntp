@@ -150,7 +150,7 @@ let weighted_sum f weight hist =
 
 let rec min_where_aux extractor li =
     match li with
-    | []    -> failwith "min_where_aux"
+    | []    -> failwith "min_where_aux consistency failure"
     | [x]   -> (0, x)
     | x::xs ->
             let pz, z = min_where_aux extractor xs in
@@ -162,12 +162,12 @@ let rec min_where_aux extractor li =
 let min_and_where extractor hist =
     match hist with History (cap, offset, l) ->
         match l with
-        | [] -> failwith "min_by"
+        | [] -> None
         | z ->
                 let rv = min_where_aux extractor z in
                 let idx = fst rv in
                 let x   = snd rv in
-                (x, Fixed(idx, offset))
+                Some (x, Fixed(idx, offset))
 
 
 let range_of hist left right =
