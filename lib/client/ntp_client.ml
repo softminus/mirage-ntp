@@ -127,9 +127,9 @@ let fixup_warmup rtt_hat sample_list =
     let latest = get sample_list Newest in
     let head_cut_off = tl sample_list in
     match latest with
-    | None                  ->  failwith "state inconsistent!"
+    | None                  ->  failwith "Consistency failure: no sample to fix up!"
     | Some (sample, None)   ->  hcons (sample, Some rtt_hat) head_cut_off
-    | _                     ->  failwith "state inconsistent!!"
+    | Some (sample, Some x) ->  failwith "Consistency failure: sample already fixed up!"
 
 
 let update_estimators old_state =
@@ -137,7 +137,7 @@ let update_estimators old_state =
     | ZERO      ->
             let samples = old_state.samples_and_rtt_hat in
 
-            let pstamp  = Some  (run_estimator_1win warmup_pstamp                (win_warmup_pstamp  samples)) in
+            let pstamp  =       (run_estimator_1win warmup_pstamp                (win_warmup_pstamp  samples)) in
 
             let rtt_hat =       (run_estimator_1win warmup_rtt_hat               (win_warmup_rtt_hat samples)) in
 
