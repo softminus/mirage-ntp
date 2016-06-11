@@ -1,6 +1,9 @@
 open History
 open Wire
 
+type counter = Cstruct.uint64 [@printer fun fmt -> fprintf fmt "0x%Lx"]
+[@@deriving show]
+
 
 type physical_parameters = {
     skm_scale:      float;
@@ -8,6 +11,7 @@ type physical_parameters = {
     skm_rate:       float;
     e_offset:       float;
     e_offset_qual:  float;
+    shift_thres:    counter;
 }
 [@@deriving show]
 
@@ -17,10 +21,8 @@ let default_parameters =
     let skm_rate        = 2e-7 in
     let e_offset        = 6.0 *. ts_limit in (* 6 = offset_ratio *)
     let e_offset_qual   = 3.0 *. e_offset in
-    {skm_scale; ts_limit; skm_rate; e_offset; e_offset_qual}
-
-type counter = Cstruct.uint64 [@printer fun fmt -> fprintf fmt "0x%Lx"]
-[@@deriving show]
+    let shift_thres     = 0L in
+    {skm_scale; ts_limit; skm_rate; e_offset; e_offset_qual; shift_thres}
 
 let delta_TSC newer older =
     let del = Int64.sub newer older in
