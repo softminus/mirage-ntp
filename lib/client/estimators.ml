@@ -4,6 +4,22 @@ open Types
 open History
 
 (* SHARED *)
+let (>>=) x f =
+    match x with
+    | Some x    -> (f x)
+    | None      -> None
+
+let (<$>) f m =
+    match m with
+     | Some x   -> Some (f x)
+     | None     -> None
+
+let (<*>) f m =
+    match f with
+    | Some ff   -> ff <$> m
+    | None      -> None
+
+let join x = x >>= (fun x -> x)
 
 let run_estimator_2win  estimator wins =
     match wins with
@@ -21,6 +37,11 @@ let rtt_of sample =
     match (del > 0L) with
     | true  -> del
     | false -> failwith "invalid RTT / causality error. This is a bug"
+    (* we are confident leaving this as an exception and returning a Maybe because the only way it can be reached is if the
+     * TSC counter counts backwards or the code somehow invoked it in a bad way. There is no way that data from the network
+     * can cause this exception to be reached, only a devastating bug in the code or the TSC counter being used violating its
+     * invariants
+     *)
 
 let check_positive x =
     match (x > 0.0) with
@@ -38,9 +59,9 @@ let error_of packet rtt_hat =
     delta_TSC (rtt_of packet) rtt_hat
 
 (*    th_naive = (
- *    peer->phat * ((long double)stamp->Ta + (long double)stamp->Tf) 
+ *    peer->phat * ((long double)stamp->Ta + (long double)stamp->Tf)
  *    + (2 * peer->C - (stamp->Tb + stamp->Te))
- *    ) / 2.0; 
+ *    ) / 2.0;
  *
  *)
 let theta_of p_hat c sample =
@@ -71,17 +92,17 @@ let rate_of_pair newer_sample older_sample =
 
 
 (* WARMUP ESTIMATORS *)
-let warmup_pstamp   win =           (snd @@ min_and_where rtt_of win)
-let warmup_rtt_hat  win = (rtt_of @@ fst @@ min_and_where rtt_of win)
+let warmup_pstamp   win =             snd <$> (min_and_where rtt_of win)    (* returns a Fixed *)
+let warmup_rtt_hat  win = rtt_of <$> (fst <$> (min_and_where rtt_of win))   (* returns the rtt number *)
 
 
 let warmup_p_hat ~rtt_hat near far =
-    let best_in_near    = fst @@ min_and_where rtt_of near  in
-    let best_in_far     = fst @@ min_and_where rtt_of far   in
-    let p_hat = rate_of_pair best_in_near best_in_far in
-    match p_hat with
-    | None -> None
-    | Some p ->
+    let best_in_near    = fst <$> (min_and_where rtt_of near) in
+    let best_in_far     = fst <$> (min_and_where rtt_of far ) in
+    let p_hat = join (rate_of_pair <$> best_in_near <*> best_in_far) in
+    match (best_in_near, best_in_far, p_hat) with
+    | (None, None, None) -> None
+    | (Some best_in_near, Some best_in_far, Some p) ->
             let del_tb      = check_non_negative ((fst best_in_near).timestamps.tb -. (fst best_in_far).timestamps.tb) in
             let far_error   = Int64.to_float @@ error_of best_in_far  rtt_hat in
             let near_error  = Int64.to_float @@ error_of best_in_near rtt_hat in
@@ -155,7 +176,16 @@ let win_warmup_theta_hat    ts =    (* FOR: warmup_theta_hat *)
 
 (* NORMAL ESTIMATORS *)
 
-let normal_RTT_hat  params  offset_win  shift_win = 3
+let normal_RTT_hat params   halftop_win shift_win = (* NOTE: halftop_win is greater than shift_win *)
+    let win_rtt     = rtt_of @@ fst @@ min_and_where rtt_of halftop_win in
+    let subwin_rtt  = rtt_of @@ fst @@ min_and_where rtt_of shift_win in
+
+    match (subwin_rtt > win_rtt + params.rtt_shift_thres) with
+    | false -> (win_rtt, None)
+    | true  -> (subwin_rtt, Some shift_win)
+
+
+
 
 
 (* NORMAL WINDOWS *)
