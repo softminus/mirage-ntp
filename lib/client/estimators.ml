@@ -101,13 +101,13 @@ let warmup_p_hat ~rtt_hat near far =
     let best_in_far     = fst <$> (min_and_where rtt_of far ) in
     let p_hat = join (rate_of_pair <$> best_in_near <*> best_in_far) in
     match (best_in_near, best_in_far, p_hat) with
-    | (None, None, None) -> None
     | (Some best_in_near, Some best_in_far, Some p) ->
             let del_tb      = check_non_negative ((fst best_in_near).timestamps.tb -. (fst best_in_far).timestamps.tb) in
             let far_error   = Int64.to_float @@ error_of best_in_far  rtt_hat in
             let near_error  = Int64.to_float @@ error_of best_in_near rtt_hat in
             let p_hat_error = (p /. del_tb) *. (far_error +. near_error) in
             Some (p, p_hat_error)
+    | _ ->  None
 
 
 (* C is only estimated once -- with first packet ever received! It is fixed up with
@@ -140,12 +140,13 @@ let warmup_theta_hat ~params ~p_hat ~rtt_hat ~c last win =
     let sum, sum_wts =      weighted_sum (theta_of p_hat c) (wt params p_hat rtt_hat latest) win in
 
     let min          =  min_and_where (warmup_theta_point_error params p_hat rtt_hat latest) win in
-    let minET        =                 warmup_theta_point_error params p_hat rtt_hat latest @@ fst min in
-
-    let theta_hat  =  sum /. check_positive(sum_wts) in
-    match (minET < params.e_offset_qual) with
-    | true  -> Some (theta_hat, minET)
-    | false -> None
+    match min with
+    | None -> None
+    | Some min ->   (let minET        =                 warmup_theta_point_error params p_hat rtt_hat latest @@ fst min in
+                    let theta_hat  =  sum /. check_positive(sum_wts) in
+                    match (minET < params.e_offset_qual) with
+                    | true  -> Some (theta_hat, minET)
+                    | false -> None)
 
 
 (* WARMUP WINDOWS *)
@@ -177,12 +178,14 @@ let win_warmup_theta_hat    ts =    (* FOR: warmup_theta_hat *)
 (* NORMAL ESTIMATORS *)
 
 let normal_RTT_hat params   halftop_win shift_win = (* NOTE: halftop_win is greater than shift_win *)
-    let win_rtt     = rtt_of @@ fst @@ min_and_where rtt_of halftop_win in
-    let subwin_rtt  = rtt_of @@ fst @@ min_and_where rtt_of shift_win in
+    let win_rtt     = rtt_of <$> (fst <$> min_and_where rtt_of halftop_win) in
+    let subwin_rtt  = rtt_of <$> (fst <$> min_and_where rtt_of shift_win  ) in
 
-    match (subwin_rtt > win_rtt + params.rtt_shift_thres) with
-    | false -> (win_rtt, None)
-    | true  -> (subwin_rtt, Some shift_win)
+    match (subwin_rtt, win_rtt) with
+    | (Some subwin_rtt, Some win_rtt)   -> (match (subwin_rtt > Int64.add win_rtt params.shift_thres) with 
+                                            | false -> Some (win_rtt, None)
+                                            | true  -> Some (subwin_rtt, Some shift_win))
+    | _                                 -> None
 
 
 
