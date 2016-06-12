@@ -178,8 +178,8 @@ let range_of hist left right =
     | (_,           NotReady)   -> NotFull
     | (Valid,       Valid)          ->
             match (idx_of_point hist left <= idx_of_point hist right) with
-            | false -> invalid_arg "range ordering invalid"
             | true  -> Full (range_slice hist left right)
+            | false -> invalid_arg "range ordering invalid"
 
 
 
