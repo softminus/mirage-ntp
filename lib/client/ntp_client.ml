@@ -155,8 +155,8 @@ let update_estimators old_state =
             let new_ests = {pstamp;  p_hat_and_error; p_local; c; theta_hat_and_error} in
 
             (match updated_samples with
-            | Some s -> {old_state with samples_and_rtt_hat = s;                             estimators = new_ests; regime = WARMUP }
-            | None   -> {old_state with samples_and_rtt_hat = old_state.samples_and_rtt_hat; estimators = new_ests; regime = ZERO})
+            | Some s -> {old_state with samples_and_rtt_hat = s;                             estimators = new_ests;             regime = WARMUP }
+            | None   ->  old_state )
 
     | WARMUP    ->
             let samples     = old_state.samples_and_rtt_hat in
@@ -193,4 +193,4 @@ let update_estimators old_state =
 
             (match updated_samples with
             | Some s -> {old_state with samples_and_rtt_hat = s;                             estimators = new_ests}
-            | None   -> {old_state with samples_and_rtt_hat = old_state.samples_and_rtt_hat; estimators = new_ests})
+            | None   ->  old_state)
