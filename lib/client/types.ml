@@ -11,6 +11,7 @@ type physical_parameters = {
     skm_rate:       float;
     e_offset:       float;
     e_offset_qual:  float;
+    initial_p:     (float * float);
     shift_thres:    counter;
 }
 [@@deriving show]
@@ -21,8 +22,9 @@ let default_parameters =
     let skm_rate        = 2e-7 in
     let e_offset        = 6.0 *. ts_limit in (* 6 = offset_ratio *)
     let e_offset_qual   = 3.0 *. e_offset in
+    let initial_p       = (1e-9, 0.0) in
     let shift_thres     = 0L in
-    {skm_scale; ts_limit; skm_rate; e_offset; e_offset_qual; shift_thres}
+    {skm_scale; ts_limit; skm_rate; e_offset; e_offset_qual; initial_p; shift_thres}
 
 let delta_TSC newer older =
     let del = Int64.sub newer older in

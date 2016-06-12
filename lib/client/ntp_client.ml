@@ -143,7 +143,7 @@ let update_estimators old_state =
 
             let updated_samples = fixup_warmup rtt_hat samples in
 
-            let p_hat_and_error = Some (1e-9, 0.0) in
+            let p_hat_and_error = Some old_state.parameters.initial_p in
 
             let c                   =
                 match (p_hat_and_error) with
