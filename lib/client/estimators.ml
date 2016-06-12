@@ -181,11 +181,14 @@ let normal_RTT_hat params   halftop_win shift_win = (* NOTE: halftop_win is grea
     let win_rtt     = rtt_of <$> (fst <$> min_and_where rtt_of halftop_win) in
     let subwin_rtt  = rtt_of <$> (fst <$> min_and_where rtt_of shift_win  ) in
 
-    (fun subwin_rtt win_rtt -> match (subwin_rtt > Int64.add win_rtt params.shift_thres) with
+    (fun subwin_rtt     win_rtt -> match (subwin_rtt > Int64.add win_rtt params.shift_thres) with
                                             | false -> (win_rtt,    None)
-                                            | true  -> (subwin_rtt, Some shift_win))
-    <$> subwin_rtt <*> win_rtt
+                                            | true  -> (subwin_rtt, Some shift_win))    (* Upwards shift detected *)
+    <$>  subwin_rtt <*> win_rtt
 
+let handle_RTT_upshift subwin_rtt samples win =
+    let (left, right) = win in
+    slice_map samples left right (fun x -> (fst x, Some subwin_rtt))
 
 
 
