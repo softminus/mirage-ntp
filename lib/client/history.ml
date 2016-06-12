@@ -182,6 +182,38 @@ let range_of hist left right =
             | false -> invalid_arg "range ordering invalid"
 
 
+let valid h p =
+    match validity h p with
+    | Invalid   -> false
+    | NotReady  -> true
+    | Valid     -> true
+
+let valid_range h l r =
+    match (valid h l, valid h r) with
+    | (true, true)  -> (idx_of_point h l <= idx_of_point h r)
+    | _             -> false
+
+let valid_pair hist         left_1 right_1                       left_2 right_2 =
+    match (valid_range hist left_1 right_1,     valid_range hist left_2 right_2) with
+    | (true, true)  -> true
+    | _             -> false
+
+let order hist x y =                (* returns (lefter point, righter point) *)
+    match (idx_of_point hist x <= idx_of_point hist y) with
+    | true  -> (x, y)
+    | false -> (y, x)
+
+let intersect_range hist left_1 right_1 left_2 right_2 =
+    match (valid_pair hist left_1 right_1 left_2 right_2) with
+    | false -> invalid_arg "invalid arguments provided!"
+    | true  ->
+            let lcan = snd @@ (order hist left_1  left_2 ) in
+            let rcan = fst @@ (order hist right_1 right_2) in
+            match (valid_range hist lcan rcan) with
+            | true  -> (lcan, rcan)
+            | false -> invalid_arg "non-overlapping lists!"
+
+
 
 let point_of_history hi = (* takes a single-element history and gives us the point inside *)
     match (length hi) with
