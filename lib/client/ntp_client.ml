@@ -137,15 +137,18 @@ let update_estimators old_state =
     | ZERO      ->
             let samples = old_state.samples_and_rtt_hat in
 
-            let pstamp  =       (run_estimator_1win warmup_pstamp                (win_warmup_pstamp  samples)) in
+            let pstamp  = (run_estimator_1win warmup_pstamp                (win_warmup_pstamp  samples)) in
 
-            let rtt_hat =       (run_estimator_1win warmup_rtt_hat               (win_warmup_rtt_hat samples)) in
+            let rtt_hat = (run_estimator_1win warmup_rtt_hat               (win_warmup_rtt_hat samples)) in
 
             let updated_samples = (fixup_warmup <$> rtt_hat <*> (Some samples)) in
 
             let p_hat_and_error = Some old_state.parameters.initial_p in
 
-            let c = join (run_estimator_1win <$> (warmup_C_oneshot <$> (fst <$> p_hat_and_error)) <*> Some (win_warmup_C_oneshot samples)) in
+            let c =                     join    (run_estimator_1win <$>
+                                        (warmup_C_oneshot <$>
+                                            (fst <$> p_hat_and_error))
+                                        <*> Some (win_warmup_C_oneshot samples)) in
 
             let p_local             =   None in
             let theta_hat_and_error =   None in
@@ -160,20 +163,31 @@ let update_estimators old_state =
             let old_ests    = old_state.estimators in
 
             let pstamp  = (run_estimator_1win warmup_pstamp                (win_warmup_pstamp  samples)) in
-            let rtt_hat =         (run_estimator_1win warmup_rtt_hat               (win_warmup_rtt_hat samples)) in
+            let rtt_hat = (run_estimator_1win warmup_rtt_hat               (win_warmup_rtt_hat samples)) in
 
             let updated_samples = (fixup_warmup <$> rtt_hat <*> (Some samples)) in
 
             (* Second stage estimators: *)
 
-            let p_hat_and_error = join (run_estimator_2win <$> (warmup_p_hat <$> rtt_hat) <*> Some (win_warmup_p_hat   samples)) in
+            let p_hat_and_error =       join    (run_estimator_2win <$>
+                                        (warmup_p_hat <$>
+                                            rtt_hat)
+                                        <*> Some (win_warmup_p_hat samples)) in
 
-            let c = join (run_estimator_1win <$> (warmup_C_fixup <$> old_ests.c <*> (fst <$> old_ests.p_hat_and_error) <*> (fst <$> p_hat_and_error)) <*> Some (win_warmup_C_fixup samples))
-            in
+            let c =                     join    (run_estimator_1win <$>
+                                        (warmup_C_fixup <$>
+                                            old_ests.c <*>
+                                            (fst <$> old_ests.p_hat_and_error) <*>
+                                            (fst <$> p_hat_and_error))
+                                        <*> Some (win_warmup_C_fixup samples)) in
 
             let p_local             =   None in
 
-            let theta_hat_and_error = join (run_estimator_2win <$> (warmup_theta_hat old_state.parameters  <$> (fst <$> p_hat_and_error) <*> rtt_hat <*> c) <*> Some (win_warmup_theta_hat samples) ) in
+            let theta_hat_and_error =   join    (run_estimator_2win <$>
+                                        (warmup_theta_hat old_state.parameters <$>
+                                            (fst <$> p_hat_and_error) <*>
+                                            rtt_hat <*> c)
+                                        <*> Some (win_warmup_theta_hat samples)) in
 
             let new_ests = {pstamp; p_hat_and_error; p_local; c; theta_hat_and_error} in
 
