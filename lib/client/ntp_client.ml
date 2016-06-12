@@ -137,9 +137,8 @@ let update_estimators old_state =
     | ZERO      ->
             let samples = old_state.samples_and_rtt_hat in
 
-            let pstamp  = (run_estimator_1win warmup_pstamp                (win_warmup_pstamp  samples)) in
-
-            let rtt_hat = (run_estimator_1win warmup_rtt_hat               (win_warmup_rtt_hat samples)) in
+            let pstamp  = run_estimator_1win warmup_pstamp  (win_warmup_pstamp  samples) in
+            let rtt_hat = run_estimator_1win warmup_rtt_hat (win_warmup_rtt_hat samples) in
 
             let updated_samples = (fixup_warmup <$> rtt_hat <*> (Some samples)) in
 
@@ -155,15 +154,15 @@ let update_estimators old_state =
             let new_ests = {pstamp;  p_hat_and_error; p_local; c; theta_hat_and_error} in
 
             (match updated_samples with
-            | Some s -> {old_state with samples_and_rtt_hat = s;                             estimators = new_ests;             regime = WARMUP }
+            | Some s -> {old_state with samples_and_rtt_hat = s; estimators = new_ests; regime = WARMUP }
             | None   ->  old_state )
 
     | WARMUP    ->
             let samples     = old_state.samples_and_rtt_hat in
             let old_ests    = old_state.estimators in
 
-            let pstamp  = (run_estimator_1win warmup_pstamp                (win_warmup_pstamp  samples)) in
-            let rtt_hat = (run_estimator_1win warmup_rtt_hat               (win_warmup_rtt_hat samples)) in
+            let pstamp      = run_estimator_1win warmup_pstamp     (win_warmup_pstamp  samples) in
+            let rtt_hat     = run_estimator_1win warmup_rtt_hat    (win_warmup_rtt_hat samples) in
 
             let updated_samples = (fixup_warmup <$> rtt_hat <*> (Some samples)) in
 
@@ -192,5 +191,5 @@ let update_estimators old_state =
             let new_ests = {pstamp; p_hat_and_error; p_local; c; theta_hat_and_error} in
 
             (match updated_samples with
-            | Some s -> {old_state with samples_and_rtt_hat = s;                             estimators = new_ests}
+            | Some s -> {old_state with samples_and_rtt_hat = s; estimators = new_ests}
             | None   ->  old_state)
