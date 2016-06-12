@@ -9,7 +9,7 @@ let (>>=) x f =
     | Some x    -> (f x)
     | None      -> None
 
-let (<$>) f m =
+let (<$>) f m =                 (* fmap *)
     match m with
      | Some x   -> Some (f x)
      | None     -> None
@@ -96,7 +96,7 @@ let warmup_pstamp   win =             snd <$> (min_and_where rtt_of win)    (* r
 let warmup_rtt_hat  win = rtt_of <$> (fst <$> (min_and_where rtt_of win))   (* returns the rtt number *)
 
 
-let warmup_p_hat ~rtt_hat near far =
+let warmup_p_hat rtt_hat near far =
     let best_in_near    = fst <$> (min_and_where rtt_of near) in
     let best_in_far     = fst <$> (min_and_where rtt_of far ) in
     let p_hat = join (rate_of_pair <$> best_in_near <*> best_in_far) in
@@ -115,11 +115,11 @@ let warmup_p_hat ~rtt_hat near far =
  * more than once. The theta estimators will compensate for the inevitable offset that
  * is inherent to C.
  *)
-let warmup_C_oneshot ~p_hat r =
+let warmup_C_oneshot p_hat r =
     let first = fst @@ point_of_history r in
     Some (first.timestamps.tb -. (p_hat *. Int64.to_float first.timestamps.ta))
 
-let warmup_C_fixup ~old_C ~old_p_hat ~new_p_hat latest =
+let warmup_C_fixup old_C old_p_hat new_p_hat latest =
     let newest = fst @@ point_of_history latest in
     Some (old_C +. (Int64.to_float newest.timestamps.ta) *. (old_p_hat -. new_p_hat))
 
@@ -128,7 +128,7 @@ let warmup_theta_point_error params p_hat rtt_hat latest sa =
     let age         = p_hat *. Int64.to_float (delta_TSC (fst latest).timestamps.tf (fst sa).timestamps.tf) in
     rtt_error +. params.skm_rate *. age
 
-let warmup_theta_hat ~params ~p_hat ~rtt_hat ~c last win =
+let warmup_theta_hat params p_hat rtt_hat c last win =
     let latest = point_of_history last in
 
     let wt params p_hat rtt_hat latest sa =
