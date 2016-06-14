@@ -1,6 +1,23 @@
 open History
 open Wire
 
+let (>>=) x f =
+    match x with
+    | Some x    -> (f x)
+    | None      -> None
+
+let (<$>) f m =                 (* fmap *)
+    match m with
+     | Some x   -> Some (f x)
+     | None     -> None
+
+let (<*>) f m =
+    match f with
+    | Some ff   -> ff <$> m
+    | None      -> None
+
+let join x = x >>= (fun x -> x)
+
 type counter = Cstruct.uint64 [@printer fun fmt -> fprintf fmt "0x%Lx"]
 [@@deriving show]
 

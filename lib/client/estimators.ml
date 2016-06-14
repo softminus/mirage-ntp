@@ -4,23 +4,6 @@ open Types
 open History
 
 (* SHARED *)
-let (>>=) x f =
-    match x with
-    | Some x    -> (f x)
-    | None      -> None
-
-let (<$>) f m =                 (* fmap *)
-    match m with
-     | Some x   -> Some (f x)
-     | None     -> None
-
-let (<*>) f m =
-    match f with
-    | Some ff   -> ff <$> m
-    | None      -> None
-
-let join x = x >>= (fun x -> x)
-
 let run_estimator_2subset  estimator subsets =
     match subsets with
     | (Full a, Full b) -> estimator a b
