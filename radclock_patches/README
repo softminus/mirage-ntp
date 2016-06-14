@@ -1,0 +1,20 @@
+fix_no_SLL_case.patch:
+
+fix_no_SLL_case.patch lets RADclock ingest pcap files without synthetic link
+layer header and without fixing up the MAC address in the SLL header to be the
+TSC counter corresponding to the packet. Normally when RADclock is not running
+in real-time (which needs the feedfoward kernel patches) it ingests a pcap file
+and looks in the MAC address field (sll_header->sll_addr) of the SLL header
+(see create_stamp.c:187) for the value of the TSC counter when the packet was
+receieved.
+
+fix_no_SLL_case.patch fixes a bug in the RADclock code that processes pcap
+files that lack SLL headers (instead, TSC counter value is taken from the
+timeval value in the pcap header).
+
+
+window_bugs.patch:
+
+window_bugs.patch prints out the plocal windows as set in init_plocal and
+process_plocal_full to understand why they seem to be defined inconsistently
+(and in a way that violates the preconditions for history_min_slide, even).

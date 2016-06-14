@@ -1,0 +1,29 @@
+diff --git a/radclock/create_stamp.c b/radclock/create_stamp.c
+index 14becba..1dfe0b6 100644
+--- a/radclock/create_stamp.c
++++ b/radclock/create_stamp.c
+@@ -220,6 +220,15 @@ get_valid_ntp_payload(radpcap_packet_t *packet, struct ntp_pkt **ntp,
+ 		iph = (struct ip *)(packet->payload + sizeof(struct ether_header));
+ 		remaining -= sizeof(struct ether_header);
+ 		ip6h = NULL;
++			ss_src->ss_family = AF_INET;
++			ss_dst->ss_family = AF_INET;
++			sin = (struct sockaddr_in *)ss_src;
++			sin->sin_addr = iph->ip_src;
++			sin = (struct sockaddr_in *)ss_dst;
++			sin->sin_addr = iph->ip_dst;
++			*ttl = iph->ip_ttl;
++
++			udph = (struct udphdr *)((char *)iph + (iph->ip_hl * 4));
+ 		break;
+ 
+ 	/*
+@@ -350,7 +359,7 @@ get_vcount_from_etherframe(radpcap_packet_t *packet, vcounter_t *vcount)
+ 	 * tv_sec holds the left hand of the counter, then put right hand of the
+ 	 * counter into empty RHS of vcount
+ 	 */
+-	*vcount  = (u_int64_t) (((struct pcap_pkthdr*)packet->header)->ts.tv_sec) << 32;
++	*vcount  = (u_int64_t) (((struct pcap_pkthdr*)packet->header)->ts.tv_sec)  * 1e6;
+ 	*vcount += (u_int32_t) ((struct pcap_pkthdr*)packet->header)->ts.tv_usec;
+ 
+ 	return (0);

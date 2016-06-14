@@ -1,0 +1,29 @@
+diff --git a/radclock/sync_bidir.c b/radclock/sync_bidir.c
+index 2e5fe71..0c044fd 100644
+--- a/radclock/sync_bidir.c
++++ b/radclock/sync_bidir.c
+@@ -168,9 +168,11 @@ init_plocal(struct bidir_peer *peer, unsigned int plocal_winratio, index_t i)
+ 	lhs = i - peer->plocal_win + 1 - peer->wwidth/2;
+ 	rhs = i - peer->plocal_win + peer->wwidth - peer->wwidth/2;
+ 	peer->far_i  = history_min(&peer->RTT_hist, lhs, rhs);
++    verbose(VERB_CONTROL, "MASTER WINDOW CONTROL: XXX: IN INIT PLOCAL, FAR we have i=%lu, lhs=%lu,rhs=%lu,wwidth=%lu,plocal_win=%lu", i, lhs, rhs, peer->wwidth, peer->plocal_win);
+ 
+ 	lhs = i - peer->wwidth + 1;
+ 	rhs = i;
++    verbose(VERB_CONTROL, "MASTER WINDOW CONTROL: XXX: IN INIT PLOCAL, NEAR we have i=%lu, lhs=%lu,rhs=%lu,wwidth=%lu,plocal_win=%lu", i, lhs, rhs, peer->wwidth, peer->plocal_win);
+ 	peer->near_i = history_min(&peer->RTT_hist, lhs, rhs);
+ 	verbose(VERB_CONTROL, "i=%lu: Initializing full plocal algo, wwidth= %lu, "
+ 			"(far_i,near_i) = (%lu,%lu)",
+@@ -1237,10 +1239,12 @@ process_plocal_full(struct bidir_peer* peer, struct radclock_handle* handle,
+ 
+ 	lhs = peer->stamp_i - peer->wwidth - peer->plocal_win - peer->wwidth/2;
+ 	rhs = peer->stamp_i - 1 - peer->plocal_win - peer->wwidth/2;
++    verbose(VERB_CONTROL, "MASTER WINDOW CONTROL: XXX: IN PROCESS PLOCAL FULL FAR , we have i=%lu, lhs=%lu,rhs=%lu,wwidth=%lu,plocal_win=%lu", peer->stamp_i, lhs, rhs, peer->wwidth, peer->plocal_win);
+ 	peer->far_i  = history_min_slide(&peer->RTT_hist, peer->far_i, lhs, rhs);
+ 	peer->near_i = history_min_slide(&peer->RTT_hist, peer->near_i,
+ 			peer->stamp_i-peer->wwidth, peer->stamp_i-1);
+ 
++    verbose(VERB_CONTROL, "MASTER WINDOW CONTROL: XXX: IN PROCESS PLOCAL FULL, NEAR we have i=%lu, lhs=%lu,rhs=%lu,wwidth=%lu,plocal_win=%lu",peer->stamp_i, peer->stamp_i-peer->wwidth, peer->stamp_i-1, peer->wwidth, peer->plocal_win);
+ 	/* Compute time intervals between NTP timestamps of selected stamps */
+ 	stamp_near = history_find(&peer->stamp_hist, peer->near_i);
+ 	stamp_far = history_find(&peer->stamp_hist, peer->far_i);
