@@ -213,7 +213,10 @@ let intersect_range hist left_1 right_1 left_2 right_2 =
             | true  -> (lcan, rcan)
             | false -> invalid_arg "non-overlapping lists!"
 
-
+let range_length hist left right =
+    match valid_range hist left right with
+    | false -> None
+    | true  -> Some (idx_of_point hist right - idx_of_point hist left + 1)
 
 let point_of_history hi = (* takes a single-element history and gives us the point inside *)
     match (length hi) with
