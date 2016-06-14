@@ -21,15 +21,15 @@ let (<*>) f m =
 
 let join x = x >>= (fun x -> x)
 
-let run_estimator_2win  estimator wins =
-    match wins with
+let run_estimator_2subset  estimator subsets =
+    match subsets with
     | (Full a, Full b) -> estimator a b
-    | (_     , _     ) -> failwith "invalid windows passed"
+    | (_     , _     ) -> failwith "invalid subsets passed"
 
-let run_estimator_1win  estimator win =
-    match win with
+let run_estimator_1subset  estimator subset =
+    match subset with
     | Full a            -> estimator a
-    | _                 -> failwith "invalid windows passed"
+    | _                 -> failwith "invalid subsets passed"
 
 let rtt_of sample =
     let ts = (fst sample).timestamps in
@@ -92,8 +92,8 @@ let rate_of_pair newer_sample older_sample =
 
 
 (* WARMUP ESTIMATORS *)
-let warmup_pstamp   win =             snd <$> (min_and_where rtt_of win)    (* returns a Fixed *)
-let warmup_rtt_hat  win = rtt_of <$> (fst <$> (min_and_where rtt_of win))   (* returns the rtt number *)
+let warmup_pstamp   subset =             snd <$> (min_and_where rtt_of subset)    (* returns a Fixed *)
+let warmup_rtt_hat  subset = rtt_of <$> (fst <$> (min_and_where rtt_of subset))   (* returns the rtt number *)
 
 
 let warmup_p_hat rtt_hat near far =
@@ -128,7 +128,7 @@ let warmup_theta_point_error params p_hat rtt_hat latest sa =
     let age         = p_hat *. Int64.to_float (delta_TSC (fst latest).timestamps.tf (fst sa).timestamps.tf) in
     rtt_error +. params.skm_rate *. age
 
-let warmup_theta_hat params p_hat rtt_hat c last win =
+let warmup_theta_hat params p_hat rtt_hat c last subset =
     let latest = point_of_history last in
 
     let wt params p_hat rtt_hat latest sa =
@@ -137,9 +137,9 @@ let warmup_theta_hat params p_hat rtt_hat c last win =
         (* print_string (Printf.sprintf "weight calc, qual = %.9E, weight = %.9E\n" qual weight); *)
         weight
     in
-    let sum, sum_wts =      weighted_sum (theta_of p_hat c) (wt params p_hat rtt_hat latest) win in
+    let sum, sum_wts =      weighted_sum (theta_of p_hat c) (wt params p_hat rtt_hat latest) subset in
 
-    let min          =  min_and_where (warmup_theta_point_error params p_hat rtt_hat latest) win in
+    let min          =  min_and_where (warmup_theta_point_error params p_hat rtt_hat latest) subset in
     match min with
     | None -> None
     | Some min ->   (let minET        =                 warmup_theta_point_error params p_hat rtt_hat latest @@ fst min in
@@ -149,49 +149,50 @@ let warmup_theta_hat params p_hat rtt_hat c last win =
                     | false -> None)
 
 
-(* WARMUP WINDOWS *)
+(* WARMUP SUBSETS *)
 
-let win_warmup_pstamp       ts =    (* FOR: warmup_pstamp *)
+let subset_warmup_pstamp       ts =    (* FOR: warmup_pstamp *)
     range_of ts Newest Oldest
 
-let win_warmup_rtt_hat      ts =    (* FOR: warmup_rtt *)
+let subset_warmup_rtt_hat      ts =    (* FOR: warmup_rtt *)
     range_of ts Newest Oldest
 
-let win_warmup_p_hat        ts =    (* FOR: warmup_p_hat *)
+let subset_warmup_p_hat        ts =    (* FOR: warmup_p_hat *)
     let wwidth = 1 + (length ts) / 4 in
     let near    = range_of ts Newest @@ Older(Newest, wwidth - 1)                                       in
     let far     = range_of ts                                       (Newer(Oldest, wwidth - 1)) Oldest  in
     (near, far)
 
-let win_warmup_C_oneshot    ts =    (* FOR: warmup_C_oneshot *)
+let subset_warmup_C_oneshot    ts =    (* FOR: warmup_C_oneshot *)
     range_of ts Newest Oldest       (* Newest Oldest is used so if there's more than one sample, point_of_history
                                      * in warmup_C_oneshot will throw an exception!
                                      *)
 
-let win_warmup_C_fixup      ts =    (* FOR: warmup_C_fixup *)
+let subset_warmup_C_fixup      ts =    (* FOR: warmup_C_fixup *)
     range_of ts Newest Newest
 
-let win_warmup_theta_hat    ts =    (* FOR: warmup_theta_hat *)
+let subset_warmup_theta_hat    ts =    (* FOR: warmup_theta_hat *)
     let last = range_of ts Newest Newest in
     (last, range_of ts Newest Oldest)
 
 (* NORMAL ESTIMATORS *)
 
-let normal_RTT_hat params   halftop_win shift_win = (* NOTE: halftop_win is greater than shift_win *)
-    let win_rtt     = rtt_of <$> (fst <$> min_and_where rtt_of halftop_win) in
-    let subwin_rtt  = rtt_of <$> (fst <$> min_and_where rtt_of shift_win  ) in
+let normal_RTT_hat params   halftop_subset shift_subset = (* NOTE: halftop_subset is greater than shift_subset *)
+    let subset_rtt     = rtt_of <$> (fst <$> min_and_where rtt_of halftop_subset) in
+    let subsubset_rtt  = rtt_of <$> (fst <$> min_and_where rtt_of shift_subset  ) in
 
-    (fun subwin_rtt     win_rtt -> match (subwin_rtt > Int64.add win_rtt params.shift_thres) with
-                                            | false -> (win_rtt,    None)
-                                            | true  -> (subwin_rtt, Some shift_win))    (* Upwards shift detected *)
-    <$>  subwin_rtt <*> win_rtt
+    (fun subsubset_rtt     subset_rtt -> match (subsubset_rtt > Int64.add subset_rtt params.shift_thres) with
+                                            | false -> (subset_rtt,    None)
+                                            | true  -> (subsubset_rtt, Some shift_subset))    (* Upwards shift detected *)
+    <$>  subsubset_rtt <*> subset_rtt
 
-let handle_RTT_upshift subwin_rtt samples win =
-    let (left, right) = win in
-    slice_map samples left right (fun x -> (fst x, Some subwin_rtt))
-
-
+let handle_RTT_upshift subsubset_rtt samples subset =
+    let (left, right) = subset in
+    slice_map samples left right (fun x -> (fst x, Some subsubset_rtt))
 
 
-(* NORMAL WINDOWS *)
+
+
+(* NORMAL SUBSETS *)
+ 
 
