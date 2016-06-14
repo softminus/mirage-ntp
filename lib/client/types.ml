@@ -20,8 +20,6 @@ type physical_parameters = {
 type windows    = {
     toplevel:           (point * point);
 
-    warmup:             (point * point);
-
     shift_detection:    (point * point);
     offset:             (point * point);
 
@@ -33,15 +31,13 @@ type windows    = {
 
 let default_windows params poll_period =
     let history_scale = 3600 * 24 * 7 in        (* seconds *)
+    let top_win_size    =               history_scale                           / poll_period in
 
-    let warmup_samples  = 480 in                (* everything below measured in terms of samples *)
-    let shift_win       = 100 in
-    let top_win_size    =               history_scale       / poll_period in
-    let offset_size     = (int_of_float params.skm_scale)   / poll_period in
+    let shift_win       = max 100   (int_of_float @@ 1e8 *. params.ts_limit )   / poll_period in
+    let offset_size     =           (int_of_float           params.skm_scale)   / poll_period in
 
     let toplevel            = (Newest, Older(Newest, top_win_size   - 1)) in
     let shift_detection     = (Newest, Older(Newest, shift_win      - 1)) in
-    let warmup              = (Newest, Older(Newest, warmup_samples - 1)) in
     let offset              = (Newest, Older(Newest, offset_size    - 1)) in
 
     (* plocal stuff:
@@ -58,7 +54,7 @@ let default_windows params poll_period =
     let plocal_far          =  (Newer(plocal_far_centre,    wwidth/2    ),
                                 Older(plocal_far_centre,    wwidth/2 - 1)) in
 
-    {toplevel; shift_detection; warmup; offset; plocal_far; plocal_near}
+    {toplevel; shift_detection; offset; plocal_far; plocal_near}
 
 let default_parameters =
     let skm_scale       = 1024.0 in
