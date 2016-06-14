@@ -43,6 +43,7 @@ let default_windows params =
     let toplevel            = (Newest, Older(Newest, top_win_size   - 1)) in
     let shift_detection     = (Newest, Older(Newest, shift_win      - 1)) in
     let warmup              = (Newest, Older(Newest, warmup_samples - 1)) in
+    let offset              = (Newest, Older(Newest, offset_size    - 1)) in
 
     (* plocal stuff:
         * wwidth is the width of each of the plocal_far / plocal_near windows
@@ -57,7 +58,7 @@ let default_windows params =
     let plocal_far_centre   = Older(Newest, plocal_span         ) in
     let plocal_far          = (Older(plocal_far_centre, wwidth/2), Older(plocal_far_centre, wwidth + wwidth/2 - 1)) in
 
-    {warmup}
+    {toplevel; shift_detection; warmup; offset; plocal_far; plocal_near}
 
 let default_parameters =
     let skm_scale       = 1024.0 in
