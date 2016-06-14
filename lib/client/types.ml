@@ -52,11 +52,12 @@ let default_windows params =
 
     let plocal_span = 5 * offset_size   in
     let wwidth      = plocal_span / 5   in
-
     let plocal_near         = (Newest, Older(Newest, wwidth         - 1)) in
 
-    let plocal_far_centre   = Older(Newest, plocal_span         ) in
-    let plocal_far          = (Older(plocal_far_centre, wwidth/2), Older(plocal_far_centre, wwidth + wwidth/2 - 1)) in
+    (* this follows from lines 1240 and 1241 in sync_bidir.c *)
+    let plocal_far_centre   =   Older(Newest, plocal_span + wwidth      ) in
+    let plocal_far          =  (Newer(plocal_far_centre,    wwidth/2    ),
+                                Older(plocal_far_centre,    wwidth/2 - 1)) in
 
     {toplevel; shift_detection; warmup; offset; plocal_far; plocal_near}
 
