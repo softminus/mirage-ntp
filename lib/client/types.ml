@@ -31,14 +31,13 @@ type windows    = {
 }
 [@@deriving show]
 
-let default_windows params =
+let default_windows params poll_period =
     let history_scale = 3600 * 24 * 7 in        (* seconds *)
-    let poll_period = 16 in                     (* seconds per sample *)
 
     let warmup_samples  = 480 in                (* everything below measured in terms of samples *)
+    let shift_win       = 100 in
     let top_win_size    =               history_scale       / poll_period in
     let offset_size     = (int_of_float params.skm_scale)   / poll_period in
-    let shift_win       = 100 in
 
     let toplevel            = (Newest, Older(Newest, top_win_size   - 1)) in
     let shift_detection     = (Newest, Older(Newest, shift_win      - 1)) in
