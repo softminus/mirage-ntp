@@ -3,7 +3,7 @@
 open Types
 open History
 
-let (>>=) x f =
+let (>>=) x f =                 (* bind *)
     match x with
     | Some x    -> (f x)
     | None      -> None
@@ -13,7 +13,7 @@ let (<$>) f m =                 (* fmap *)
      | Some x   -> Some (f x)
      | None     -> None
 
-let (<*>) f m =
+let (<*>) f m =                 (* ap *)
     match f with
     | Some ff   -> ff <$> m
     | None      -> None
