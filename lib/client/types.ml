@@ -16,6 +16,11 @@ let (<*>) f m =
     | Some ff   -> ff <$> m
     | None      -> None
 
+let (<|>) l r =
+    match l with
+    | None      -> r
+    | x         -> x
+
 let join x = x >>= (fun x -> x)
 
 type counter = Cstruct.uint64 [@printer fun fmt -> fprintf fmt "0x%Lx"]
