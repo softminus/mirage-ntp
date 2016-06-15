@@ -71,7 +71,13 @@ let default_windows params poll_period =
     let wwidth      = plocal_span / 5   in
     let plocal_near         = (Newest, Older(Newest, wwidth         - 1)) in
 
-    (* this follows from lines 1240 and 1241 in sync_bidir.c *)
+    (* this follows from lines 1240 and 1241 in sync_bidir.c.
+     *
+     * yes, the way plocal_far_centre is defined ("+ wwidth") is kinda icky but
+     * it lets us generate the same windows as RADclock when our plocal_span
+     * equal to their plocal_win.
+     *)
+
     let plocal_far_centre   =   Older(Newest, plocal_span + wwidth      ) in
     let plocal_far          =  (Newer(plocal_far_centre,    wwidth/2    ),
                                 Older(plocal_far_centre,    wwidth/2 - 1)) in
