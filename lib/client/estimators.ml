@@ -71,10 +71,10 @@ let theta_of p_hat c sample =
 let rate_of_pair newer_sample older_sample =
     let newer = (fst newer_sample).timestamps in
     let older = (fst older_sample).timestamps in
-    let delTa = Int64.sub newer.ta  older.ta in
+    let delTa = delta_TSC newer.ta  older.ta in
     let delTb = newer.tb -.         older.tb in
     let delTe = newer.te -.         older.te in
-    let delTf = Int64.sub newer.tf  older.tf in
+    let delTf = delta_TSC newer.tf  older.tf in
 
     match (delTa > 0L, delTb > 0.0, delTe > 0.0, delTf > 0L) with
     | (true,true, true, true) ->
