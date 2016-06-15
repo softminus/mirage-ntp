@@ -69,7 +69,8 @@ let warmup_pstamp   subset =             snd <$> (min_and_where rtt_of subset)  
 let warmup_rtt_hat  subset = rtt_of <$> (fst <$> (min_and_where rtt_of subset))   (* returns the rtt number *)
 
 
-let warmup_p_hat rtt_hat near far =
+let warmup_p_hat rtt_hat subsets =
+    let (near, far) = subsets in
     let best_in_near    = fst <$> (min_and_where rtt_of near) in
     let best_in_far     = fst <$> (min_and_where rtt_of far ) in
     let p_hat = join (rate_of_pair <$> best_in_near <*> best_in_far) in
@@ -101,7 +102,8 @@ let warmup_theta_point_error params p_hat rtt_hat latest sa =
     let age         = p_hat *. Int64.to_float (delta_TSC (fst latest).timestamps.tf (fst sa).timestamps.tf) in
     rtt_error +. params.skm_rate *. age
 
-let warmup_theta_hat params p_hat rtt_hat c last subset =
+let warmup_theta_hat params p_hat rtt_hat c wins =
+    let (last, subset) = wins in
     let latest = point_of_history last in
 
     let wt params p_hat rtt_hat latest sa =
@@ -134,7 +136,8 @@ let subset_warmup_p_hat        ts =    (* FOR: warmup_p_hat *)
     let wwidth = 1 + (length ts) / 4 in
     let near    = range_of ts Newest @@ Older(Newest, wwidth - 1)                                       in
     let far     = range_of ts                                       (Newer(Oldest, wwidth - 1)) Oldest  in
-    (near, far)
+
+    ((fun x y -> (x, y)) <$> near) <*> far
 
 let subset_warmup_C_oneshot    ts =    (* FOR: warmup_C_oneshot *)
     range_of ts Newest Oldest       (* Newest Oldest is used so if there's more than one sample, point_of_history
@@ -146,7 +149,7 @@ let subset_warmup_C_fixup      ts =    (* FOR: warmup_C_fixup *)
 
 let subset_warmup_theta_hat    ts =    (* FOR: warmup_theta_hat *)
     let last = range_of ts Newest Newest in
-    (last, range_of ts Newest Oldest)
+    ((fun x y -> (x, y)) <$> last ) <*> range_of ts Newest Oldest
 
 (* NORMAL ESTIMATORS *)
 
