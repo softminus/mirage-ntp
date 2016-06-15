@@ -172,14 +172,11 @@ let min_and_where extractor hist =
 
 let range_of hist left right =
     match (validity hist left, validity hist right) with
-    | (Invalid,     _)          -> InvalidEdges
-    | (_,           Invalid)    -> InvalidEdges
-    | (NotReady,    _)          -> NotFull
-    | (_,           NotReady)   -> NotFull
-    | (Valid,       Valid)          ->
-            match (idx_of_point hist left <= idx_of_point hist right) with
-            | true  -> Full (range_slice hist left right)
-            | false -> invalid_arg "range ordering invalid"
+    | (NotReady,    NotReady)   -> None
+    | (Valid,       Valid   )   -> (match (idx_of_point hist left <= idx_of_point hist right) with
+                                    | true  -> Some (range_slice hist left right)
+                                    | false -> invalid_arg "range ordering invalid")
+    | (_,           _       )   -> invalid_arg "invalid points!"
 
 
 let valid h p =

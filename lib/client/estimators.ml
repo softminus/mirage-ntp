@@ -4,16 +4,6 @@ open Types
 open History
 
 (* SHARED *)
-let run_estimator_2subset  estimator subsets =
-    match subsets with
-    | (Full a, Full b) -> estimator a b
-    | (_     , _     ) -> failwith "invalid subsets passed"
-
-let run_estimator_1subset  estimator subset =
-    match subset with
-    | Full a            -> estimator a
-    | _                 -> failwith "invalid subsets passed"
-
 let rtt_of sample =
     let ts = (fst sample).timestamps in
     let del = Int64.sub (ts.tf) (ts.ta) in
@@ -173,8 +163,7 @@ let handle_RTT_upshift subsubset_rtt samples subset =
     let (left, right) = subset in
     slice_map samples left right (fun x -> (fst x, Some subsubset_rtt))
 
-
-
+let normal_pstamp   subset =             snd <$> (min_and_where rtt_of subset)    (* returns a Fixed *)
 
 (* NORMAL SUBSETS *)
  
