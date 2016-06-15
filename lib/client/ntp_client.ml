@@ -137,17 +137,16 @@ let update_estimators old_state =
     | ZERO      ->
             let samples = old_state.samples_and_rtt_hat in
 
-            let pstamp  = join (warmup_pstamp   <$> (subset_warmup_pstamp  samples)) in
-            let rtt_hat = join (warmup_rtt_hat  <$> (subset_warmup_rtt_hat samples)) in
-
-            let updated_samples = (fixup_warmup <$> rtt_hat <*> (Some samples)) in
-
-            let p_hat_and_error = Some old_state.parameters.initial_p in
-
-            let c = join (warmup_C_oneshot    <$> (fst <$> p_hat_and_error) <*> (subset_warmup_C_oneshot samples)) in
-
+            let p_hat_and_error     =   Some old_state.parameters.initial_p in
             let p_local             =   None in
             let theta_hat_and_error =   None in
+
+            let pstamp  =   join    (warmup_pstamp      <$> (subset_warmup_pstamp       samples)) in
+            let rtt_hat =   join    (warmup_rtt_hat     <$> (subset_warmup_rtt_hat      samples)) in
+            let updated_samples =   (fixup_warmup       <$> rtt_hat <*>           (Some samples)) in
+            let c       =   join    (warmup_C_oneshot   <$> (fst <$> p_hat_and_error)
+                                                        <*> (subset_warmup_C_oneshot    samples)) in
+
             let new_ests = {pstamp;  p_hat_and_error; p_local; c; theta_hat_and_error} in
 
             (match updated_samples with
@@ -165,7 +164,7 @@ let update_estimators old_state =
 
             (* Second stage estimators: *)
 
-            let p_hat_and_error =       join    (warmup_p_hat <$> rtt_hat <*> (subset_warmup_p_hat samples)) in 
+            let p_hat_and_error =       join    (warmup_p_hat <$> rtt_hat <*> (subset_warmup_p_hat samples)) in
 
 
 
