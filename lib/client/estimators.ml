@@ -6,6 +6,8 @@ open History
 type windows    = {
     toplevel:           (point * point);
 
+    warmup_win:         (point * point);
+
     shift_detection:    (point * point);
     offset:             (point * point);
 
@@ -17,10 +19,10 @@ type windows    = {
 
 let default_windows params poll_period =
     let history_scale = 3600 * 24 * 7 in        (* seconds *)
-    let top_win_size    =               history_scale                           / poll_period in
+    let top_win_size    =               history_scale                           / poll_period  in
 
-    let shift_win       = max 100   (int_of_float @@ 1e8 *. params.ts_limit )   / poll_period in
-    let offset_size     =           (int_of_float           params.skm_scale)   / poll_period in
+    let shift_win       = max 100  ((int_of_float @@ 1e8 *. params.ts_limit )   / poll_period) in
+    let offset_size     =           (int_of_float           params.skm_scale)   / poll_period  in
 
     let toplevel            = (Newest, Older(Newest, top_win_size   - 1)) in
     let shift_detection     = (Newest, Older(Newest, shift_win      - 1)) in
@@ -67,7 +69,10 @@ let default_windows params poll_period =
     let plocal_far          =  (Newer(plocal_far_centre,    wwidth/2    ),
                                 Older(plocal_far_centre,    wwidth/2 - 1)) in
 
-    {toplevel; shift_detection; offset; plocal_far; plocal_near}
+    let phantom = History (top_win_size, 0, []) in
+    let warmup_win = union_range phantom Newest (snd (union_range phantom Newest (snd shift_detection) Newest (snd offset)))
+                                         Newest (snd plocal_far                                                            ) in
+    {toplevel; shift_detection; offset; plocal_far; plocal_near; warmup_win}
 
 
 let (>>=) x f =                 (* bind *)
