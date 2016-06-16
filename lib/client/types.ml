@@ -18,51 +18,6 @@ type physical_parameters = {
 [@@deriving show]
 
 
-type windows    = {
-    toplevel:           (point * point);
-
-    shift_detection:    (point * point);
-    offset:             (point * point);
-
-    plocal_far:         (point * point);
-    plocal_near:        (point * point);
-
-}
-[@@deriving show]
-
-let default_windows params poll_period =
-    let history_scale = 3600 * 24 * 7 in        (* seconds *)
-    let top_win_size    =               history_scale                           / poll_period in
-
-    let shift_win       = max 100   (int_of_float @@ 1e8 *. params.ts_limit )   / poll_period in
-    let offset_size     =           (int_of_float           params.skm_scale)   / poll_period in
-
-    let toplevel            = (Newest, Older(Newest, top_win_size   - 1)) in
-    let shift_detection     = (Newest, Older(Newest, shift_win      - 1)) in
-    let offset              = (Newest, Older(Newest, offset_size    - 1)) in
-
-    (* plocal stuff:
-        * wwidth is the width of each of the plocal_far / plocal_near windows
-        * plocal_span is *how far apart* those windows are from each other
-    *)
-
-    let plocal_span = 5 * offset_size   in
-    let wwidth      = plocal_span / 5   in
-    let plocal_near         = (Newest, Older(Newest, wwidth         - 1)) in
-
-    (* this follows from lines 1240 and 1241 in sync_bidir.c.
-     *
-     * yes, the way plocal_far_centre is defined ("+ wwidth") is kinda icky but
-     * it lets us generate the same windows as RADclock when our plocal_span
-     * equal to their plocal_win.
-     *)
-
-    let plocal_far_centre   =   Older(Newest, plocal_span + wwidth      ) in
-    let plocal_far          =  (Newer(plocal_far_centre,    wwidth/2    ),
-                                Older(plocal_far_centre,    wwidth/2 - 1)) in
-
-    {toplevel; shift_detection; offset; plocal_far; plocal_near}
-
 let default_parameters =
     let skm_scale       = 1024.0 in
     let ts_limit        = 1.5e-5 in
