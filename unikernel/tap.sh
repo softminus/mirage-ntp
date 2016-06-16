@@ -1,3 +1,5 @@
+sudo ip tuntap del dev tap0 mode tap
+
 sudo ip tuntap add dev tap0 user $USER mode tap
 sudo ifconfig tap0 172.16.0.1  netmask 255.255.255.0
 echo 1 | sudo tee /proc/sys/net/ipv4/ip_forward
