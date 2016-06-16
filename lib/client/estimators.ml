@@ -40,6 +40,27 @@ let default_windows params poll_period =
      * yes, the way plocal_far_centre is defined ("+ wwidth") is kinda icky but
      * it lets us generate the same windows as RADclock when our plocal_span
      * equal to their plocal_win.
+     *
+     * Also how the far plocal window gets defined in sync_bidir.c:168 in
+     * init_plocal (which is called once) seems contradictory with how the far
+     * plocal window is defined afterwards, in process_plocal_full. This also
+     * seems to violate the preconditions for calling radclock's
+     * history_min_slide function in process_plocal_full.
+     *
+     * I chose to use the far plocal window definitions from
+     * process_plocal_full because that is those definitions (and not the
+     * init_plocal ones ) actually dictate which ranges RADclock (as of
+     * version 73c1151afc24e42b131c47c1ee053e68ce8c075b) looks for plocal
+     * points (see radclock_patches/window_bugs.patch for the code used to
+     * verify that):
+         * Note that radclock's history_min_slide(history *hist, index_t index_curr, index_t j, index_t i)
+         * finds a minimum on [j+1,i+1], INCLUSIVE
+
+     * TL;DR the C radclock implementation does weird things with indices but
+     * the code here searches over the same intervals / same points as radclock
+     * does. Furthermore, the radclock algorithms are not very sensitive to
+     * changes in windowing / interval parameters as demonstrated in
+     * doi:10.1145/1028788.1028817.
      *)
 
     let plocal_far_centre   =   Older(Newest, plocal_span + wwidth      ) in
@@ -236,5 +257,9 @@ let handle_RTT_upshift subsubset_rtt samples subset =
 let normal_pstamp   subset =             snd <$> (min_and_where rtt_of subset)    (* returns a Fixed *)
 
 (* NORMAL SUBSETS *)
- 
+
+let subset_normal_rtt windows ts = None
+let subset_normal_rtt_fixup windows ts = None
+let subset_normal_pstamp windows ts = None
+
 
