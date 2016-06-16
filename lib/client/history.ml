@@ -212,6 +212,16 @@ let intersect_range hist left_1 right_1 left_2 right_2 =
             | true  -> (lcan, rcan)
             | false -> invalid_arg "non-overlapping lists!"
 
+let union_range hist left_1 right_1 left_2 right_2 =
+    match (valid_pair hist left_1 right_1 left_2 right_2) with
+    | false -> invalid_arg "invalid arguments provided!"
+    | true  ->
+            let lcan = fst @@ (order hist left_1  left_2 ) in
+            let rcan = snd @@ (order hist right_1 right_2) in
+            match (valid_range hist lcan rcan) with
+            | true  -> (lcan, rcan)
+            | false -> invalid_arg "non-overlapping lists!"
+
 let range_length hist left right =
     match valid_range hist left right with
     | false -> None
