@@ -7,13 +7,15 @@ type counter = Cstruct.uint64 [@printer fun fmt -> fprintf fmt "0x%Lx"]
 
 
 type physical_parameters = {
-    skm_scale:      float;
-    ts_limit:       float;
-    skm_rate:       float;
-    e_offset:       float;
-    e_offset_qual:  float;
-    initial_p:     (float * float);
-    shift_thres:    counter;
+    skm_scale:          float;
+    ts_limit:           float;
+    skm_rate:           float;
+    e_offset:           float;
+    e_offset_qual:      float;
+    shift_thres:        counter;
+    point_error_thresh: float;
+
+    initial_p:         (float * float);
 }
 [@@deriving show]
 
@@ -25,8 +27,9 @@ let default_parameters =
     let e_offset        = 6.0 *. ts_limit in (* 6 = offset_ratio *)
     let e_offset_qual   = 3.0 *. e_offset in
     let initial_p       = (1e-9, 0.0) in
-    let shift_thres     = 0L in
-    {skm_scale; ts_limit; skm_rate; e_offset; e_offset_qual; initial_p; shift_thres}
+    let shift_thres     = 0L in                     (* FIXME *)
+    let point_error_thresh = 3.0 *. ts_limit in
+    {skm_scale; ts_limit; skm_rate; e_offset; e_offset_qual; initial_p; shift_thres; point_error_thresh}
 
 let delta_TSC newer older =
     let del = Int64.sub newer older in
