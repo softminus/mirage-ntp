@@ -269,6 +269,8 @@ let handle_RTT_upshift subsubset_rtt samples subset =
 
 let normal_pstamp   subset =             snd <$> (min_and_where rtt_of subset)    (* returns a Fixed *)
 
+let normal_p_hat    params pstamp most_recent
+
 (* NORMAL SUBSETS *)
 
 let subset_normal_rtt_entire windows ts =
@@ -288,4 +290,6 @@ let subset_normal_pstamp windows ts =
     let w = windows.pstamp_win in
     range_of ts (fst w) (snd w)
 
+let subset_normal_p_hat windows ts =
+    range_of ts Newest Oldest
 
