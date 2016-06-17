@@ -112,6 +112,16 @@ let synthetic element h n =
     | false -> invalid_arg "synthetic"
     | true -> synth_aux element h n
 
+let rec synth_int_aux h n =
+    match n with
+    | 1     -> hcons 1 h
+    | n     -> synth_int_aux (hcons n h) (n-1)
+
+let synth_increasing h n =
+    match (0 < n) with
+    | false -> invalid_arg "synthetic"
+    | true -> synth_int_aux h n
+
 let resize h ncap =
     match h with History (cap, offset, l) ->
         History (ncap, offset, take ncap l)
