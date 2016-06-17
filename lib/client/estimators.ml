@@ -8,6 +8,8 @@ type windows    = {
 
     warmup_win:         (point * point);
 
+    pstamp_win:         (point * point);
+
     shift_detection:    (point * point);
     offset:             (point * point);
 
@@ -72,7 +74,13 @@ let default_windows params poll_period =
     let phantom = History (top_win_size, 0, []) in
     let warmup_win = union_range phantom Newest (snd (union_range phantom Newest (snd shift_detection) Newest (snd offset)))
                                          Newest (snd plocal_far                                                            ) in
-    {toplevel; shift_detection; offset; plocal_far; plocal_near; warmup_win}
+
+    let warmup_len = match (range_length phantom (fst warmup_win) (snd warmup_win)) with
+    | Some x -> x
+    | None   -> failwith "invalid warmup interval"
+    in
+    let pstamp_win = (Newer(Oldest, warmup_len - 1), Oldest) in
+    {toplevel; shift_detection; offset; plocal_far; plocal_near; pstamp_win; warmup_win}
 
 
 let (>>=) x f =                 (* bind *)
