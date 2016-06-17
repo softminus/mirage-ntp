@@ -127,10 +127,11 @@ let check_non_negative x =
     | true -> x
     | false -> failwith "should never be negative!"
 
-
-
 let error_of packet rtt_hat =
     delta_TSC (rtt_of packet) rtt_hat
+
+let dTSC p_hat del =
+    p_hat *. (Int64.to_float del)
 
 (*    th_naive = (
  *    peer->phat * ((long double)stamp->Ta + (long double)stamp->Tf)
@@ -192,15 +193,15 @@ let warmup_p_hat rtt_hat subsets =
  *)
 let warmup_C_oneshot p_hat r =
     let first = fst @@ point_of_history r in
-    Some (first.timestamps.tb -. (p_hat *. Int64.to_float first.timestamps.ta))
+    Some (first.timestamps.tb -. (dTSC p_hat first.timestamps.ta))
 
 let warmup_C_fixup old_C old_p_hat new_p_hat latest =
     let newest = fst @@ point_of_history latest in
     Some (old_C +. (Int64.to_float newest.timestamps.ta) *. (old_p_hat -. new_p_hat))
 
 let warmup_theta_point_error params p_hat rtt_hat latest sa =
-    let rtt_error   = p_hat *. (Int64.to_float @@ error_of sa rtt_hat) in
-    let age         = p_hat *. Int64.to_float (delta_TSC (fst latest).timestamps.tf (fst sa).timestamps.tf) in
+    let rtt_error   = dTSC p_hat @@ error_of sa rtt_hat in
+    let age         = dTSC p_hat (delta_TSC (fst latest).timestamps.tf (fst sa).timestamps.tf) in
     rtt_error +. params.skm_rate *. age
 
 let warmup_theta_hat params p_hat rtt_hat c wins =
@@ -269,9 +270,15 @@ let handle_RTT_upshift subsubset_rtt samples subset =
 
 let normal_pstamp   subset =             snd <$> (min_and_where rtt_of subset)    (* returns a Fixed *)
 
-let normal_p_hat    params pstamp most_recent old_p_hat =
+let normal_p_hat    params rtt_hat old_p_hat pstamp latest =
+    let most_recent = point_of_history latest in
+    let (old_p, old_p_err) = old_p_hat in
     let new_p = rate_of_pair most_recent pstamp in
-    new_p
+    match new_p with
+    | None      -> None
+    | Some p    ->  match (dTSC old_p @@ error_of most_recent rtt_hat > 0.0) with
+                    | true -> None
+                    | false -> None
 
 (* NORMAL SUBSETS *)
 
@@ -292,6 +299,6 @@ let subset_normal_pstamp windows ts =       (* FOR: normal_pstamp subset *)
     let w = windows.pstamp_win in
     range_of ts (fst w) (snd w)
 
-let subset_normal_p_hat windows ts =        (* FOR: normal_p_hat most_recent *)
+let subset_normal_p_hat windows ts =        (* FOR: normal_p_hat latest *)
     range_of ts Newest Newest
 
