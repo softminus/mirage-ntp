@@ -166,7 +166,12 @@ let rate_of_pair newer_sample older_sample =
 
 
 
-(* WARMUP ESTIMATORS *)
+(* WARMUP ESTIMATORS
+ *
+ * No estimator (functions beginning with warmup_ and normal_) can have arguments
+ * that are Maybe types. It is up to the caller to use the subset_ functions to
+ * unwrap all the Maybes and give us unwrapped values.
+ *)
 let warmup_pstamp   subset =             snd <$> (min_and_where rtt_of subset)    (* returns a Fixed *)
 let warmup_rtt_hat  subset = rtt_of <$> (fst <$> (min_and_where rtt_of subset))   (* returns the rtt number *)
 
@@ -270,15 +275,16 @@ let handle_RTT_upshift subsubset_rtt samples subset =
 
 let normal_pstamp   subset =             snd <$> (min_and_where rtt_of subset)    (* returns a Fixed *)
 
-let normal_p_hat    params rtt_hat old_p_hat pstamp latest =
-    let most_recent = point_of_history latest in
-    let (old_p, old_p_err) = old_p_hat in
-    let new_p = rate_of_pair most_recent pstamp in
+let normal_p_hat    params old_p_hat pstamp_and_rtt_hat latest_and_rtt_hat =
+    let (pstamp, pstamp_rtt_hat)    = pstamp_and_rtt_hat in
+    let (latest, latest_rtt_hat)    = latest_and_rtt_hat in
+    let (old_p,  old_p_err)         = old_p_hat in
+    let new_p = rate_of_pair latest pstamp in
     match new_p with
     | None      -> None
-    | Some p    ->  match (dTSC old_p @@ error_of most_recent rtt_hat > 0.0) with
-                    | true -> None
-                    | false -> None
+    | Some p    ->  match (dTSC old_p @@ error_of latest latest_rtt_hat < params.point_error_thresh) with
+                    | false ->  None
+                    | true ->   None
 
 (* NORMAL SUBSETS *)
 
