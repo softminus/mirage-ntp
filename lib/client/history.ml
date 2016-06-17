@@ -67,12 +67,18 @@ let fixed_of_point h p =
 
 
 let validity h p =
-    if idx_of_point h p < 0 then invalid_arg "validity" else
-    match (length h > idx_of_point h p) with
-    | true  -> Valid
-    | false -> match (capacity h > idx_of_point h p) with
-        | true  -> NotReady
-        | false -> Invalid
+    match (idx_of_point h p < 0) with
+    | true ->   (
+                let iwf = (capacity h) - (length h) + idx_of_point h p in
+                match (iwf < 0) with
+                | false -> NotReady
+                | true  -> Invalid
+                )
+    | false ->  match (length h > idx_of_point h p) with
+                | true  -> Valid
+                | false -> match (capacity h > idx_of_point h p) with
+                    | true  -> NotReady
+                    | false -> Invalid
 
 let get h p =
     match validity h p with
