@@ -259,8 +259,8 @@ let normal_RTT_hat params   halftop_subset shift_subset = (* NOTE: halftop_subse
     let subsubset_rtt  = rtt_of <$> (fst <$> min_and_where rtt_of shift_subset  ) in
 
     (fun subsubset_rtt     subset_rtt -> match (subsubset_rtt > Int64.add subset_rtt params.shift_thres) with
-                                            | false -> (subset_rtt,    None)
-                                            | true  -> (subsubset_rtt, Some shift_subset))    (* Upwards shift detected *)
+                                            | false -> (subset_rtt,    false)   (* No upwards shift *)
+                                            | true  -> (subsubset_rtt, true))   (* Upwards shift detected *)
     <$>  subsubset_rtt <*> subset_rtt
 
 let handle_RTT_upshift subsubset_rtt samples subset =
@@ -269,27 +269,29 @@ let handle_RTT_upshift subsubset_rtt samples subset =
 
 let normal_pstamp   subset =             snd <$> (min_and_where rtt_of subset)    (* returns a Fixed *)
 
-let normal_p_hat    params pstamp most_recent
+let normal_p_hat    params pstamp most_recent old_p_hat =
+    let new_p = rate_of_pair most_recent pstamp in
+    new_p
 
 (* NORMAL SUBSETS *)
 
-let subset_normal_rtt_entire windows ts =
+let subset_normal_rtt_entire windows ts =   (* FOR: normal_RTT_hat halftop_subset *)
     range_of ts Newest Oldest
 
-let subset_normal_rtt_shift windows ts =
+let subset_normal_rtt_shift windows ts =    (* FOR: normal_RTT_hat shift_subset *)
     let w = windows.shift_detection in
     range_of ts (fst w) (snd w)
 
-let subset_normal_rtt_fixup windows ts =
+let subset_normal_rtt_fixup windows ts =    (* FOR: handle_RTT_upshift subset *)
     let x = windows.shift_detection in
     let y = windows.offset          in
     let inter = intersect_range ts (fst x) (snd x) (fst y) (snd y) in
     range_of ts (fst inter) (snd inter)
 
-let subset_normal_pstamp windows ts =
+let subset_normal_pstamp windows ts =       (* FOR: normal_pstamp subset *)
     let w = windows.pstamp_win in
     range_of ts (fst w) (snd w)
 
-let subset_normal_p_hat windows ts =
-    range_of ts Newest Oldest
+let subset_normal_p_hat windows ts =        (* FOR: normal_p_hat most_recent *)
+    range_of ts Newest Newest
 
