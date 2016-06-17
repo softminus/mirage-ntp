@@ -271,8 +271,21 @@ let normal_pstamp   subset =             snd <$> (min_and_where rtt_of subset)  
 
 (* NORMAL SUBSETS *)
 
-let subset_normal_rtt windows ts = None
-let subset_normal_rtt_fixup windows ts = None
-let subset_normal_pstamp windows ts = None
+let subset_normal_rtt_entire windows ts =
+    range_of ts Newest Oldest
+
+let subset_normal_rtt_shift windows ts =
+    let w = windows.shift_detection in
+    range_of ts (fst w) (snd w)
+
+let subset_normal_rtt_fixup windows ts =
+    let x = windows.shift_detection in
+    let y = windows.offset          in
+    let inter = intersect_range ts (fst x) (snd x) (fst y) (snd y) in
+    range_of ts (fst inter) (snd inter)
+
+let subset_normal_pstamp windows ts =
+    let w = windows.pstamp_win in
+    range_of ts (fst w) (snd w)
 
 
