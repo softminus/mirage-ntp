@@ -17,6 +17,7 @@ type physical_parameters = {
 
     point_error_thresh:     float;
     rate_error_threshold:   float;
+    rate_sanity:            float;
 
     initial_p:         (float * float);
 }
@@ -34,8 +35,9 @@ let default_parameters =
     let initial_p       = (1e-9, 0.0) in
     let shift_thres     = 0L in                     (* FIXME *)
     let point_error_thresh = 3.0 *. ts_limit in
-    let rate_error_threshold = rate_error_bound /. 5.0 in
-    {skm_scale; ts_limit; skm_rate; e_offset; e_offset_qual; initial_p; shift_thres; point_error_thresh; rate_error_threshold}
+    let rate_error_threshold    = rate_error_bound /. 5.0 in
+    let rate_sanity             = rate_error_bound *. 3.0 in
+    {skm_scale; ts_limit; skm_rate; e_offset; e_offset_qual; initial_p; shift_thres; point_error_thresh; rate_error_threshold; rate_sanity}
 
 let delta_TSC newer older =
     let del = Int64.sub newer older in
