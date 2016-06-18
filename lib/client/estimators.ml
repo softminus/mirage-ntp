@@ -105,8 +105,8 @@ let (<|>) l r =
 
 let join x = x >>= (fun x -> x)
 (* SHARED *)
-let rtt_of sample =
-    let ts = (fst sample).timestamps in
+let rtt_of_prime sample =
+    let ts = sample.timestamps in
     let del = Int64.sub (ts.tf) (ts.ta) in
     match (del > 0L) with
     | true  -> del
@@ -116,6 +116,9 @@ let rtt_of sample =
      * can cause this exception to be reached, only a devastating bug in the code or the TSC counter being used violating its
      * invariants
      *)
+
+let rtt_of sample =
+    rtt_of_prime (fst sample)
 
 let check_positive x =
     match (x > 0.0) with
@@ -173,7 +176,6 @@ let rate_of_pair newer_sample older_sample =
  * unwrap all the Maybes and give us unwrapped values.
  *)
 let warmup_pstamp   subset =             snd <$> (min_and_where rtt_of subset)    (* returns a Fixed *)
-let warmup_rtt_hat  subset = rtt_of <$> (fst <$> (min_and_where rtt_of subset))   (* returns the rtt number *)
 
 
 let warmup_p_hat rtt_hat subsets =
@@ -321,3 +323,5 @@ let subset_normal_pstamp windows ts =       (* FOR: normal_pstamp subset *)
 let subset_normal_p_hat windows ts =        (* FOR: normal_p_hat latest *)
     range_of ts Newest Newest
 
+let rtt_hat_point ts =
+    get ts Newest
