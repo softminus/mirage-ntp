@@ -150,7 +150,7 @@ let update_estimators old_state =
 
     | WARMUP    ->
             let samples     = old_state.samples_and_rtt_hat in
-            let rtt_hat     = snd <$> rtt_hat_point samples in
+            let rtt_hat     = snd <$> get samples Newest in
 
             let old_ests    = old_state.estimators in
             let p_local     = None in

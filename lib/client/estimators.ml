@@ -273,10 +273,10 @@ let handle_RTT_upshift subsubset_rtt samples subset =
 
 let normal_pstamp   subset =             snd <$> (min_and_where rtt_of subset)    (* returns a Fixed *)
 
-let normal_p_hat    params old_p_hat pstamp_and_rtt_hat latest_and_rtt_hat =
+let normal_p_hat    params pstamp_and_rtt_hat old_p_hat latest_and_rtt_hat =
     let (pstamp, pstamp_rtt_hat)    = pstamp_and_rtt_hat in
-    let (latest, latest_rtt_hat)    = latest_and_rtt_hat in
     let (old_p,  old_p_err)         = old_p_hat in
+    let (latest, latest_rtt_hat)    = latest_and_rtt_hat in
     let new_p = rate_of_pair latest pstamp in
     match new_p with
     | None      -> None     (* can't calculate a rate, return None *)
@@ -319,5 +319,3 @@ let subset_normal_pstamp windows ts =       (* FOR: normal_pstamp subset *)
 let subset_normal_p_hat windows ts =        (* FOR: normal_p_hat latest *)
     get ts Newest
 
-let rtt_hat_point ts =
-    get ts Newest
