@@ -225,7 +225,7 @@ let warmup_theta_hat params p_hat rtt_hat c wins =
     let min          =  min_and_where (warmup_theta_point_error params p_hat rtt_hat latest) subset in
     match min with
     | None -> None
-    | Some min ->   (let minET        =                 warmup_theta_point_error params p_hat rtt_hat latest @@ fst min in
+    | Some min ->   (let minET     =   warmup_theta_point_error params p_hat rtt_hat latest @@ fst min in
                     let theta_hat  =  sum /. check_positive(sum_wts) in
                     match (minET < params.e_offset_qual) with
                     | true  -> Some (theta_hat, minET)
