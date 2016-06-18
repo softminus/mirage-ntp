@@ -267,7 +267,7 @@ let normal_RTT_hat params   halftop_subset shift_subset = (* NOTE: halftop_subse
                                             | true  -> (subsubset_rtt, true))   (* Upwards shift detected *)
     <$>  subsubset_rtt <*> subset_rtt
 
-let handle_RTT_upshift subsubset_rtt samples subset =
+let upshifted_sample_list subsubset_rtt samples subset =
     let (left, right) = subset in
     slice_map samples left right (fun x -> (fst x, Some subsubset_rtt))
 
@@ -315,7 +315,4 @@ let subset_normal_rtt_fixup windows ts =    (* FOR: handle_RTT_upshift subset *)
 let subset_normal_pstamp windows ts =       (* FOR: normal_pstamp subset *)
     let w = windows.pstamp_win in
     range_of ts (fst w) (snd w)
-
-let subset_normal_p_hat windows ts =        (* FOR: normal_p_hat latest *)
-    get ts Newest
 
