@@ -12,8 +12,11 @@ type physical_parameters = {
     skm_rate:           float;
     e_offset:           float;
     e_offset_qual:      float;
-    shift_thres:        counter;
-    point_error_thresh: float;
+
+    shift_thres:        counter;    (* rtt shift detection *)
+
+    point_error_thresh:     float;
+    rate_error_threshold:   float;
 
     initial_p:         (float * float);
 }
@@ -21,15 +24,18 @@ type physical_parameters = {
 
 
 let default_parameters =
-    let skm_scale       = 1024.0 in
-    let ts_limit        = 1.5e-5 in
-    let skm_rate        = 2e-7 in
+    let skm_scale           = 1024.0 in
+    let ts_limit            = 1.5e-5 in
+    let skm_rate            = 2e-7 in
+    let rate_error_bound    = 5.0e-7 in
+
     let e_offset        = 6.0 *. ts_limit in (* 6 = offset_ratio *)
     let e_offset_qual   = 3.0 *. e_offset in
     let initial_p       = (1e-9, 0.0) in
     let shift_thres     = 0L in                     (* FIXME *)
     let point_error_thresh = 3.0 *. ts_limit in
-    {skm_scale; ts_limit; skm_rate; e_offset; e_offset_qual; initial_p; shift_thres; point_error_thresh}
+    let rate_error_threshold = rate_error_bound /. 5.0 in
+    {skm_scale; ts_limit; skm_rate; e_offset; e_offset_qual; initial_p; shift_thres; point_error_thresh; rate_error_threshold}
 
 let delta_TSC newer older =
     let del = Int64.sub newer older in
