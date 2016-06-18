@@ -317,7 +317,7 @@ let subset_normal_pstamp windows ts =       (* FOR: normal_pstamp subset *)
     range_of ts (fst w) (snd w)
 
 let subset_normal_p_hat windows ts =        (* FOR: normal_p_hat latest *)
-    range_of ts Newest Newest
+    get ts Newest
 
 let rtt_hat_point ts =
     get ts Newest
