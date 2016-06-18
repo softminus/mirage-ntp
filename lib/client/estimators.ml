@@ -288,7 +288,16 @@ let normal_p_hat    params old_p_hat pstamp_and_rtt_hat latest_and_rtt_hat =
                                 let point_errors  = Int64.to_float @@ Int64.add (error_of latest latest_rtt_hat) (error_of pstamp pstamp_rtt_hat) in
                                 let rtt_est_error = abs_float @@ Int64.to_float @@ Int64.sub latest_rtt_hat pstamp_rtt_hat in
                                 let new_p_error = old_p *. (point_errors +. rtt_est_error) /. baseline in
-                                Some new_p_error
+
+                                match ((new_p_error < old_p_err), (new_p_error < params.rate_error_threshold)) with
+                                | (false, false)    -> None (* it's worse than the last one and also not under the error threshold *)
+                                | _                 ->  let change = abs_float @@ (p -. old_p) /. old_p in
+                                                        match ((change < params.rate_sanity), (fst latest).quality) with
+                                                        | (true, OK)    -> Some (p, new_p_error)
+                                                        | _             -> Some (old_p, new_p_error)
+
+let normal_C_fixup old_C old_p_hat new_p_hat latest =
+    Some (old_C +. (Int64.to_float latest.timestamps.ta) *. (old_p_hat -. new_p_hat))
 
 (* NORMAL SUBSETS *)
 
