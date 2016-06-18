@@ -198,12 +198,12 @@ let warmup_p_hat rtt_hat subsets =
  * more than once. The theta estimators will compensate for the inevitable offset that
  * is inherent to C.
  *)
-let warmup_C_oneshot p_hat r =
-    let first = fst @@ point_of_history r in
+let warmup_C_oneshot p_hat first_sample =
+    let first = fst first_sample in
     Some (first.timestamps.tb -. (dTSC p_hat first.timestamps.ta))
 
 let warmup_C_fixup old_C old_p_hat new_p_hat latest =
-    let newest = fst @@ point_of_history latest in
+    let newest = fst latest in
     Some (old_C +. (Int64.to_float newest.timestamps.ta) *. (old_p_hat -. new_p_hat))
 
 let warmup_theta_point_error params p_hat rtt_hat latest sa =
@@ -212,8 +212,7 @@ let warmup_theta_point_error params p_hat rtt_hat latest sa =
     rtt_error +. params.skm_rate *. age
 
 let warmup_theta_hat params p_hat rtt_hat c wins =
-    let (last, subset) = wins in
-    let latest = point_of_history last in
+    let (latest, subset) = wins in
 
     let wt params p_hat rtt_hat latest sa =
         let qual = warmup_theta_point_error params p_hat rtt_hat latest sa in
@@ -249,15 +248,12 @@ let subset_warmup_p_hat        ts =    (* FOR: warmup_p_hat *)
     ((fun x y -> (x, y)) <$> near) <*> far
 
 let subset_warmup_C_oneshot    ts =    (* FOR: warmup_C_oneshot *)
-    range_of ts Newest Oldest       (* Newest Oldest is used so if there's more than one sample, point_of_history
-                                     * in warmup_C_oneshot will throw an exception!
-                                     *)
-
+    get ts Newest
 let subset_warmup_C_fixup      ts =    (* FOR: warmup_C_fixup *)
-    range_of ts Newest Newest
+    get ts Newest
 
 let subset_warmup_theta_hat    ts =    (* FOR: warmup_theta_hat *)
-    let last = range_of ts Newest Newest in
+    let last = get ts Newest in
     ((fun x y -> (x, y)) <$> last ) <*> range_of ts Newest Oldest
 
 (* NORMAL ESTIMATORS *)

@@ -243,12 +243,3 @@ let range_length hist left right =
     | false -> None
     | true  -> Some (idx_of_point hist right - idx_of_point hist left + 1)
 
-let point_of_history hi = (* takes a single-element history and gives us the point inside *)
-    match (length hi) with
-    | 1     -> nth hi 0
-    | _     -> failwith "invalid list passed to point_of_se_history, this should never happen"
-
-let point_of_range ra =
-    match ra with
-    | Full hi -> point_of_history hi
-    | _     -> failwith "point_of_range argument error"
