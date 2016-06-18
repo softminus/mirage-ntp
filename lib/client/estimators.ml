@@ -281,10 +281,14 @@ let normal_p_hat    params old_p_hat pstamp_and_rtt_hat latest_and_rtt_hat =
     let (old_p,  old_p_err)         = old_p_hat in
     let new_p = rate_of_pair latest pstamp in
     match new_p with
-    | None      -> None
+    | None      -> None     (* can't calculate a rate, return None *)
     | Some p    ->  match (dTSC old_p @@ error_of latest latest_rtt_hat < params.point_error_thresh) with
-                    | false ->  None
-                    | true ->   None
+                    | false ->  None    (* point error of our new packet is NG, let's not use it *)
+                    | true ->   let baseline      = ((fst latest).timestamps.tb -. (fst pstamp).timestamps.tb) in
+                                let point_errors  = Int64.to_float @@ Int64.add (error_of latest latest_rtt_hat) (error_of pstamp pstamp_rtt_hat) in
+                                let rtt_est_error = abs_float @@ Int64.to_float @@ Int64.sub latest_rtt_hat pstamp_rtt_hat in
+                                let new_p_error = old_p *. (point_errors +. rtt_est_error) /. baseline in
+                                Some new_p_error
 
 (* NORMAL SUBSETS *)
 
