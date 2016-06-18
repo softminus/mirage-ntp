@@ -100,12 +100,21 @@ let sample_of_packet history nonce (pkt : pkt) rx_tsc =
     let rootdisp    = short_ts_to_float pkt.root_dispersion in
     (* print_string (Printf.sprintf "RECV TS IS %Lx" (ts_to_int64 pkt.recv_ts)); *)
     let timestamps  = {ta = nonce.tsc; tb = to_float pkt.recv_ts; te = to_float pkt.trans_ts; tf = rx_tsc} in
-    {quality; ttl; stratum; leap; refid; rootdelay; rootdisp; timestamps}
+    let sample = {quality; ttl; stratum; leap; refid; rootdelay; rootdisp; timestamps} in
+
+    let rtt = rtt_of_prime sample in
+    let rtt_hat = match l with
+    | None                  -> rtt
+    | Some (_, last_rtt)    ->  match (rtt < last_rtt) with
+                                | true  -> rtt
+                                | false -> last_rtt
+    in
+    (sample, rtt_hat)
 
 let add_sample old_state buf nonce rx_tsc =
     match (validate_reply buf nonce) with
-    | None      ->   old_state
-    | Some pkt  ->  {old_state with samples_and_rtt_hat = hcons ((sample_of_packet old_state.samples_and_rtt_hat nonce pkt rx_tsc), None) old_state.samples_and_rtt_hat}
+    | None      ->  old_state
+    | Some pkt  -> {old_state with samples_and_rtt_hat = hcons (sample_of_packet old_state.samples_and_rtt_hat nonce pkt rx_tsc) old_state.samples_and_rtt_hat}
 
 let output_of_state state =
     let e = state.estimators in
@@ -123,15 +132,6 @@ let output_of_state state =
             | _ ->  None
 
 
-let fixup_warmup rtt_hat sample_list =
-    let latest = get sample_list Newest in
-    let head_cut_off = tl sample_list in
-    match latest with
-    | None                  ->  failwith "Consistency failure: no sample to fix up!"
-    | Some (sample, None)   ->  hcons (sample, Some rtt_hat) head_cut_off
-    | Some (sample, Some x) ->  failwith "Consistency failure: sample already fixed up!"
-
-
 let update_estimators old_state =
     match old_state.regime with
     | ZERO      ->
@@ -141,25 +141,21 @@ let update_estimators old_state =
             let theta_hat_and_error = None in
 
             let pstamp          = join  (warmup_pstamp      <$> (subset_warmup_pstamp       samples)) in
-            let rtt_hat         = join  (warmup_rtt_hat     <$> (subset_warmup_rtt_hat      samples)) in
-            let updated_samples =       (fixup_warmup       <$> rtt_hat <*> (Some           samples)) in
             (* Second stage estimators: *)
             let c               = join  (warmup_C_oneshot   <$> (fst <$> p_hat_and_error)
                                                             <*> (subset_warmup_C_oneshot    samples)) in
 
             let new_ests = {pstamp;  p_hat_and_error; p_local; c; theta_hat_and_error} in
-            (match updated_samples with
-            | Some s -> {old_state with samples_and_rtt_hat = s; estimators = new_ests; regime = WARMUP }
-            | None   ->  old_state )
+            {old_state with estimators = new_ests; regime = WARMUP }
 
     | WARMUP    ->
             let samples     = old_state.samples_and_rtt_hat in
+            let rtt_hat     = snd <$> rtt_hat_point samples in
+
             let old_ests    = old_state.estimators in
             let p_local     = None in
 
             let pstamp          = join  (warmup_pstamp      <$> (subset_warmup_pstamp       samples)) in
-            let rtt_hat         = join  (warmup_rtt_hat     <$> (subset_warmup_rtt_hat      samples)) in
-            let updated_samples =       (fixup_warmup       <$> rtt_hat <*> (Some           samples)) in
 
             (* Second stage estimators: *)
 
@@ -172,6 +168,4 @@ let update_estimators old_state =
 
             let new_ests = {pstamp; p_hat_and_error; p_local; c; theta_hat_and_error} in
 
-            (match updated_samples with
-            | Some s -> {old_state with samples_and_rtt_hat = s; estimators = new_ests}
-            | None   ->  old_state)
+            {old_state with estimators = new_ests}
