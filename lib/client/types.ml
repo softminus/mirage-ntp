@@ -99,7 +99,7 @@ type output = {
 type sync_state = {
     regime:                 regime;
     parameters:             physical_parameters;
-    samples_and_rtt_hat:   (sample * counter option) history;
+    samples_and_rtt_hat:   (sample * counter) history;  (* sample history and RTT_hat history are zipped together *)
     estimators:             estimators;
 }
 [@@deriving show]
