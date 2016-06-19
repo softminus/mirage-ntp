@@ -258,6 +258,13 @@ let subset_warmup_theta_hat    ts =    (* FOR: warmup_theta_hat *)
 
 (* NORMAL ESTIMATORS *)
 
+let subset_normal_rtt_entire windows ts =   (* FOR: normal_RTT_hat halftop_subset *)
+    range_of ts Newest Oldest
+
+let subset_normal_rtt_shift windows ts =    (* FOR: normal_RTT_hat shift_subset *)
+    let w = windows.shift_detection in
+    range_of ts (fst w) (snd w)
+
 let normal_RTT_hat params   halftop_subset shift_subset = (* NOTE: halftop_subset is greater than shift_subset *)
     let subset_rtt     = rtt_of <$> (fst <$> min_and_where rtt_of halftop_subset) in
     let subsubset_rtt  = rtt_of <$> (fst <$> min_and_where rtt_of shift_subset  ) in
@@ -267,9 +274,20 @@ let normal_RTT_hat params   halftop_subset shift_subset = (* NOTE: halftop_subse
                                             | true  -> (subsubset_rtt, true))   (* Upwards shift detected *)
     <$>  subsubset_rtt <*> subset_rtt
 
+let subset_normal_rtt_fixup windows ts =    (* FOR: upshifted_sample_list subset *)
+    let x = windows.shift_detection in
+    let y = windows.offset          in
+    let inter = intersect_range ts (fst x) (snd x) (fst y) (snd y) in
+    range_of ts (fst inter) (snd inter)
+
 let upshifted_sample_list subsubset_rtt samples subset =
     let (left, right) = subset in
     slice_map samples left right (fun x -> (fst x, Some subsubset_rtt))
+
+
+let subset_normal_pstamp windows ts =       (* FOR: normal_pstamp subset *)
+    let w = windows.pstamp_win in
+    range_of ts (fst w) (snd w)
 
 let normal_pstamp   subset =             snd <$> (min_and_where rtt_of subset)    (* returns a Fixed *)
 
@@ -297,6 +315,15 @@ let normal_p_hat    params pstamp_and_rtt_hat old_p_hat latest_and_rtt_hat =
 let normal_C_fixup old_C old_p_hat new_p_hat latest =
     Some (old_C +. (Int64.to_float latest.timestamps.ta) *. (old_p_hat -. new_p_hat))
 
+let subset_normal_p_local   windows ts =    (* FOR: normal_p_local                  *)
+    let near_win    = windows.plocal_near   in
+    let near = range_of ts (fst near_win) (snd near_win)    in
+
+    let far_win     = windows.plocal_far    in
+    let far  = range_of ts (fst far_win)  (snd far_win)     in
+
+    ((fun x y -> (x, y)) <$> near ) <*> far
+
 let normal_p_local params p_hat_and_error rtt_hat old_p_local subsets last =
     let (p_hat,         _)      = p_hat_and_error in
     let (old_p_local,   _)      = old_p_local in
@@ -320,33 +347,4 @@ let normal_p_local params p_hat_and_error rtt_hat old_p_local subsets last =
     | _                         -> None
 
 
-let subset_normal_p_local   windows ts =    (* FOR: normal_p_local                  *)
-    let near_win    = windows.plocal_near   in
-    let near = range_of ts (fst near_win) (snd near_win)    in
-
-    let far_win     = windows.plocal_far    in
-    let far  = range_of ts (fst far_win)  (snd far_win)     in
-
-    ((fun x y -> (x, y)) <$> near ) <*> far
-
 let normal_theta = None
-
-(* NORMAL SUBSETS *)
-
-let subset_normal_rtt_entire windows ts =   (* FOR: normal_RTT_hat halftop_subset *)
-    range_of ts Newest Oldest
-
-let subset_normal_rtt_shift windows ts =    (* FOR: normal_RTT_hat shift_subset *)
-    let w = windows.shift_detection in
-    range_of ts (fst w) (snd w)
-
-let subset_normal_rtt_fixup windows ts =    (* FOR: handle_RTT_upshift subset *)
-    let x = windows.shift_detection in
-    let y = windows.offset          in
-    let inter = intersect_range ts (fst x) (snd x) (fst y) (snd y) in
-    range_of ts (fst inter) (snd inter)
-
-let subset_normal_pstamp windows ts =       (* FOR: normal_pstamp subset *)
-    let w = windows.pstamp_win in
-    range_of ts (fst w) (snd w)
-
