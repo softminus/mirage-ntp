@@ -320,6 +320,14 @@ let normal_p_local params p_hat_and_error rtt_hat old_p_local subsets last =
     | _                         -> None
 
 
+let subset_normal_p_local   windows ts =    (* FOR: normal_p_local                  *)
+    let near_win    = windows.plocal_near   in
+    let near = range_of ts (fst near_win) (snd near_win)    in
+
+    let far_win     = windows.plocal_far    in
+    let far  = range_of ts (fst far_win)  (snd far_win)     in
+
+    ((fun x y -> (x, y)) <$> near ) <*> far
 
 let normal_theta = None
 
