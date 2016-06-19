@@ -297,6 +297,32 @@ let normal_p_hat    params pstamp_and_rtt_hat old_p_hat latest_and_rtt_hat =
 let normal_C_fixup old_C old_p_hat new_p_hat latest =
     Some (old_C +. (Int64.to_float latest.timestamps.ta) *. (old_p_hat -. new_p_hat))
 
+let normal_p_local params p_hat_and_error rtt_hat old_p_local subsets last =
+    let (p_hat,         _)      = p_hat_and_error in
+    let (old_p_local,   _)      = old_p_local in
+    let (near, far)             = subsets in
+
+    let best_in_near    = fst <$> (min_and_where rtt_of near) in
+    let best_in_far     = fst <$> (min_and_where rtt_of far ) in
+    let rate            = join (rate_of_pair <$> best_in_near <*> best_in_far) in
+    match (best_in_near, best_in_far, rate) with
+    | (Some best_in_near, Some best_in_far, Some p_local) -> (
+            let del_tb      = check_non_negative ((fst best_in_near).timestamps.tb -. (fst best_in_far).timestamps.tb) in
+            let far_error   = Int64.to_float @@ error_of best_in_far  rtt_hat in
+            let near_error  = Int64.to_float @@ error_of best_in_near rtt_hat in
+            let plocal_error = (p_hat /. del_tb) *. (far_error +. near_error) in
+            match (plocal_error < params.local_rate_error_threshold) with
+            | false -> None
+            | true  -> let change = abs_float @@ (p_local -. old_p_local) /. old_p_local in
+                match ((change < params.local_rate_sanity), (fst last).quality) with
+                | (true, OK)    -> Some (p_local, plocal_error)
+                | _             -> None)
+    | _                         -> None
+
+
+
+let normal_theta = None
+
 (* NORMAL SUBSETS *)
 
 let subset_normal_rtt_entire windows ts =   (* FOR: normal_RTT_hat halftop_subset *)
