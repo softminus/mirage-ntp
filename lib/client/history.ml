@@ -151,7 +151,7 @@ let map hist f =
     match hist with History (cap, offset, l) ->
         History(cap, offset, List.map f l)
 
-let fold hist f x0 =
+let fold f x0 hist =
     List.fold_left f x0 @@ rawlist hist
 
 (* returns (Σ f * weight, Σ weight)  *)
@@ -162,7 +162,7 @@ let weighted_sum f weight hist =
         let weighted = value *. weight in
         (sum +. weighted, norm +. weight)
     in
-    fold hist (acc f weight) (0.0, 0.0)
+    fold (acc f weight) (0.0, 0.0) hist
 
 let rec min_where_aux extractor li =
     match li with
