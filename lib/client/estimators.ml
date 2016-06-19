@@ -283,15 +283,16 @@ let         normal_p_local params p_hat_and_error rtt_hat old_p_local subset las
 
 
 
-let max_gap hist =
+let max_gap hist offset_win =
     let gap x y = delta_TSC (fst x).timestamps.tf (fst y).timestamps.tf in
     let pairwise (acc, prev) z = match (acc, prev) with
-        | (None,        None)       -> (None, Some z)
-        | (None,        Some prev)  -> (Some (gap prev z), Some z)
+        | (None,        None)       -> (None,                        Some z)
+        | (None,        Some prev)  -> (Some          (gap prev z) , Some z)
         | (Some acc,    Some prev)  -> (Some (min acc (gap prev z)), Some z)
         | (Some acc,    None)       -> failwith "invalid state"
     in
 
-
+    let max_gap = fold pairwise (None, None) offset_win in
+    max_gap
 let normal_theta = None
 
