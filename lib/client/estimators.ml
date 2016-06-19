@@ -84,70 +84,6 @@ let default_windows params poll_period =
     {toplevel; shift_detection; offset; plocal_far; plocal_near; pstamp_win; warmup_win}
 
 
-(* SHARED *)
-let rtt_of_prime sample =
-    let ts = sample.timestamps in
-    let del = Int64.sub (ts.tf) (ts.ta) in
-    match (del > 0L) with
-    | true  -> del
-    | false -> failwith "invalid RTT / causality error. This is a bug"
-    (* we are confident leaving this as an exception and returning a Maybe because the only way it can be reached is if the
-     * TSC counter counts backwards or the code somehow invoked it in a bad way. There is no way that data from the network
-     * can cause this exception to be reached, only a devastating bug in the code or the TSC counter being used violating its
-     * invariants
-     *)
-
-let rtt_of sample =
-    rtt_of_prime (fst sample)
-
-let check_positive x =
-    match (x > 0.0) with
-    | true -> x
-    | false -> failwith "should be positive!"
-
-let check_non_negative x =
-    match (x >= 0.0) with
-    | true -> x
-    | false -> failwith "should never be negative!"
-
-let error_of packet rtt_hat =
-    delta_TSC (rtt_of packet) rtt_hat
-
-let dTSC p_hat del =
-    p_hat *. (Int64.to_float del)
-
-(*    th_naive = (
- *    peer->phat * ((long double)stamp->Ta + (long double)stamp->Tf)
- *    + (2 * peer->C - (stamp->Tb + stamp->Te))
- *    ) / 2.0;
- *
- *)
-let theta_of p_hat c sample =
-    let ts = (fst sample).timestamps in
-    let sumLocal    = Int64.to_float    ts.ta   +.  Int64.to_float  ts.tf in
-    let sumFar      =                   ts.tb   +.                  ts.te in
-
-    let twice_theta = p_hat *. sumLocal +. (2.0 *. c -. sumFar) in
-
-    twice_theta /. 2.0
-
-
-let rate_of_pair newer_sample older_sample =
-    let newer = (fst newer_sample).timestamps in
-    let older = (fst older_sample).timestamps in
-    let delTa = delta_TSC newer.ta  older.ta in
-    let delTb = newer.tb -.         older.tb in
-    let delTe = newer.te -.         older.te in
-    let delTf = delta_TSC newer.tf  older.tf in
-
-    match (delTa > 0L, delTb > 0.0, delTe > 0.0, delTf > 0L) with
-    | (true,true, true, true) ->
-            let forwards    = delTb /. (Int64.to_float delTa) in
-            let reverse     = delTe /. (Int64.to_float delTf) in
-            Some ((forwards +. reverse) /. 2.0)
-    | (_,   _,    _,    _   ) -> None
-
-
 
 (* WARMUP ESTIMATORS
  *
@@ -155,8 +91,18 @@ let rate_of_pair newer_sample older_sample =
  * that are Maybe types. It is up to the caller to use the subset_ functions to
  * unwrap all the Maybes and give us unwrapped values.
  *)
+
+let subset_warmup_pstamp       ts =    (* FOR: warmup_pstamp *)
+    range_of ts Newest Oldest
+
 let warmup_pstamp   subset =             snd <$> (min_and_where rtt_of subset)    (* returns a Fixed *)
 
+let subset_warmup_p_hat        ts =    (* FOR: warmup_p_hat *)
+    let wwidth = 1 + (length ts) / 4 in
+    let near    = range_of ts Newest @@ Older(Newest, wwidth - 1)                                       in
+    let far     = range_of ts                                       (Newer(Oldest, wwidth - 1)) Oldest  in
+
+    ((fun x y -> (x, y)) <$> near) <*> far
 
 let warmup_p_hat rtt_hat subsets =
     let (near, far) = subsets in
@@ -173,14 +119,22 @@ let warmup_p_hat rtt_hat subsets =
     | _ ->  None
 
 
+
 (* C is only estimated once -- with first packet ever received! It is fixed up with
  * warmup_C_fixup to correct for change in p_hat but warmup_C_oneshot is never called
  * more than once. The theta estimators will compensate for the inevitable offset that
  * is inherent to C.
  *)
+
+let subset_warmup_C_oneshot    ts =    (* FOR: warmup_C_oneshot *)
+    get ts Newest
+
 let warmup_C_oneshot p_hat first_sample =
     let first = fst first_sample in
     Some (first.timestamps.tb -. (dTSC p_hat first.timestamps.ta))
+
+let subset_warmup_C_fixup      ts =    (* FOR: warmup_C_fixup *)
+    get ts Newest
 
 let warmup_C_fixup old_C old_p_hat new_p_hat latest =
     let newest = fst latest in
@@ -190,6 +144,10 @@ let warmup_theta_point_error params p_hat rtt_hat latest sa =
     let rtt_error   = dTSC p_hat @@ error_of sa rtt_hat in
     let age         = dTSC p_hat (delta_TSC (fst latest).timestamps.tf (fst sa).timestamps.tf) in
     rtt_error +. params.skm_rate *. age
+
+let subset_warmup_theta_hat    ts =    (* FOR: warmup_theta_hat *)
+    let last = get ts Newest in
+    ((fun x y -> (x, y)) <$> last ) <*> range_of ts Newest Oldest
 
 let warmup_theta_hat params p_hat rtt_hat c wins =
     let (latest, subset) = wins in
@@ -212,29 +170,6 @@ let warmup_theta_hat params p_hat rtt_hat c wins =
                     | false -> None)
 
 
-(* WARMUP SUBSETS *)
-
-let subset_warmup_pstamp       ts =    (* FOR: warmup_pstamp *)
-    range_of ts Newest Oldest
-
-let subset_warmup_rtt_hat      ts =    (* FOR: warmup_rtt *)
-    range_of ts Newest Oldest
-
-let subset_warmup_p_hat        ts =    (* FOR: warmup_p_hat *)
-    let wwidth = 1 + (length ts) / 4 in
-    let near    = range_of ts Newest @@ Older(Newest, wwidth - 1)                                       in
-    let far     = range_of ts                                       (Newer(Oldest, wwidth - 1)) Oldest  in
-
-    ((fun x y -> (x, y)) <$> near) <*> far
-
-let subset_warmup_C_oneshot    ts =    (* FOR: warmup_C_oneshot *)
-    get ts Newest
-let subset_warmup_C_fixup      ts =    (* FOR: warmup_C_fixup *)
-    get ts Newest
-
-let subset_warmup_theta_hat    ts =    (* FOR: warmup_theta_hat *)
-    let last = get ts Newest in
-    ((fun x y -> (x, y)) <$> last ) <*> range_of ts Newest Oldest
 
 (* NORMAL ESTIMATORS *)
 
@@ -327,4 +262,4 @@ let normal_p_local params p_hat_and_error rtt_hat old_p_local subsets last =
     | _                         -> None
 
 
-let normal_theta = None
+let normal_theta  = None
