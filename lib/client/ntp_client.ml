@@ -3,6 +3,7 @@ open Wire
 open Types
 open Tsc
 open Estimators
+open Maybe
 
 (*
  * This corresponds to RADclock's client_ntp.c

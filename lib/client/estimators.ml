@@ -2,6 +2,7 @@
 
 open Types
 open History
+open Maybe
 
 type windows    = {
     toplevel:           (point * point);
@@ -83,27 +84,6 @@ let default_windows params poll_period =
     {toplevel; shift_detection; offset; plocal_far; plocal_near; pstamp_win; warmup_win}
 
 
-let (>>=) x f =                 (* bind *)
-    match x with
-    | Some x    -> (f x)
-    | None      -> None
-
-let (<$>) f m =                 (* fmap *)
-    match m with
-     | Some x   -> Some (f x)
-     | None     -> None
-
-let (<*>) f m =                 (* ap *)
-    match f with
-    | Some ff   -> ff <$> m
-    | None      -> None
-
-let (<|>) l r =
-    match l with
-    | None      -> r
-    | x         -> x
-
-let join x = x >>= (fun x -> x)
 (* SHARED *)
 let rtt_of_prime sample =
     let ts = sample.timestamps in

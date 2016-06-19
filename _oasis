@@ -23,7 +23,7 @@ Library "wire"
 
 Library "ntp_client"
     Path: lib/client/
-    Modules: Util, Types, History, Ntp_client, Estimators
+    Modules: Util, Maybe, Types, History, Ntp_client, Estimators
     BuildDepends: wire, tsc, ipaddr, ppx_deriving.std
 
 Library "clocklib"
