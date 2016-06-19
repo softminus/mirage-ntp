@@ -19,6 +19,9 @@ type physical_parameters = {
     rate_error_threshold:   float;
     rate_sanity:            float;
 
+    local_rate_error_threshold: float;
+    local_rate_sanity:          float;
+
     initial_p:         (float * float);
 }
 [@@deriving show]
@@ -30,14 +33,19 @@ let default_parameters =
     let skm_rate            = 2e-7 in
     let rate_error_bound    = 5.0e-7 in
 
+    let initial_p       = (1e-9, 0.0) in            (* FIXME: set this to the right period based on nominal counter frequency *)
+
     let e_offset        = 6.0 *. ts_limit in (* 6 = offset_ratio *)
     let e_offset_qual   = 3.0 *. e_offset in
-    let initial_p       = (1e-9, 0.0) in
     let shift_thres     = 0L in                     (* FIXME *)
+
     let point_error_thresh = 3.0 *. ts_limit in
     let rate_error_threshold    = rate_error_bound /. 5.0 in
     let rate_sanity             = rate_error_bound *. 3.0 in
-    {skm_scale; ts_limit; skm_rate; e_offset; e_offset_qual; initial_p; shift_thres; point_error_thresh; rate_error_threshold; rate_sanity}
+
+    let local_rate_sanity           = rate_error_bound *. 3.0   in
+    let local_rate_error_threshold  = 8.0e-7                    in
+    {skm_scale; ts_limit; skm_rate; e_offset; e_offset_qual; initial_p; shift_thres; point_error_thresh; rate_error_threshold; rate_sanity; local_rate_sanity; local_rate_error_threshold}
 
 let delta_TSC newer older =
     let del = Int64.sub newer older in
