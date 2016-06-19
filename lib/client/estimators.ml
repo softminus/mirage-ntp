@@ -16,7 +16,6 @@ type windows    = {
 
     plocal_far:         (point * point);
     plocal_near:        (point * point);
-
 }
 [@@deriving show]
 
@@ -92,20 +91,21 @@ let default_windows params poll_period =
  * unwrap all the Maybes and give us unwrapped values.
  *)
 
-let subset_warmup_pstamp       ts =    (* FOR: warmup_pstamp *)
+let  subset_warmup_pstamp   ts          =       (* FOR: warmup_pstamp *)
     range_of ts Newest Oldest
+let         warmup_pstamp   subset      =
+    snd <$> (min_and_where rtt_of subset)       (* returns a Fixed *)
 
-let warmup_pstamp   subset =             snd <$> (min_and_where rtt_of subset)    (* returns a Fixed *)
 
-let subset_warmup_p_hat        ts =    (* FOR: warmup_p_hat *)
+
+
+let  subset_warmup_p_hat    ts          =       (* FOR: warmup_p_hat *)
     let wwidth = 1 + (length ts) / 4 in
     let near    = range_of ts Newest @@ Older(Newest, wwidth - 1)                                       in
     let far     = range_of ts                                       (Newer(Oldest, wwidth - 1)) Oldest  in
-
     ((fun x y -> (x, y)) <$> near) <*> far
-
-let warmup_p_hat rtt_hat subsets =
-    let (near, far) = subsets in
+let         warmup_p_hat rtt_hat subset =
+    let (near, far) = subset in
     let best_in_near    = fst <$> (min_and_where rtt_of near) in
     let best_in_far     = fst <$> (min_and_where rtt_of far ) in
     let p_hat = join (rate_of_pair <$> best_in_near <*> best_in_far) in
@@ -125,32 +125,35 @@ let warmup_p_hat rtt_hat subsets =
  * more than once. The theta estimators will compensate for the inevitable offset that
  * is inherent to C.
  *)
-
-let subset_warmup_C_oneshot    ts =    (* FOR: warmup_C_oneshot *)
+let  subset_warmup_C_oneshot    ts =        (* FOR: warmup_C_oneshot *)
     get ts Newest
-
-let warmup_C_oneshot p_hat first_sample =
-    let first = fst first_sample in
+let         warmup_C_oneshot p_hat subset =
+    let first = fst subset in
     Some (first.timestamps.tb -. (dTSC p_hat first.timestamps.ta))
 
-let subset_warmup_C_fixup      ts =    (* FOR: warmup_C_fixup *)
-    get ts Newest
 
-let warmup_C_fixup old_C old_p_hat new_p_hat latest =
-    let newest = fst latest in
+
+
+let  subset_warmup_C_fixup      ts =        (* FOR: warmup_C_fixup *)
+    get ts Newest
+let         warmup_C_fixup old_C old_p_hat new_p_hat subset =
+    let newest = fst subset in
     Some (old_C +. (Int64.to_float newest.timestamps.ta) *. (old_p_hat -. new_p_hat))
+
+
+
+
+let  subset_warmup_theta_hat    ts =        (* FOR: warmup_theta_hat *)
+    let last = get ts Newest in
+    ((fun x y -> (x, y)) <$> last ) <*> range_of ts Newest Oldest
 
 let warmup_theta_point_error params p_hat rtt_hat latest sa =
     let rtt_error   = dTSC p_hat @@ error_of sa rtt_hat in
     let age         = dTSC p_hat (delta_TSC (fst latest).timestamps.tf (fst sa).timestamps.tf) in
     rtt_error +. params.skm_rate *. age
 
-let subset_warmup_theta_hat    ts =    (* FOR: warmup_theta_hat *)
-    let last = get ts Newest in
-    ((fun x y -> (x, y)) <$> last ) <*> range_of ts Newest Oldest
-
-let warmup_theta_hat params p_hat rtt_hat c wins =
-    let (latest, subset) = wins in
+let         warmup_theta_hat params p_hat rtt_hat c subset =
+    let (latest, subset) = subset in
 
     let wt params p_hat rtt_hat latest sa =
         let qual = warmup_theta_point_error params p_hat rtt_hat latest sa in
@@ -170,17 +173,16 @@ let warmup_theta_hat params p_hat rtt_hat c wins =
                     | false -> None)
 
 
-
 (* NORMAL ESTIMATORS *)
 
-let subset_normal_rtt_entire windows ts =   (* FOR: normal_RTT_hat halftop_subset *)
-    range_of ts Newest Oldest
 
-let subset_normal_rtt_shift windows ts =    (* FOR: normal_RTT_hat shift_subset *)
+let  subset_normal_rtt_entire   windows ts =    (* FOR: normal_RTT_hat halftop_subset *)
+    range_of ts Newest Oldest
+let  subset_normal_rtt_shift    windows ts =    (* FOR: normal_RTT_hat shift_subset *)
     let w = windows.shift_detection in
     range_of ts (fst w) (snd w)
 
-let normal_RTT_hat params   halftop_subset shift_subset = (* NOTE: halftop_subset is greater than shift_subset *)
+let         normal_RTT_hat params halftop_subset shift_subset =     (* NOTE: halftop_subset is greater than shift_subset *)
     let subset_rtt     = rtt_of <$> (fst <$> min_and_where rtt_of halftop_subset) in
     let subsubset_rtt  = rtt_of <$> (fst <$> min_and_where rtt_of shift_subset  ) in
 
@@ -189,24 +191,32 @@ let normal_RTT_hat params   halftop_subset shift_subset = (* NOTE: halftop_subse
                                             | true  -> (subsubset_rtt, true))   (* Upwards shift detected *)
     <$>  subsubset_rtt <*> subset_rtt
 
-let subset_normal_rtt_fixup windows ts =    (* FOR: upshifted_sample_list subset *)
+
+
+
+let  subset_upshift_samples     windows ts =    (* FOR: upshift_samples subset *)
     let x = windows.shift_detection in
     let y = windows.offset          in
     let inter = intersect_range ts (fst x) (snd x) (fst y) (snd y) in
     range_of ts (fst inter) (snd inter)
-
-let upshifted_sample_list subsubset_rtt samples subset =
+let         upshift_samples subsubset_rtt samples subset =
     let (left, right) = subset in
     slice_map samples left right (fun x -> (fst x, Some subsubset_rtt))
 
 
-let subset_normal_pstamp windows ts =       (* FOR: normal_pstamp subset *)
+
+
+let  subset_normal_pstamp       windows ts =    (* FOR: normal_pstamp subset *)
     let w = windows.pstamp_win in
     range_of ts (fst w) (snd w)
+let         normal_pstamp       subset =
+    snd <$> (min_and_where rtt_of subset)    (* returns a Fixed *)
 
-let normal_pstamp   subset =             snd <$> (min_and_where rtt_of subset)    (* returns a Fixed *)
 
-let normal_p_hat    params pstamp_and_rtt_hat old_p_hat latest_and_rtt_hat =
+
+let  latest_normal_p_hat        windows ts =    (* FOR: normal_p_hat latest_and_rtt_hat *)
+    get ts Newest
+let         normal_p_hat params pstamp_and_rtt_hat old_p_hat latest_and_rtt_hat =
     let (pstamp, pstamp_rtt_hat)    = pstamp_and_rtt_hat in
     let (old_p,  old_p_err)         = old_p_hat in
     let (latest, latest_rtt_hat)    = latest_and_rtt_hat in
@@ -227,10 +237,18 @@ let normal_p_hat    params pstamp_and_rtt_hat old_p_hat latest_and_rtt_hat =
                                                         | (true, OK)    -> Some (p, new_p_error)
                                                         | _             -> Some (old_p, new_p_error)
 
-let normal_C_fixup old_C old_p_hat new_p_hat latest =
-    Some (old_C +. (Int64.to_float latest.timestamps.ta) *. (old_p_hat -. new_p_hat))
 
-let subset_normal_p_local   windows ts =    (* FOR: normal_p_local                  *)
+
+
+let  subset_normal_C_fixup      windows ts =    (* FOR: normal_C_fixup *)
+    get ts Newest
+let         normal_C_fixup old_C old_p_hat new_p_hat subset =
+    Some (old_C +. (Int64.to_float subset.timestamps.ta) *. (old_p_hat -. new_p_hat))
+
+
+
+
+let  subset_normal_p_local      windows ts =    (* FOR: normal_p_local *)
     let near_win    = windows.plocal_near   in
     let near = range_of ts (fst near_win) (snd near_win)    in
 
@@ -238,11 +256,12 @@ let subset_normal_p_local   windows ts =    (* FOR: normal_p_local              
     let far  = range_of ts (fst far_win)  (snd far_win)     in
 
     ((fun x y -> (x, y)) <$> near ) <*> far
-
-let normal_p_local params p_hat_and_error rtt_hat old_p_local subsets last =
+let    last_normal_p_local     windows ts =     (* FOR: normal_p_local *)
+    get ts Newest
+let         normal_p_local params p_hat_and_error rtt_hat old_p_local subset last =
     let (p_hat,         _)      = p_hat_and_error in
     let (old_p_local,   _)      = old_p_local in
-    let (near, far)             = subsets in
+    let (near, far)             = subset in
 
     let best_in_near    = fst <$> (min_and_where rtt_of near) in
     let best_in_far     = fst <$> (min_and_where rtt_of far ) in
@@ -260,6 +279,8 @@ let normal_p_local params p_hat_and_error rtt_hat old_p_local subsets last =
                 | (true, OK)    -> Some (p_local, plocal_error)
                 | _             -> None)
     | _                         -> None
+
+
 
 
 let normal_theta  = None
