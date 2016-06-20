@@ -24,6 +24,9 @@ type physical_parameters = {
     local_rate_error_threshold: float;
     local_rate_sanity:          float;
 
+    offset_sanity_zero:         float;
+    offset_sanity_aging:        float;
+
     initial_p:         (float * float);
 }
 [@@deriving show]
@@ -104,7 +107,12 @@ let default_parameters =
 
     let local_rate_sanity           = rate_error_bound *. 3.0   in
     let local_rate_error_threshold  = 8.0e-7                    in
-    {skm_scale; ts_limit; skm_rate; e_offset; e_offset_qual; initial_p; shift_thres; point_error_thresh; rate_error_threshold; rate_sanity; local_rate_sanity; local_rate_error_threshold}
+
+
+    let offset_sanity_zero      = 100.0 *.  ts_limit            in
+    let offset_sanity_aging     = 20.0 *.   rate_error_bound    in
+
+    {skm_scale; ts_limit; skm_rate; e_offset; e_offset_qual; initial_p; shift_thres; point_error_thresh; rate_error_threshold; rate_sanity; local_rate_sanity; local_rate_error_threshold; offset_sanity_zero; offset_sanity_aging}
 
 let delta_TSC newer older =
     let del = Int64.sub newer older in
