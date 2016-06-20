@@ -158,31 +158,45 @@ let update_estimators old_state =
             let old_ests    = old_state.estimators  in
             let params      = old_state.parameters  in
 
-            let pstamp_warmup   = join  (warmup_pstamp      <$> (subset_warmup_pstamp       samples)) in
-            let pstamp_normal   = join  (normal_pstamp      <$> (subset_normal_pstamp  wi   samples)) in
-
+            let pstamp_warmup   = join  (warmup_pstamp  <$> (subset_warmup_pstamp       samples)) in
+            let pstamp_normal   = join  (normal_pstamp  <$> (subset_normal_pstamp   wi  samples)) in
             let pstamp          = pstamp_normal <|> pstamp_warmup in
 
             (* Second stage estimators: *)
 
-            let p_hat_warmup = join (warmup_p_hat           <$> (subset_warmup_p_hat    samples)) in
-            let p_hat_normal = join (normal_p_hat params    <$> (join (get samples <$> pstamp_normal)) <*> old_ests.p_hat_and_error <*> (latest_normal_p_hat wi samples)) in
+            let p_hat_warmup = join (warmup_p_hat <$> (subset_warmup_p_hat samples)) in
+
+            let p_hat_normal = join (normal_p_hat params                    <$>
+                                    (join (get samples <$> pstamp_normal))  <*>
+                                    old_ests.p_hat_and_error                <*>
+                                    (latest_normal_p_hat                            wi  samples)) in
 
             let p_hat_and_error = p_hat_normal <|> p_hat_warmup in
 
+            let c = join    (c_fixup                    <$>
+                            old_ests.c                  <*>
+                            old_ests.p_hat_and_error    <*>
+                            p_hat_and_error             <*>
+                            (subset_c_fixup     samples)) in
 
-
-            let c = join (c_fixup <$> old_ests.c <*> old_ests.p_hat_and_error <*> p_hat_and_error
-                                                            <*> (subset_c_fixup              samples)) in
-
-            let old_p_local = old_ests.p_local in
-            let p_local_normal = join (normal_p_local params <$> p_hat_and_error <*> old_p_local <*> (subset_normal_p_local wi samples)) in
+            let old_p_local     = old_ests.p_local in
+            let p_local_normal  = join  (normal_p_local params  <$>
+                                        p_hat_and_error         <*>
+                                        old_p_local             <*>
+                                        (subset_normal_p_local          wi  samples)) in
             let p_local = p_local_normal <|> old_p_local in
 
-            let theta_hat_warmup = join (warmup_theta_hat params <$> p_hat_and_error <*> c
-                                                            <*> (subset_warmup_theta_hat            samples)) in
-            let theta_hat_normal = join (normal_theta_hat params <$> p_hat_and_error <*> (Some p_local) <*> c <*> old_ests.theta_hat_and_error
-                                                            <*> (subset_normal_theta_hat wi samples)) in
+            let theta_hat_warmup = join (warmup_theta_hat params    <$>
+                                        p_hat_and_error             <*>
+                                        c                           <*>
+                                        (subset_warmup_theta_hat            samples)) in
+
+            let theta_hat_normal = join (normal_theta_hat params    <$>
+                                        p_hat_and_error             <*>
+                                        (Some p_local)              <*>
+                                        c                           <*>
+                                        old_ests.theta_hat_and_error<*>
+                                        (subset_normal_theta_hat        wi  samples)) in
             let theta_hat_and_error = theta_hat_normal <|> theta_hat_warmup in
 
             let new_ests = {pstamp; p_hat_and_error; p_local; c; theta_hat_and_error} in
