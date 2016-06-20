@@ -191,3 +191,17 @@ let rate_of_pair newer_sample older_sample =
             Some ((forwards +. reverse) /. 2.0)
     | (_,   _,    _,    _   ) -> None
 
+let max_gap win =
+    let gap x y = baseline x y in
+    let pairwise (acc, prev) z = match (acc, prev) with
+        | (None,        None)       -> (None,                        Some z)
+        | (None,        Some prev)  -> (Some          (gap prev z) , Some z)
+        | (Some acc,    Some prev)  -> (Some (max acc (gap prev z)), Some z)
+
+        | (Some acc,    None)       -> failwith "invalid state"
+    in
+    let ver = fold pairwise (None, None) win in
+    match ver with
+    | (None,        _     ) -> None
+    | (Some best,   Some _) -> Some best
+    | _                     -> failwith "invalid state!!"
