@@ -53,8 +53,9 @@ let         warmup_p_hat subsets =
  *)
 let  subset_warmup_C_oneshot    ts =        (* FOR: warmup_C_oneshot *)
     get ts Newest
-let         warmup_C_oneshot p_hat subset =
+let         warmup_C_oneshot p_hat_and_error subset =
     let first = fst subset in
+    let (p_hat, _) = p_hat_and_error in
     Some (first.timestamps.tb -. (dTSC p_hat first.timestamps.ta))
 
 
@@ -62,8 +63,10 @@ let         warmup_C_oneshot p_hat subset =
 
 let  subset_warmup_C_fixup      ts =        (* FOR: warmup_C_fixup *)
     get ts Newest
-let         warmup_C_fixup old_C old_p_hat new_p_hat subset =
+let         warmup_C_fixup old_C old_p_hat_and_error new_p_hat_and_error subset =
     let newest = fst subset in
+    let (old_p_hat, _) = old_p_hat_and_error in
+    let (new_p_hat, _) = new_p_hat_and_error in
     Some (old_C +. (Int64.to_float newest.timestamps.ta) *. (old_p_hat -. new_p_hat))
 
 
@@ -78,8 +81,9 @@ let warmup_theta_point_error params p_hat latest sa =
 let  subset_warmup_theta_hat    ts =        (* FOR: warmup_theta_hat *)
     let latest = get ts Newest in
     ((fun x y -> (x, y)) <$> latest) <*> range_of ts Newest Oldest
-let         warmup_theta_hat params p_hat c subsets =
+let         warmup_theta_hat params p_hat_and_error c subsets =
     let (latest, subset) = subsets in
+    let (p_hat, _) = p_hat_and_error in
 
     let wt params p_hat latest sa =
         let qual = warmup_theta_point_error params p_hat latest sa in
