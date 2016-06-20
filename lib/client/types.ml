@@ -1,5 +1,6 @@
 open History
 open Wire
+open Maybe
 
 type counter = Cstruct.uint64 [@printer fun fmt -> fprintf fmt "0x%Lx"]
 [@@deriving show]
@@ -60,7 +61,7 @@ type estimators = {
     p_hat_and_error:        (float * float) option;
     p_local:                (float * float) option;
     c:                               float  option;
-    theta_hat_and_error:    (float * float) option;
+    theta_hat_and_error:    (float * float * (sample * counter)) option;
 }
 [@@deriving show]
 
@@ -156,6 +157,13 @@ let theta_of p_hat c sample =
     let twice_theta = p_hat *. sumLocal +. (2.0 *. c -. sumFar) in
 
     twice_theta /. 2.0
+
+let plocal_theta_of         p_hat c p_local latest  sample =
+    let theta   =  theta_of p_hat c                 sample in
+
+    match p_local with
+    | None          -> theta
+    | Some p_local  -> theta -. (p_local -. p_hat) *. Int64.to_float (delta_TSC (fst latest).timestamps.tf  (fst sample).timestamps.tf)
 
 let rate_of_pair newer_sample older_sample =
     let newer = (fst newer_sample).timestamps in
