@@ -319,9 +319,11 @@ let normal_theta_hat params p_hat p_local c old_theta_hat subset =
     match min with
     | None      -> None
     | Some min  ->
-            let minET     =  normal_theta_point_error params p_hat latest @@ fst min in
-            let theta_hat  =  sum /. check_positive(sum_wts) in
+            let minET       =          normal_theta_point_error params p_hat latest @@ fst min in
+            let theta_hat   =   sum /. check_positive(sum_wts) in
             let maxgap = max_gap offset_win in
             match maxgap with
-            | None      -> None
-            | Some gap  -> Some gap
+            | None          -> None
+            | Some maxgap   ->
+                    let maxgap = max (maxgap) (baseline latest old_theta_sample)
+                    in Some maxgap
