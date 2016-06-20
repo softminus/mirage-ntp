@@ -153,7 +153,6 @@ let update_estimators old_state =
             let samples     = old_state.samples_and_rtt_hat in
 
             let old_ests    = old_state.estimators in
-            let p_local     = None in
 
             let pstamp          = join  (warmup_pstamp      <$> (subset_warmup_pstamp       samples)) in
 
@@ -166,6 +165,7 @@ let update_estimators old_state =
             let theta_hat_and_error = join (warmup_theta_hat old_state.parameters <$> (fst <$> p_hat_and_error) <*> c
                                                             <*> (subset_warmup_theta_hat            samples)) in
 
+            let p_local     = None in
             let new_ests = {pstamp; p_hat_and_error; p_local; c; theta_hat_and_error} in
 
             {old_state with estimators = new_ests}
