@@ -149,7 +149,7 @@ let  subset_warmup_theta_hat    ts =        (* FOR: warmup_theta_hat *)
 
 let warmup_theta_point_error params p_hat rtt_hat latest sa =
     let rtt_error   = dTSC p_hat @@ error_of sa rtt_hat in
-    let age         = dTSC p_hat (delta_TSC (fst latest).timestamps.tf (fst sa).timestamps.tf) in
+    let age         = dTSC p_hat @@ baseline latest sa in
     rtt_error +. params.skm_rate *. age
 
 let         warmup_theta_hat params p_hat rtt_hat c subset =
@@ -283,23 +283,29 @@ let         normal_p_local params p_hat_and_error rtt_hat old_p_local subset las
 
 
 
-let max_gap hist offset_win =
-    let gap x y = delta_TSC (fst x).timestamps.tf (fst y).timestamps.tf in
+let max_gap win =
+    let gap x y = baseline x y in
     let pairwise (acc, prev) z = match (acc, prev) with
         | (None,        None)       -> (None,                        Some z)
         | (None,        Some prev)  -> (Some          (gap prev z) , Some z)
-        | (Some acc,    Some prev)  -> (Some (min acc (gap prev z)), Some z)
+        | (Some acc,    Some prev)  -> (Some (max acc (gap prev z)), Some z)
+
         | (Some acc,    None)       -> failwith "invalid state"
     in
-    fold pairwise (None, None) offset_win
+    let ver = fold pairwise (None, None) win in
+    match ver with
+    | (None,        _     ) -> None
+    | (Some best,   Some _) -> Some best
+    | _                     -> failwith "invalid state!!"
 
 let normal_theta_point_error params p_hat latest sa =
     let rtt_error   = dTSC p_hat @@ error_of sa (snd sa) in
-    let age         = dTSC p_hat (delta_TSC (fst latest).timestamps.tf (fst sa).timestamps.tf) in
+    let age         = dTSC p_hat @@ baseline latest sa in
     rtt_error +. params.skm_rate *. age
 
-let normal_theta_hat params p_hat p_local c subset =
+let normal_theta_hat params p_hat p_local c old_theta_hat subset =
     let (latest, offset_win) = subset in
+    let (old_theta, old_theta_error, old_theta_sample) = old_theta_hat in
 
     let wt params p_hat latest sa =
         let qual = normal_theta_point_error params p_hat latest sa in
@@ -311,9 +317,11 @@ let normal_theta_hat params p_hat p_local c subset =
 
     let min          =  min_and_where (normal_theta_point_error params p_hat latest) offset_win in
     match min with
-    | None -> None
-    | Some min ->   (let minET     =  normal_theta_point_error params p_hat latest @@ fst min in
-                    let theta_hat  =  sum /. check_positive(sum_wts) in
-                    match (minET < params.e_offset_qual) with
-                    | true  -> Some (theta_hat, minET)
-                    | false -> None)
+    | None      -> None
+    | Some min  ->
+            let minET     =  normal_theta_point_error params p_hat latest @@ fst min in
+            let theta_hat  =  sum /. check_positive(sum_wts) in
+            let maxgap = max_gap offset_win in
+            match maxgap with
+            | None      -> None
+            | Some gap  -> Some gap

@@ -112,6 +112,9 @@ let delta_TSC newer older =
     | true  -> del
     | false -> failwith "invalid ΔTSC!"
 
+let baseline newer older =
+    delta_TSC (fst newer).timestamps.tf (fst older).timestamps.tf
+
 let rtt_of_prime sample =
     let ts = sample.timestamps in
     let del = Int64.sub (ts.tf) (ts.ta) in
@@ -163,7 +166,7 @@ let plocal_theta_of         p_hat c p_local latest  sample =
 
     match p_local with
     | None          -> theta
-    | Some p_local  -> theta -. (p_local -. p_hat) *. Int64.to_float (delta_TSC (fst latest).timestamps.tf  (fst sample).timestamps.tf)
+    | Some p_local  -> theta -. (p_local -. p_hat) *. Int64.to_float (baseline latest sample)
 
 let rate_of_pair newer_sample older_sample =
     let newer = (fst newer_sample).timestamps in
