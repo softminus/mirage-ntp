@@ -116,10 +116,10 @@ let detect_shift params subsets =
     let halftop_rtt    = rtt_of <$> (fst <$> min_and_where rtt_of halftop_subset) in
     let detection_rtt  = rtt_of <$> (fst <$> min_and_where rtt_of shift_subset  ) in
 
-    (fun  detection_rtt     halftop_rtt ->  match (detection_rtt > Int64.add halftop_rtt params.shift_thres) with
+    join ((fun  detection_rtt     halftop_rtt ->  match (detection_rtt > Int64.add halftop_rtt params.shift_thres) with
                                             | false -> None                 (* No upwards shift *)
                                             | true  -> Some detection_rtt   (* Upwards shift detected *)
-    ) <$> detection_rtt <*> halftop_rtt
+    ) <$> detection_rtt <*> halftop_rtt)
 
 
 

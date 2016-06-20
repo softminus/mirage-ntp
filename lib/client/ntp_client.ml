@@ -158,6 +158,14 @@ let update_estimators old_state =
             let old_ests    = old_state.estimators  in
             let params      = old_state.parameters  in
 
+
+            let rtt_shift = join (detect_shift params <$> (shift_detection_subsets wi samples))  in
+            let upshifted = upshift_rtts (upshift_edges    wi samples) <$> rtt_shift <*> (Some samples) in
+            let samples = match upshifted with
+            | Some x    -> x
+            | None      -> samples
+            in
+
             let pstamp_warmup   = join  (warmup_pstamp  <$> (subset_warmup_pstamp       samples)) in
             let pstamp_normal   = join  (normal_pstamp  <$> (subset_normal_pstamp   wi  samples)) in
             let pstamp          = pstamp_normal <|> pstamp_warmup in
@@ -201,4 +209,4 @@ let update_estimators old_state =
 
             let new_ests = {pstamp; p_hat_and_error; p_local; c; theta_hat_and_error} in
 
-            {old_state with estimators = new_ests}
+            {old_state with samples_and_rtt_hat = samples; estimators = new_ests}
