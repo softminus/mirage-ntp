@@ -148,15 +148,15 @@ let         warmup_C_fixup old_C old_p_hat new_p_hat subset =
 
 
 
-let  subset_warmup_theta_hat    ts =        (* FOR: warmup_theta_hat *)
-    let latest = get ts Newest in
-    ((fun x y -> (x, y)) <$> latest) <*> range_of ts Newest Oldest
 
 let warmup_theta_point_error params p_hat latest sa =
     let rtt_error   = dTSC p_hat @@ error_of sa (snd latest) in
     let age         = dTSC p_hat @@ baseline latest sa in
     rtt_error +. params.skm_rate *. age
 
+let  subset_warmup_theta_hat    ts =        (* FOR: warmup_theta_hat *)
+    let latest = get ts Newest in
+    ((fun x y -> (x, y)) <$> latest) <*> range_of ts Newest Oldest
 let         warmup_theta_hat params p_hat c subsets =
     let (latest, subset) = subsets in
 
@@ -293,26 +293,17 @@ let         normal_p_local params p_hat_and_error old_p_local subsets =
 
 
 
-let max_gap win =
-    let gap x y = baseline x y in
-    let pairwise (acc, prev) z = match (acc, prev) with
-        | (None,        None)       -> (None,                        Some z)
-        | (None,        Some prev)  -> (Some          (gap prev z) , Some z)
-        | (Some acc,    Some prev)  -> (Some (max acc (gap prev z)), Some z)
-
-        | (Some acc,    None)       -> failwith "invalid state"
-    in
-    let ver = fold pairwise (None, None) win in
-    match ver with
-    | (None,        _     ) -> None
-    | (Some best,   Some _) -> Some best
-    | _                     -> failwith "invalid state!!"
 
 let normal_theta_point_error params p_hat latest sa =
     let rtt_error   = dTSC p_hat @@ error_of sa (snd latest) in
     let age         = dTSC p_hat @@ baseline latest sa in
     rtt_error +. params.skm_rate *. age
 
+let  subset_normal_theta_hat    windows ts =        (* FOR: normal_theta_hat *)
+    let latest      = get ts Newest in
+    let offset      = windows.offset in
+    let offset_win  = range_of ts (fst offset) (snd offset)    in
+    ((fun x y -> (x, y)) <$> latest) <*> offset_win
 let normal_theta_hat params p_hat p_local c old_theta_hat subsets =
     let (latest, offset_win) = subsets in
     let (old_theta, old_theta_error, old_theta_sample) = old_theta_hat in
