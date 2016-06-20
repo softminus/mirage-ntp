@@ -55,10 +55,10 @@ module Main (C: V1_LWT.CONSOLE) (S: V1_LWT.STACKV4) = struct
                             |Some rxd -> (
                         C.log_s c (Printf.sprintf "recv ONE %Lx" (snd rxd)) >>= fun () ->
                         let state = add_sample state (fst rxd) (fst q) (snd rxd) in
+                        C.log_s c (show_sync_state state) >>= fun() ->
                         let state = update_estimators state in
-                        OS.Time.sleep 1.0 >>= fun () ->
-                        C.log_s c (show_sync_state state)
-                        >>=fun() -> Lwt.return(state))
+                        OS.Time.sleep 0.01 >>=fun() -> Lwt.return(state)
+                        )
                             | None -> Lwt.return (state)
 						) >>=fun (state) -> do_it state (n-1)
             in
