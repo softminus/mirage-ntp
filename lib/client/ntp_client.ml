@@ -147,9 +147,9 @@ let update_estimators old_state =
                                                             <*> (subset_warmup_C_oneshot    samples)) in
 
             let new_ests = {pstamp;  p_hat_and_error; p_local; c; theta_hat_and_error} in
-            {old_state with estimators = new_ests; regime = WARMUP }
+            {old_state with estimators = new_ests; regime = READY}
 
-    | WARMUP    ->
+    | READY     ->
             let samples     = old_state.samples_and_rtt_hat in
 
             let old_ests    = old_state.estimators in

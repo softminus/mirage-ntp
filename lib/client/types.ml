@@ -5,7 +5,7 @@ open Maybe
 type counter = Cstruct.uint64 [@printer fun fmt -> fprintf fmt "0x%Lx"]
 [@@deriving show]
 
-type regime = ZERO | WARMUP | NORMAL (* turns out we *do* need to distinguish between ZERO and WARMUP *)
+type regime = ZERO | READY
 [@@deriving show]
 
 type physical_parameters = {
