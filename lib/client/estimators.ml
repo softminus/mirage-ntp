@@ -107,31 +107,31 @@ let         warmup_theta_hat params p_hat_and_error c subsets =
 (* NORMAL ESTIMATORS *)
 
 
-let  subsets_normal_subsets                  windows                ts =    (* FOR: normal_RTT_hat *)
+let shift_detection_subsets                  windows                ts =    (* FOR: detect_shift *)
     let halftop_subset     = range_of_window windows.halftop_win    ts in
     let shift_subset       = range_of_window windows.shift_win      ts in
     ((fun x y -> (x, y)) <$> halftop_subset) <*> shift_subset
 
-let         normal_RTT_hat params subsets =
+let detect_shift params subsets =
     let (halftop_subset, shift_subset) = subsets in         (* NOTE: halftop_subset is greater than shift_subset *)
-    let subset_rtt     = rtt_of <$> (fst <$> min_and_where rtt_of halftop_subset) in
-    let subsubset_rtt  = rtt_of <$> (fst <$> min_and_where rtt_of shift_subset  ) in
+    let halftop_rtt    = rtt_of <$> (fst <$> min_and_where rtt_of halftop_subset) in
+    let detection_rtt  = rtt_of <$> (fst <$> min_and_where rtt_of shift_subset  ) in
 
-    (fun subsubset_rtt     subset_rtt -> match (subsubset_rtt > Int64.add subset_rtt params.shift_thres) with
-                                            | false -> (subset_rtt,    false)   (* No upwards shift *)
-                                            | true  -> (subsubset_rtt, true))   (* Upwards shift detected *)
-    <$>  subsubset_rtt <*> subset_rtt
+    (fun  detection_rtt     halftop_rtt ->  match (detection_rtt > Int64.add halftop_rtt params.shift_thres) with
+                                            | false -> None                 (* No upwards shift *)
+                                            | true  -> Some detection_rtt   (* Upwards shift detected *)
+    ) <$> detection_rtt <*> halftop_rtt
 
 
 
-let  subset_upshift_samples     windows ts =    (* FOR: upshift_samples subset *)
+let upshift_edges windows ts =    (* FOR: upshift_rtts subset *)
     let x = windows.shift_win in
     let y = windows.offset          in
-    let inter = intersect_range ts (fst x) (snd x) (fst y) (snd y) in
-    range_of ts (fst inter) (snd inter)
-let         upshift_samples subsubset_rtt samples edges =
+    intersect_range ts (fst x) (snd x) (fst y) (snd y)
+
+let upshift_rtts edges rtt ts =
     let (left, right) = edges in
-    slice_map samples left right (fun x -> (fst x, subsubset_rtt))
+    slice_map ts left right (fun x -> (fst x, rtt))
 
 
 
