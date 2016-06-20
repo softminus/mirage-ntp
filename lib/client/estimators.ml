@@ -110,6 +110,7 @@ let  subset_warmup_p_hat    ts          =       (* FOR: warmup_p_hat *)
 let         warmup_p_hat subsets =
     let (near, far,     latest) = subsets in
     let rtt_hat = snd   latest in
+
     let best_in_near    = fst <$> (min_and_where rtt_of near) in
     let best_in_far     = fst <$> (min_and_where rtt_of far ) in
     let p_hat = join (rate_of_pair <$> best_in_near <*> best_in_far) in
@@ -148,31 +149,30 @@ let         warmup_C_fixup old_C old_p_hat new_p_hat subset =
 
 
 let  subset_warmup_theta_hat    ts =        (* FOR: warmup_theta_hat *)
-    let last = get ts Newest in
-    ((fun x y -> (x, y)) <$> last ) <*> range_of ts Newest Oldest
+    let latest = get ts Newest in
+    ((fun x y -> (x, y)) <$> latest) <*> range_of ts Newest Oldest
 
-let warmup_theta_point_error params p_hat rtt_hat latest sa =
-    let rtt_error   = dTSC p_hat @@ error_of sa rtt_hat in
+let warmup_theta_point_error params p_hat latest sa =
+    let rtt_error   = dTSC p_hat @@ error_of sa (snd latest) in
     let age         = dTSC p_hat @@ baseline latest sa in
     rtt_error +. params.skm_rate *. age
 
 let         warmup_theta_hat params p_hat c subsets =
     let (latest, subset) = subsets in
-    let rtt_hat = snd latest in
 
-    let wt params p_hat rtt_hat latest sa =
-        let qual = warmup_theta_point_error params p_hat rtt_hat latest sa in
+    let wt params p_hat latest sa =
+        let qual = warmup_theta_point_error params p_hat latest sa in
         let weight = exp ( -. (qual *. qual) /. (params.e_offset *. params.e_offset)) in
         (* print_string (Printf.sprintf "weight calc, qual = %.9E, weight = %.9E\n" qual weight); *)
         weight
     in
-    let sum, sum_wts =      weighted_sum (theta_of p_hat c) (wt params p_hat rtt_hat latest) subset in
+    let sum, sum_wts =      weighted_sum (theta_of p_hat c) (wt params p_hat latest) subset in
 
-    let min          =  min_and_where (warmup_theta_point_error params p_hat rtt_hat latest) subset in
+    let min          =  min_and_where (warmup_theta_point_error params p_hat latest) subset in
     match min with
     | None -> None
     | Some min ->
-            let minET               =  warmup_theta_point_error params p_hat rtt_hat latest @@ fst min in
+            let minET               =  warmup_theta_point_error params p_hat latest @@ fst min in
             let theta_hat           =  sum /. check_positive(sum_wts) in
             match (minET < params.e_offset_qual) with
             | false -> None
@@ -262,13 +262,15 @@ let  subset_normal_p_local      windows ts =    (* FOR: normal_p_local *)
     let far_win     = windows.plocal_far    in
     let far  = range_of ts (fst far_win)  (snd far_win)     in
 
-    ((fun x y -> (x, y)) <$> near ) <*> far
+    let latest = get ts Newest in
+
+    ((fun x y z -> (x, y, z)) <$> near) <*> far <*> latest
 let    last_normal_p_local     windows ts =     (* FOR: normal_p_local *)
     get ts Newest
-let         normal_p_local params p_hat_and_error rtt_hat old_p_local subsets last =
+let         normal_p_local params p_hat_and_error old_p_local subsets last =
     let (p_hat,         _)      = p_hat_and_error in
     let (old_p_local,   _)      = old_p_local in
-    let (near, far)             = subsets in
+    let (near, far, latest)     = subsets in
 
     let best_in_near    = fst <$> (min_and_where rtt_of near) in
     let best_in_far     = fst <$> (min_and_where rtt_of far ) in
@@ -276,8 +278,8 @@ let         normal_p_local params p_hat_and_error rtt_hat old_p_local subsets la
     match (best_in_near, best_in_far, rate) with
     | (Some best_in_near, Some best_in_far, Some p_local) -> (
             let del_tb      = check_non_negative ((fst best_in_near).timestamps.tb -. (fst best_in_far).timestamps.tb) in
-            let far_error   = Int64.to_float @@ error_of best_in_far  rtt_hat in
-            let near_error  = Int64.to_float @@ error_of best_in_near rtt_hat in
+            let far_error   = Int64.to_float @@ error_of best_in_far  (snd latest) in
+            let near_error  = Int64.to_float @@ error_of best_in_near (snd latest) in
             let plocal_error = (p_hat /. del_tb) *. (far_error +. near_error) in
             match (plocal_error < params.local_rate_error_threshold) with
             | false -> None
@@ -306,7 +308,7 @@ let max_gap win =
     | _                     -> failwith "invalid state!!"
 
 let normal_theta_point_error params p_hat latest sa =
-    let rtt_error   = dTSC p_hat @@ error_of sa (snd sa) in
+    let rtt_error   = dTSC p_hat @@ error_of sa (snd latest) in
     let age         = dTSC p_hat @@ baseline latest sa in
     rtt_error +. params.skm_rate *. age
 
