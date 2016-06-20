@@ -154,6 +154,7 @@ let update_estimators old_state =
             let samples     = old_state.samples_and_rtt_hat in
             let wi          = old_state.windows     in
             let old_ests    = old_state.estimators  in
+            let params      = old_state.parameters  in
 
             let pstamp_warmup   = join  (warmup_pstamp      <$> (subset_warmup_pstamp       samples)) in
             let pstamp_normal   = join  (normal_pstamp      <$> (subset_normal_pstamp  wi   samples)) in
@@ -162,7 +163,13 @@ let update_estimators old_state =
 
             (* Second stage estimators: *)
 
-            let p_hat_and_error = join  (warmup_p_hat       <$> (subset_warmup_p_hat    samples)) in
+            let p_hat_warmup = join (warmup_p_hat           <$> (subset_warmup_p_hat    samples)) in
+            let p_hat_normal = join (normal_p_hat params    <$> (join (get samples <$> pstamp_normal)) <*> old_ests.p_hat_and_error <*> (latest_normal_p_hat wi samples)) in
+
+            let p_hat_and_error = p_hat_normal <|> p_hat_warmup in
+
+
+
             let c               = join  (warmup_C_fixup     <$> old_ests.c <*> (fst <$> old_ests.p_hat_and_error) <*> (fst <$> p_hat_and_error) 
                                                             <*> (subset_warmup_C_fixup              samples)) in
 
