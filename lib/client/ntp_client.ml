@@ -142,10 +142,12 @@ let update_estimators old_state =
             let p_local             = None in
             let theta_hat_and_error = None in
 
-            let pstamp          = join  (warmup_pstamp      <$> (subset_warmup_pstamp       samples)) in
-            (* Second stage estimators: *)
-            let c               = join  (warmup_C_oneshot   <$> p_hat_and_error
-                                                            <*> (subset_warmup_C_oneshot    samples)) in
+            let pstamp  = join  (warmup_pstamp <$>
+                                (subset_warmup_pstamp       samples)) in
+
+            let c       = join  (warmup_C_oneshot <$>
+                                p_hat_and_error   <*>
+                                (subset_warmup_C_oneshot    samples)) in
 
             let new_ests = {pstamp;  p_hat_and_error; p_local; c; theta_hat_and_error} in
             {old_state with estimators = new_ests; regime = READY}
