@@ -216,7 +216,8 @@ let  subset_normal_pstamp       windows ts =    (* FOR: normal_pstamp subset *)
     let w = windows.pstamp_win in
     range_of ts (fst w) (snd w)
 let         normal_pstamp       subset =
-    snd <$> (min_and_where rtt_of subset)    (* returns a Fixed *)
+    snd <$> (min_and_where rtt_of subset)       (* returns a Fixed *)
+
 
 
 
@@ -265,9 +266,7 @@ let  subset_normal_p_local      windows ts =    (* FOR: normal_p_local *)
     let latest = get ts Newest in
 
     ((fun x y z -> (x, y, z)) <$> near) <*> far <*> latest
-let    last_normal_p_local     windows ts =     (* FOR: normal_p_local *)
-    get ts Newest
-let         normal_p_local params p_hat_and_error old_p_local subsets last =
+let         normal_p_local params p_hat_and_error old_p_local subsets =
     let (p_hat,         _)      = p_hat_and_error in
     let (old_p_local,   _)      = old_p_local in
     let (near, far, latest)     = subsets in
@@ -284,7 +283,7 @@ let         normal_p_local params p_hat_and_error old_p_local subsets last =
             match (plocal_error < params.local_rate_error_threshold) with
             | false -> None
             | true  -> let change = abs_float @@ (p_local -. old_p_local) /. old_p_local in
-                match ((change < params.local_rate_sanity), (fst last).quality) with
+                match ((change < params.local_rate_sanity), (fst latest).quality) with
                 | (true, OK)    -> Some (p_local, plocal_error)
                 | _             -> None)
     | _                         -> None
