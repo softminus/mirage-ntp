@@ -123,7 +123,7 @@ let output_of_state state =
     | None                      -> None
     | Some (sample, rtt_hat)    ->
             match (e.p_hat_and_error, e.c, e.theta_hat_and_error) with
-            | (Some (p_hat, p_error), Some c, Some (th, th_err)) ->
+            | (Some (p_hat, p_error), Some c, Some (th, th_err, t_point)) ->
                     let ca_and_error    = (c -. th, th_err) in
                     let p_hat_and_error = (p_hat, p_error) in
                     let freshness       = sample.timestamps.tf in
