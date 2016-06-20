@@ -7,17 +7,22 @@ open Maybe
 type windows    = {
     toplevel:           (point * point);
 
+    halftop_win:        (point * point);
+
     warmup_win:         (point * point);
 
     pstamp_win:         (point * point);
 
-    shift_detection:    (point * point);
+    shift_win:          (point * point);
     offset:             (point * point);
 
     plocal_far:         (point * point);
     plocal_near:        (point * point);
 }
 [@@deriving show]
+
+let range_of_window w ts =
+    range_of ts (fst w) (snd w)
 
 let default_windows params poll_period =
     let history_scale = 3600 * 24 * 7 in        (* seconds *)
@@ -27,7 +32,8 @@ let default_windows params poll_period =
     let offset_size     =           (int_of_float           params.skm_scale)   / poll_period  in
 
     let toplevel            = (Newest, Older(Newest, top_win_size   - 1)) in
-    let shift_detection     = (Newest, Older(Newest, shift_win      - 1)) in
+    let halftop_win         = (Newest, Older(Newest, top_win_size/2 - 1)) in
+    let shift_win           = (Newest, Older(Newest, shift_win      - 1)) in
     let offset              = (Newest, Older(Newest, offset_size    - 1)) in
 
     (* plocal stuff:
@@ -72,7 +78,7 @@ let default_windows params poll_period =
                                 Older(plocal_far_centre,    wwidth/2 - 1)) in
 
     let phantom = History (top_win_size, 0, []) in
-    let warmup_win = union_range phantom Newest (snd (union_range phantom Newest (snd shift_detection) Newest (snd offset)))
+    let warmup_win = union_range phantom Newest (snd (union_range phantom Newest (snd shift_win) Newest (snd offset)))
                                          Newest (snd plocal_far                                                            ) in
 
     let warmup_len = match (range_length phantom (fst warmup_win) (snd warmup_win)) with
@@ -80,7 +86,7 @@ let default_windows params poll_period =
     | None   -> failwith "invalid warmup interval"
     in
     let pstamp_win = (Newer(Oldest, warmup_len - 1), Oldest) in
-    {toplevel; shift_detection; offset; plocal_far; plocal_near; pstamp_win; warmup_win}
+    {toplevel; halftop_win; shift_win; offset; plocal_far; plocal_near; pstamp_win; warmup_win}
 
 
 
@@ -182,13 +188,13 @@ let         warmup_theta_hat params p_hat c subsets =
 (* NORMAL ESTIMATORS *)
 
 
-let  subset_normal_rtt_entire   windows ts =    (* FOR: normal_RTT_hat halftop_subset *)
-    range_of ts Newest Oldest
-let  subset_normal_rtt_shift    windows ts =    (* FOR: normal_RTT_hat shift_subset *)
-    let w = windows.shift_detection in
-    range_of ts (fst w) (snd w)
+let  subsets_normal_subsets                  windows                ts =    (* FOR: normal_RTT_hat *)
+    let halftop_subset     = range_of_window windows.halftop_win    ts in
+    let shift_subset       = range_of_window windows.shift_win      ts in
+    ((fun x y -> (x, y)) <$> halftop_subset) <*> shift_subset
 
-let         normal_RTT_hat params halftop_subset shift_subset =     (* NOTE: halftop_subset is greater than shift_subset *)
+let         normal_RTT_hat params subsets =
+    let (halftop_subset, shift_subset) = subsets in         (* NOTE: halftop_subset is greater than shift_subset *)
     let subset_rtt     = rtt_of <$> (fst <$> min_and_where rtt_of halftop_subset) in
     let subsubset_rtt  = rtt_of <$> (fst <$> min_and_where rtt_of shift_subset  ) in
 
@@ -201,7 +207,7 @@ let         normal_RTT_hat params halftop_subset shift_subset =     (* NOTE: hal
 
 
 let  subset_upshift_samples     windows ts =    (* FOR: upshift_samples subset *)
-    let x = windows.shift_detection in
+    let x = windows.shift_win in
     let y = windows.offset          in
     let inter = intersect_range ts (fst x) (snd x) (fst y) (snd y) in
     range_of ts (fst inter) (snd inter)
@@ -212,10 +218,9 @@ let         upshift_samples subsubset_rtt samples edges =
 
 
 
-let  subset_normal_pstamp       windows ts =    (* FOR: normal_pstamp subset *)
-    let w = windows.pstamp_win in
-    range_of ts (fst w) (snd w)
-let         normal_pstamp       subset =
+let  subset_normal_pstamp       windows             ts =    (* FOR: normal_pstamp subset *)
+    range_of_window             windows.pstamp_win  ts
+let         normal_pstamp         subset =
     snd <$> (min_and_where rtt_of subset)       (* returns a Fixed *)
 
 
@@ -256,14 +261,10 @@ let         normal_C_fixup old_C old_p_hat new_p_hat subset =
 
 
 
-let  subset_normal_p_local      windows ts =    (* FOR: normal_p_local *)
-    let near_win    = windows.plocal_near   in
-    let near = range_of ts (fst near_win) (snd near_win)    in
-
-    let far_win     = windows.plocal_far    in
-    let far  = range_of ts (fst far_win)  (snd far_win)     in
-
-    let latest = get ts Newest in
+let  subset_normal_p_local      windows             ts =    (* FOR: normal_p_local *)
+    let near = range_of_window  windows.plocal_near ts in
+    let far  = range_of_window  windows.plocal_far  ts in
+    let latest = get                                ts Newest in
 
     ((fun x y z -> (x, y, z)) <$> near) <*> far <*> latest
 let         normal_p_local params p_hat_and_error old_p_local subsets =
@@ -299,10 +300,9 @@ let normal_theta_point_error params p_hat latest sa =
     let age         = dTSC p_hat @@ baseline latest sa in
     rtt_error +. params.skm_rate *. age
 
-let  subset_normal_theta_hat    windows ts =        (* FOR: normal_theta_hat *)
+let  subset_normal_theta_hat            windows         ts =        (* FOR: normal_theta_hat *)
     let latest      = get ts Newest in
-    let offset      = windows.offset in
-    let offset_win  = range_of ts (fst offset) (snd offset)    in
+    let offset_win  = range_of_window   windows.offset  ts in
     ((fun x y -> (x, y)) <$> latest) <*> offset_win
 let normal_theta_hat params p_hat p_local c old_theta_hat subsets =
     let (latest, offset_win) = subsets in
