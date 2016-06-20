@@ -104,9 +104,8 @@ let         warmup_theta_hat params p_hat_and_error c subsets =
             | true  -> Some (theta_hat, minET, latest)
 
 
-(* NORMAL ESTIMATORS *)
 
-
+(* RTT upshift detection *)
 let shift_detection_subsets                  windows                ts =    (* FOR: detect_shift *)
     let halftop_subset     = range_of_window windows.halftop_win    ts in
     let shift_subset       = range_of_window windows.shift_win      ts in
@@ -135,6 +134,8 @@ let upshift_rtts edges rtt ts =
 
 
 
+
+(* NORMAL ESTIMATORS *)
 
 let  subset_normal_pstamp       windows             ts =    (* FOR: normal_pstamp subset *)
     range_of_window             windows.pstamp_win  ts
