@@ -173,10 +173,13 @@ let update_estimators old_state =
             let c = join (c_fixup <$> old_ests.c <*> old_ests.p_hat_and_error <*> p_hat_and_error
                                                             <*> (subset_c_fixup              samples)) in
 
-            let theta_hat_and_error = join (warmup_theta_hat old_state.parameters <$> p_hat_and_error <*> c
+            let p_local = None in
+            let theta_hat_warmup = join (warmup_theta_hat params <$> p_hat_and_error <*> c
                                                             <*> (subset_warmup_theta_hat            samples)) in
+            let theta_hat_normal = join (normal_theta_hat params <$> p_hat_and_error <*> p_local <*> c <*> old_ests.theta_hat_and_error
+                                                            <*> (subset_normal_theta_hat wi samples)) in
+            let theta_hat_and_error = theta_hat_normal <|> theta_hat_warmup in
 
-            let p_local     = None in
             let new_ests = {pstamp; p_hat_and_error; p_local; c; theta_hat_and_error} in
 
             {old_state with estimators = new_ests}

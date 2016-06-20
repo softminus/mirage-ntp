@@ -217,9 +217,12 @@ let  subset_normal_theta_hat            windows         ts =        (* FOR: norm
     let latest      = get ts Newest in
     let offset_win  = range_of_window   windows.offset  ts in
     ((fun x y -> (x, y)) <$> latest) <*> offset_win
-let normal_theta_hat params p_hat p_local c old_theta_hat subsets =
-    let (latest, offset_win) = subsets in
+let normal_theta_hat params p_hat_and_error p_local_and_error c old_theta_hat subsets =
+    let (p_hat, _) = p_hat_and_error in
+    let (p_local, _) = p_local_and_error in
     let (old_theta, old_theta_error, old_theta_sample) = old_theta_hat in
+
+    let (latest, offset_win) = subsets in
 
     let wt params p_hat latest sa =
         let qual = normal_theta_point_error params p_hat latest sa in
