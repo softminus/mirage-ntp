@@ -271,14 +271,16 @@ let         normal_p_local params p_hat_and_error old_p_local subsets =
     let (old_p_local,   _)      = old_p_local in
     let (near, far, latest)     = subsets in
 
+    let rtt_hat                 = snd latest in
+
     let best_in_near    = fst <$> (min_and_where rtt_of near) in
     let best_in_far     = fst <$> (min_and_where rtt_of far ) in
     let rate            = join (rate_of_pair <$> best_in_near <*> best_in_far) in
     match (best_in_near, best_in_far, rate) with
     | (Some best_in_near, Some best_in_far, Some p_local) -> (
             let del_tb      = check_non_negative ((fst best_in_near).timestamps.tb -. (fst best_in_far).timestamps.tb) in
-            let far_error   = Int64.to_float @@ error_of best_in_far  (snd latest) in
-            let near_error  = Int64.to_float @@ error_of best_in_near (snd latest) in
+            let far_error   = Int64.to_float @@ error_of best_in_far  rtt_hat in
+            let near_error  = Int64.to_float @@ error_of best_in_near rtt_hat in
             let plocal_error = (p_hat /. del_tb) *. (far_error +. near_error) in
             match (plocal_error < params.local_rate_error_threshold) with
             | false -> None
