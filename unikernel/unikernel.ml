@@ -4,13 +4,19 @@ open Types
 open Wire
 open Int64
 open Ntp_client
+open OS
 
 
 let server = Ipaddr.V4.of_string_exn  "131.215.239.14"
 
 module Main (C: V1_LWT.CONSOLE) (S: V1_LWT.STACKV4) = struct
     module U = S.UDPV4
-
+	let timeout delay t =
+		let tmout = Time.sleep delay in
+		Lwt.pick [
+			(tmout >|= fun () -> None);
+			(t >|= fun v -> Some v);
+		]
 
     let connect_to_server stack server =
         let udp = S.udpv4 stack in
@@ -27,6 +33,9 @@ module Main (C: V1_LWT.CONSOLE) (S: V1_LWT.STACKV4) = struct
             | None -> Lwt.fail (Failure "heck")
             | Some buf -> Lwt.return buf
 
+	let rxto stream =
+		timeout 0.5 (rx stream)
+
     let dump_packet c rxd nonce =
         let packet = validate_reply rxd nonce in
         match packet with
@@ -41,12 +50,17 @@ module Main (C: V1_LWT.CONSOLE) (S: V1_LWT.STACKV4) = struct
                 | n -> (let q = new_query (Int64.of_int @@ Tsc.rdtsc()) in
                         C.log_s c (Printf.sprintf "send ONE %Lx" ((fst q).tsc)) >>= fun () ->
                         U.write ~source_port:123 ~dest_ip:server ~dest_port:123 udp (snd q) >>= fun () ->
-                        rx st >>= fun (rxd) ->
+                        rxto st >>= fun (wrapped) ->
+                            match wrapped with
+                            |Some rxd -> (
                         C.log_s c (Printf.sprintf "recv ONE %Lx" (snd rxd)) >>= fun () ->
                         let state = add_sample state (fst rxd) (fst q) (snd rxd) in
                         let state = update_estimators state in
                         OS.Time.sleep 1.0 >>= fun () ->
-                        C.log_s c (show_sync_state state) >>=fun() -> Lwt.return(state)) >>=fun (state) -> do_it state (n-1)
+                        C.log_s c (show_sync_state state)
+                        >>=fun() -> Lwt.return(state))
+                            | None -> Lwt.return (state)
+						) >>=fun (state) -> do_it state (n-1)
             in
             do_it blank_state 3000 >>=fun(state) ->
 
