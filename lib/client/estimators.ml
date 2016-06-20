@@ -169,7 +169,7 @@ let         warmup_theta_hat params p_hat rtt_hat c subset =
     | Some min ->   (let minET     =   warmup_theta_point_error params p_hat rtt_hat latest @@ fst min in
                     let theta_hat  =  sum /. check_positive(sum_wts) in
                     match (minET < params.e_offset_qual) with
-                    | true  -> Some (theta_hat, minET)
+                    | true  -> Some (theta_hat, minET, latest)
                     | false -> None)
 
 
@@ -291,8 +291,29 @@ let max_gap hist offset_win =
         | (Some acc,    Some prev)  -> (Some (min acc (gap prev z)), Some z)
         | (Some acc,    None)       -> failwith "invalid state"
     in
+    fold pairwise (None, None) offset_win
 
-    let max_gap = fold pairwise (None, None) offset_win in
-    max_gap
-let normal_theta = None
+let normal_theta_point_error params p_hat latest sa =
+    let rtt_error   = dTSC p_hat @@ error_of sa (snd sa) in
+    let age         = dTSC p_hat (delta_TSC (fst latest).timestamps.tf (fst sa).timestamps.tf) in
+    rtt_error +. params.skm_rate *. age
 
+let normal_theta_hat params p_hat p_local c subset =
+    let (latest, offset_win) = subset in
+
+    let wt params p_hat latest sa =
+        let qual = normal_theta_point_error params p_hat latest sa in
+        let weight = exp ( -. (qual *. qual) /. (params.e_offset *. params.e_offset)) in
+        (* print_string (Printf.sprintf "weight calc, qual = %.9E, weight = %.9E\n" qual weight); *)
+        weight
+    in
+    let sum, sum_wts =  weighted_sum (plocal_theta_of p_hat c p_local latest) (wt params p_hat latest) offset_win in
+
+    let min          =  min_and_where (normal_theta_point_error params p_hat latest) offset_win in
+    match min with
+    | None -> None
+    | Some min ->   (let minET     =  normal_theta_point_error params p_hat latest @@ fst min in
+                    let theta_hat  =  sum /. check_positive(sum_wts) in
+                    match (minET < params.e_offset_qual) with
+                    | true  -> Some (theta_hat, minET)
+                    | false -> None)
