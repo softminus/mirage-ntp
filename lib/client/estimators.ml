@@ -104,8 +104,8 @@ let  subset_warmup_p_hat    ts          =       (* FOR: warmup_p_hat *)
     let near    = range_of ts Newest @@ Older(Newest, wwidth - 1)                                       in
     let far     = range_of ts                                       (Newer(Oldest, wwidth - 1)) Oldest  in
     ((fun x y -> (x, y)) <$> near) <*> far
-let         warmup_p_hat rtt_hat subset =
-    let (near, far) = subset in
+let         warmup_p_hat rtt_hat subsets =
+    let (near, far) = subsets in
     let best_in_near    = fst <$> (min_and_where rtt_of near) in
     let best_in_far     = fst <$> (min_and_where rtt_of far ) in
     let p_hat = join (rate_of_pair <$> best_in_near <*> best_in_far) in
@@ -152,8 +152,8 @@ let warmup_theta_point_error params p_hat rtt_hat latest sa =
     let age         = dTSC p_hat @@ baseline latest sa in
     rtt_error +. params.skm_rate *. age
 
-let         warmup_theta_hat params p_hat rtt_hat c subset =
-    let (latest, subset) = subset in
+let         warmup_theta_hat params p_hat rtt_hat c subsets =
+    let (latest, subset) = subsets in
 
     let wt params p_hat rtt_hat latest sa =
         let qual = warmup_theta_point_error params p_hat rtt_hat latest sa in
@@ -200,8 +200,8 @@ let  subset_upshift_samples     windows ts =    (* FOR: upshift_samples subset *
     let y = windows.offset          in
     let inter = intersect_range ts (fst x) (snd x) (fst y) (snd y) in
     range_of ts (fst inter) (snd inter)
-let         upshift_samples subsubset_rtt samples subset =
-    let (left, right) = subset in
+let         upshift_samples subsubset_rtt samples edges =
+    let (left, right) = edges in
     slice_map samples left right (fun x -> (fst x, Some subsubset_rtt))
 
 
@@ -226,6 +226,7 @@ let         normal_p_hat params pstamp_and_rtt_hat old_p_hat latest_and_rtt_hat 
     | None      -> None     (* can't calculate a rate, return None *)
     | Some p    ->  match (dTSC old_p @@ error_of latest latest_rtt_hat < params.point_error_thresh) with
                     | false ->  None    (* point error of our new packet is NG, let's not use it *)
+
                     | true ->   let baseline      = ((fst latest).timestamps.tb -. (fst pstamp).timestamps.tb) in
                                 let point_errors  = Int64.to_float @@ Int64.add (error_of latest latest_rtt_hat) (error_of pstamp pstamp_rtt_hat) in
                                 let rtt_est_error = abs_float @@ Int64.to_float @@ Int64.sub latest_rtt_hat pstamp_rtt_hat in
@@ -259,10 +260,10 @@ let  subset_normal_p_local      windows ts =    (* FOR: normal_p_local *)
     ((fun x y -> (x, y)) <$> near ) <*> far
 let    last_normal_p_local     windows ts =     (* FOR: normal_p_local *)
     get ts Newest
-let         normal_p_local params p_hat_and_error rtt_hat old_p_local subset last =
+let         normal_p_local params p_hat_and_error rtt_hat old_p_local subsets last =
     let (p_hat,         _)      = p_hat_and_error in
     let (old_p_local,   _)      = old_p_local in
-    let (near, far)             = subset in
+    let (near, far)             = subsets in
 
     let best_in_near    = fst <$> (min_and_where rtt_of near) in
     let best_in_far     = fst <$> (min_and_where rtt_of far ) in
@@ -304,8 +305,8 @@ let normal_theta_point_error params p_hat latest sa =
     let age         = dTSC p_hat @@ baseline latest sa in
     rtt_error +. params.skm_rate *. age
 
-let normal_theta_hat params p_hat p_local c old_theta_hat subset =
-    let (latest, offset_win) = subset in
+let normal_theta_hat params p_hat p_local c old_theta_hat subsets =
+    let (latest, offset_win) = subsets in
     let (old_theta, old_theta_error, old_theta_sample) = old_theta_hat in
 
     let wt params p_hat latest sa =
@@ -330,4 +331,8 @@ let normal_theta_hat params p_hat p_local c old_theta_hat subset =
                     | None          -> None
                     | Some maxgap   ->
                             let maxgap = max (maxgap) (baseline latest old_theta_sample) in
-                            match (
+                            let gap    = dTSC p_hat maxgap in
+                            let change = abs_float @@ (old_theta -. theta_hat) in
+                            match ((change < params.offset_sanity_zero +. gap *. params.offset_sanity_aging), (fst latest).quality) with
+                            | (true, OK)    ->  Some (theta_hat, minET, latest)
+                            | _             ->  None
