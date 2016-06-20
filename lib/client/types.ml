@@ -68,13 +68,6 @@ type estimators = {
 }
 [@@deriving show]
 
-type sync_state = {
-    regime:                 regime;
-    parameters:             physical_parameters;
-    samples_and_rtt_hat:   (sample * counter) history;  (* sample history and RTT_hat history are zipped together *)
-    estimators:             estimators;
-}
-[@@deriving show]
 
 type output = {
     skm_scale:                      float;
@@ -113,6 +106,100 @@ let default_parameters =
     let offset_sanity_aging     = 20.0 *.   rate_error_bound    in
 
     {skm_scale; ts_limit; skm_rate; e_offset; e_offset_qual; initial_p; shift_thres; point_error_thresh; rate_error_threshold; rate_sanity; local_rate_sanity; local_rate_error_threshold; offset_sanity_zero; offset_sanity_aging}
+
+type windows    = {
+    top_win_size:       int;
+    toplevel:           (point * point);
+
+    halftop_win:        (point * point);
+
+    warmup_win:         (point * point);
+
+    pstamp_win:         (point * point);
+
+    shift_win:          (point * point);
+    offset:             (point * point);
+
+    plocal_far:         (point * point);
+    plocal_near:        (point * point);
+}
+[@@deriving show]
+
+let range_of_window w ts =
+    range_of ts (fst w) (snd w)
+
+let default_windows params poll_period =
+    let history_scale = 3600 * 24 * 7 in        (* seconds *)
+    let top_win_size    =               history_scale                           / poll_period  in
+
+    let shift_win       = max 100  ((int_of_float @@ 1e8 *. params.ts_limit )   / poll_period) in
+    let offset_size     =           (int_of_float           params.skm_scale)   / poll_period  in
+
+    let toplevel            = (Newest, Older(Newest, top_win_size   - 1)) in
+    let halftop_win         = (Newest, Older(Newest, top_win_size/2 - 1)) in
+    let shift_win           = (Newest, Older(Newest, shift_win      - 1)) in
+    let offset              = (Newest, Older(Newest, offset_size    - 1)) in
+
+    (* plocal stuff:
+        * wwidth is the width of each of the plocal_far / plocal_near windows
+        * plocal_span is *how far apart* those windows are from each other
+    *)
+
+    let plocal_span = 5 * offset_size   in
+    let wwidth      = plocal_span / 5   in
+    let plocal_near         = (Newest, Older(Newest, wwidth         - 1)) in
+
+    (* this follows from lines 1240 and 1241 in sync_bidir.c.
+     *
+     * yes, the way plocal_far_centre is defined ("+ wwidth") is kinda icky but
+     * it lets us generate the same windows as RADclock when our plocal_span
+     * equal to their plocal_win.
+     *
+     * Also how the far plocal window gets defined in sync_bidir.c:168 in
+     * init_plocal (which is called once) seems contradictory with how the far
+     * plocal window is defined afterwards, in process_plocal_full. This also
+     * seems to violate the preconditions for calling radclock's
+     * history_min_slide function in process_plocal_full.
+     *
+     * I chose to use the far plocal window definitions from
+     * process_plocal_full because that is those definitions (and not the
+     * init_plocal ones ) actually dictate which ranges RADclock (as of
+     * version 73c1151afc24e42b131c47c1ee053e68ce8c075b) looks for plocal
+     * points (see radclock_patches/window_bugs.patch for the code used to
+     * verify that):
+         * Note that radclock's history_min_slide(history *hist, index_t index_curr, index_t j, index_t i)
+         * finds a minimum on [j+1,i+1], INCLUSIVE
+
+     * TL;DR the C radclock implementation does weird things with indices but
+     * the code here searches over the same intervals / same points as radclock
+     * does. Furthermore, the radclock algorithms are not very sensitive to
+     * changes in windowing / interval parameters as demonstrated in
+     * doi:10.1145/1028788.1028817.
+     *)
+
+    let plocal_far_centre   =   Older(Newest, plocal_span + wwidth      ) in
+    let plocal_far          =  (Newer(plocal_far_centre,    wwidth/2    ),
+                                Older(plocal_far_centre,    wwidth/2 - 1)) in
+
+    let phantom = History (top_win_size, 0, []) in
+    let warmup_win = union_range phantom Newest (snd (union_range phantom Newest (snd shift_win) Newest (snd offset)))
+                                         Newest (snd plocal_far                                                            ) in
+
+    let warmup_len = match (range_length phantom (fst warmup_win) (snd warmup_win)) with
+    | Some x -> x
+    | None   -> failwith "invalid warmup interval"
+    in
+    let pstamp_win = (Newer(Oldest, warmup_len - 1), Oldest) in
+    {top_win_size; toplevel; halftop_win; shift_win; offset; plocal_far; plocal_near; pstamp_win; warmup_win}
+
+type sync_state = {
+    regime:                 regime;
+    parameters:             physical_parameters;
+    windows:                windows;
+    samples_and_rtt_hat:   (sample * counter) history;  (* sample history and RTT_hat history are zipped together *)
+    estimators:             estimators;
+}
+[@@deriving show]
 
 let delta_TSC newer older =
     let del = Int64.sub newer older in
