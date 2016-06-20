@@ -98,7 +98,10 @@ let         warmup_theta_hat params p_hat_and_error c subsets =
     | None -> None
     | Some min ->
             let minET               =  warmup_theta_point_error params p_hat latest @@ fst min in
-            let theta_hat           =  sum /. check_positive(sum_wts) in
+            match sum_wts with
+            | 0.0 -> None
+            | sum_wts ->
+            let theta_hat   =   sum /. check_positive(sum_wts) in
             match (minET < params.e_offset_qual) with
             | false -> None
             | true  -> Some (theta_hat, minET, latest)
@@ -107,7 +110,7 @@ let         warmup_theta_hat params p_hat_and_error c subsets =
 
 (* RTT upshift detection *)
 let shift_detection_subsets                  windows                ts =    (* FOR: detect_shift *)
-    let halftop_subset     = range_of_window windows.halftop_win    ts in
+    let halftop_subset     = range_of_window windows.warmup_win     ts in
     let shift_subset       = range_of_window windows.shift_win      ts in
     ((fun x y -> (x, y)) <$> halftop_subset) <*> shift_subset
 
@@ -130,6 +133,7 @@ let upshift_edges windows ts =    (* FOR: upshift_rtts subset *)
 
 let upshift_rtts edges rtt ts =
     let (left, right) = edges in
+    print_string (Printf.sprintf "XXXXXXXXXXXXXX SHIFT UP HAPPENED XXXXXXXXXXXXXXXX");
     slice_map ts left right (fun x -> (fst x, rtt))
 
 
@@ -138,6 +142,7 @@ let upshift_rtts edges rtt ts =
 (* NORMAL ESTIMATORS *)
 
 let  subset_normal_pstamp       windows             ts =    (* FOR: normal_pstamp subset *)
+    print_string (Printf.sprintf "normal_pstamp");
     range_of_window             windows.pstamp_win  ts
 let         normal_pstamp         subset =
     snd <$> (min_and_where rtt_of subset)       (* returns a Fixed *)
@@ -148,6 +153,7 @@ let         normal_pstamp         subset =
 let  latest_normal_p_hat        windows ts =    (* FOR: normal_p_hat latest_and_rtt_hat *)
     get ts Newest
 let         normal_p_hat params pstamp old_p_hat latest =
+    print_string (Printf.sprintf "normal_p_hat");
     let (old_p,  old_p_err)         = old_p_hat in
     let new_p = rate_of_pair latest pstamp in
     match new_p with
@@ -237,6 +243,9 @@ let normal_theta_hat params p_hat_and_error p_local_and_error c old_theta_hat su
     | None      -> None
     | Some min  ->
             let minET       =          normal_theta_point_error params p_hat latest @@ fst min in
+            match sum_wts with
+            | 0.0 -> None
+            | sum_wts ->
             let theta_hat   =   sum /. check_positive(sum_wts) in
             match (minET < params.e_offset_qual) with
             | false -> None
