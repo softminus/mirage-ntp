@@ -124,7 +124,6 @@ let         normal_RTT_hat params subsets =
 
 
 
-
 let  subset_upshift_samples     windows ts =    (* FOR: upshift_samples subset *)
     let x = windows.shift_win in
     let y = windows.offset          in
@@ -132,7 +131,7 @@ let  subset_upshift_samples     windows ts =    (* FOR: upshift_samples subset *
     range_of ts (fst inter) (snd inter)
 let         upshift_samples subsubset_rtt samples edges =
     let (left, right) = edges in
-    slice_map samples left right (fun x -> (fst x, Some subsubset_rtt))
+    slice_map samples left right (fun x -> (fst x, subsubset_rtt))
 
 
 
