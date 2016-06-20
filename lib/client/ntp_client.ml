@@ -31,7 +31,6 @@ open Maybe
 
 let blank_state =
     let regime              = ZERO                  in
-    let samples_and_rtt_hat = History (100, 0, [])  in
 
     let pstamp              = None in
     let p_hat_and_error     = None in
@@ -40,7 +39,9 @@ let blank_state =
     let theta_hat_and_error = None in
     let estimators          = {pstamp; p_hat_and_error; p_local; c; theta_hat_and_error} in
     let parameters          = default_parameters in
-    {regime; parameters; samples_and_rtt_hat; estimators}
+    let windows             = default_windows parameters 16 in
+    let samples_and_rtt_hat = History (windows.top_win_size, 0, [])  in
+    {regime; parameters; samples_and_rtt_hat; estimators; windows}
 
 
 let allzero:ts = {timestamp = 0x0L}
@@ -151,10 +152,13 @@ let update_estimators old_state =
 
     | READY     ->
             let samples     = old_state.samples_and_rtt_hat in
+            let wi          = old_state.windows     in
+            let old_ests    = old_state.estimators  in
 
-            let old_ests    = old_state.estimators in
+            let pstamp_warmup   = join  (warmup_pstamp      <$> (subset_warmup_pstamp       samples)) in
+            let pstamp_normal   = join  (normal_pstamp      <$> (subset_normal_pstamp  wi   samples)) in
 
-            let pstamp          = join  (warmup_pstamp      <$> (subset_warmup_pstamp       samples)) in
+            let pstamp          = pstamp_normal <|> pstamp_warmup in
 
             (* Second stage estimators: *)
 
