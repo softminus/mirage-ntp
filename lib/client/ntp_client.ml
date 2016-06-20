@@ -151,7 +151,6 @@ let update_estimators old_state =
 
     | WARMUP    ->
             let samples     = old_state.samples_and_rtt_hat in
-            let rtt_hat     = snd <$> get samples Newest in
 
             let old_ests    = old_state.estimators in
             let p_local     = None in
@@ -160,11 +159,11 @@ let update_estimators old_state =
 
             (* Second stage estimators: *)
 
-            let p_hat_and_error = join  (warmup_p_hat       <$> rtt_hat <*> (subset_warmup_p_hat    samples)) in
+            let p_hat_and_error = join  (warmup_p_hat       <$> (subset_warmup_p_hat    samples)) in
             let c               = join  (warmup_C_fixup     <$> old_ests.c <*> (fst <$> old_ests.p_hat_and_error) <*> (fst <$> p_hat_and_error) 
                                                             <*> (subset_warmup_C_fixup              samples)) in
 
-            let theta_hat_and_error = join (warmup_theta_hat old_state.parameters <$> (fst <$> p_hat_and_error) <*> rtt_hat <*> c
+            let theta_hat_and_error = join (warmup_theta_hat old_state.parameters <$> (fst <$> p_hat_and_error) <*> c
                                                             <*> (subset_warmup_theta_hat            samples)) in
 
             let new_ests = {pstamp; p_hat_and_error; p_local; c; theta_hat_and_error} in

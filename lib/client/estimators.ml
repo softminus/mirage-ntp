@@ -103,9 +103,13 @@ let  subset_warmup_p_hat    ts          =       (* FOR: warmup_p_hat *)
     let wwidth = 1 + (length ts) / 4 in
     let near    = range_of ts Newest @@ Older(Newest, wwidth - 1)                                       in
     let far     = range_of ts                                       (Newer(Oldest, wwidth - 1)) Oldest  in
-    ((fun x y -> (x, y)) <$> near) <*> far
-let         warmup_p_hat rtt_hat subsets =
-    let (near, far) = subsets in
+
+    let latest = get ts Newest in
+    ((fun x y z -> (x, y, z)) <$> near) <*> far <*> latest
+
+let         warmup_p_hat subsets =
+    let (near, far,     latest) = subsets in
+    let rtt_hat = snd   latest in
     let best_in_near    = fst <$> (min_and_where rtt_of near) in
     let best_in_far     = fst <$> (min_and_where rtt_of far ) in
     let p_hat = join (rate_of_pair <$> best_in_near <*> best_in_far) in
@@ -152,8 +156,9 @@ let warmup_theta_point_error params p_hat rtt_hat latest sa =
     let age         = dTSC p_hat @@ baseline latest sa in
     rtt_error +. params.skm_rate *. age
 
-let         warmup_theta_hat params p_hat rtt_hat c subsets =
+let         warmup_theta_hat params p_hat c subsets =
     let (latest, subset) = subsets in
+    let rtt_hat = snd latest in
 
     let wt params p_hat rtt_hat latest sa =
         let qual = warmup_theta_point_error params p_hat rtt_hat latest sa in
