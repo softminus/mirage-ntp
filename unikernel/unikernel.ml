@@ -62,9 +62,6 @@ module Main (C: V1_LWT.CONSOLE) (S: V1_LWT.STACKV4) = struct
             Lwt.return(update_estimators state) >>= fun(state) ->
 
 
-            let x = state.estimators.theta_hat_and_error in
-            match x with
-            | Some (x,y) -> C.log_s c (Printf.sprintf "THETA %.15E" (x)) >>= fun () ->
 
 
             OS.Time.sleep 2.0 >>= fun () ->
