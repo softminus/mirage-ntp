@@ -61,9 +61,9 @@ let         warmup_C_oneshot p_hat_and_error subset =
 
 
 
-let  subset_warmup_C_fixup      ts =        (* FOR: warmup_C_fixup *)
+let  subset_c_fixup      ts =        (* FOR: c_fixup *)
     get ts Newest
-let         warmup_C_fixup old_C old_p_hat_and_error new_p_hat_and_error subset =
+let         c_fixup old_C old_p_hat_and_error new_p_hat_and_error subset =
     let newest = fst subset in
     let (old_p_hat, _) = old_p_hat_and_error in
     let (new_p_hat, _) = new_p_hat_and_error in
@@ -151,9 +151,9 @@ let         normal_p_hat params pstamp old_p_hat latest =
     let (old_p,  old_p_err)         = old_p_hat in
     let new_p = rate_of_pair latest pstamp in
     match new_p with
-    | None      -> None     (* can't calculate a rate, return None *)
+    | None      ->  Some old_p_hat
     | Some p    ->  match (dTSC old_p @@ error_of latest (snd latest) < params.point_error_thresh) with
-                    | false ->  None    (* point error of our new packet is NG, let's not use it *)
+                    | false ->  Some old_p_hat (* point error of our new packet is NG, let's not use it *)
 
                     | true ->   let baseline      = ((fst latest).timestamps.tb -. (fst pstamp).timestamps.tb) in
                                 let point_errors  = Int64.to_float @@ Int64.add (error_of latest (snd latest)) (error_of pstamp (snd pstamp)) in
@@ -161,7 +161,7 @@ let         normal_p_hat params pstamp old_p_hat latest =
                                 let new_p_error = old_p *. (point_errors +. rtt_est_error) /. baseline in
 
                                 match ((new_p_error < old_p_err), (new_p_error < params.rate_error_threshold)) with
-                                | (false, false)    -> None (* it's worse than the last one and also not under the error threshold *)
+                                | (false, false)    ->  Some old_p_hat  (* it's worse than the last one and also not under the error threshold *)
                                 | _                 ->  let change = abs_float @@ (p -. old_p) /. old_p in
                                                         match ((change < params.rate_sanity), (fst latest).quality) with
                                                         | (true, OK)    -> Some (p, new_p_error)
@@ -170,10 +170,6 @@ let         normal_p_hat params pstamp old_p_hat latest =
 
 
 
-let  subset_normal_C_fixup      windows ts =    (* FOR: normal_C_fixup *)
-    get ts Newest
-let         normal_C_fixup old_C old_p_hat new_p_hat subset =
-    Some (old_C +. (Int64.to_float subset.timestamps.ta) *. (old_p_hat -. new_p_hat))
 
 
 
