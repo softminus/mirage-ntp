@@ -44,8 +44,8 @@ module Main (C: V1_LWT.CONSOLE) (S: V1_LWT.STACKV4) = struct
                         rx st >>= fun (rxd) ->
                         C.log_s c (Printf.sprintf "recv ONE %Lx" (snd rxd)) >>= fun () ->
                         let state = add_sample state (fst rxd) (fst q) (snd rxd) in
-                        Lwt.return(update_estimators state) >>= fun(state) ->
-                        OS.Time.sleep 2.0 >>= fun () ->
+                        let state = update_estimators state in
+                        OS.Time.sleep 1.0 >>= fun () ->
                         C.log_s c (show_sync_state state) >>=fun() -> Lwt.return(state)) >>=fun (state) -> do_it state (n-1)
             in
             do_it blank_state 3000 >>=fun(state) ->
