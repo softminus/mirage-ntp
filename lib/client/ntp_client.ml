@@ -189,12 +189,11 @@ let update_estimators old_state =
                             p_hat_and_error             <*>
                             (subset_c_fixup     samples)) in
 
-            let old_p_local     = old_ests.p_local in
             let p_local_normal  = join  (normal_p_local params  <$>
                                         p_hat_and_error         <*>
-                                        old_p_local             <*>
+                                        (old_ests.p_local <|> p_hat_and_error) <*>
                                         (subset_normal_p_local          wi  samples)) in
-            let p_local = p_local_normal <|> old_p_local in
+            let p_local = p_local_normal <|> old_ests.p_local in
 
             let theta_hat_warmup = join (warmup_theta_hat params    <$>
                                         p_hat_and_error             <*>
