@@ -41,6 +41,7 @@ type timestamps = {
     tb:     float               [@printer fun fmt -> fprintf fmt "%.09f"];
     te:     float               [@printer fun fmt -> fprintf fmt "%.09f"];
     tf:     counter;
+    zettai_rtt:    counter;
 }
 [@@deriving show]
 
@@ -92,7 +93,7 @@ let default_parameters =
 
     let e_offset        = 6.0 *. ts_limit in (* 6 = offset_ratio *)
     let e_offset_qual   = 3.0 *. e_offset in
-    let shift_thres     = 0L in                     (* FIXME *)
+    let shift_thres     = 1L in                     (* FIXME *)
 
     let point_error_thresh = 3.0 *. ts_limit in
     let rate_error_threshold    = rate_error_bound /. 5.0 in
@@ -205,7 +206,7 @@ let delta_TSC newer older =
     let del = Int64.sub newer older in
     match (del >= 0L) with
     | true  -> del
-    | false -> failwith "invalid ΔTSC!"
+    | false -> failwith (Printf.sprintf "invalid ΔTSC! newer = %Lx, older= %Lx" newer older)
 
 let baseline newer older =
     delta_TSC (fst newer).timestamps.tf (fst older).timestamps.tf

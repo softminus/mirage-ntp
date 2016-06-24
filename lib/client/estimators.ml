@@ -38,10 +38,10 @@ let         warmup_p_hat subsets =
     match (best_in_near, best_in_far, p_hat) with
     | (Some best_in_near, Some best_in_far, Some p) ->
             let del_tb      = check_non_negative ((fst best_in_near).timestamps.tb -. (fst best_in_far).timestamps.tb) in
-            let far_error   = Int64.to_float @@ error_of best_in_far  rtt_hat in
-            let near_error  = Int64.to_float @@ error_of best_in_near rtt_hat in
+            let far_error   = Int64.to_float @@ error_of best_in_far  (snd best_in_far)in
+            let near_error  = Int64.to_float @@ error_of best_in_near (snd best_in_near)in
             let p_hat_error = (p /. del_tb) *. (far_error +. near_error) in
-            Some (p, p_hat_error)
+            Some (p, 666.0)
     | _ ->  None
 
 
@@ -74,7 +74,7 @@ let         c_fixup old_C old_p_hat_and_error new_p_hat_and_error subset =
 
 
 let warmup_theta_point_error params p_hat latest sa =
-    let rtt_error   = dTSC p_hat @@ error_of sa (snd latest) in
+    let rtt_error   = dTSC p_hat @@ error_of sa (snd sa) in
     let age         = dTSC p_hat @@ baseline latest sa in
     rtt_error +. params.skm_rate *. age
 
@@ -104,7 +104,7 @@ let         warmup_theta_hat params p_hat_and_error c subsets =
             let theta_hat   =   sum /. check_positive(sum_wts) in
             match (minET < params.e_offset_qual) with
             | false -> None
-            | true  -> Some (theta_hat, minET, latest)
+            | true  -> Some (theta_hat, 0.420666, latest)
 
 
 
@@ -133,7 +133,7 @@ let upshift_edges windows ts =    (* FOR: upshift_rtts subset *)
 
 let upshift_rtts edges rtt ts =
     let (left, right) = edges in
-    print_string (Printf.sprintf "XXXXXXXXXXXXXX SHIFT UP HAPPENED XXXXXXXXXXXXXXXX");
+    print_string (Printf.sprintf "UPSHIFTED XXXXX to 0x%Lx XXXXXXXXX\n" rtt);
     slice_map ts left right (fun x -> (fst x, rtt))
 
 
@@ -142,9 +142,10 @@ let upshift_rtts edges rtt ts =
 (* NORMAL ESTIMATORS *)
 
 let  subset_normal_pstamp       windows             ts =    (* FOR: normal_pstamp subset *)
-    print_string (Printf.sprintf "normal_pstamp");
+    print_string (Printf.sprintf "NORMAL_PSTAMP\n");
     range_of_window             windows.pstamp_win  ts
 let         normal_pstamp         subset =
+    print_string (Printf.sprintf "NORMALxxxxxxxxxxxxxxxxx PSTAMP\n");
     snd <$> (min_and_where rtt_of subset)       (* returns a Fixed *)
 
 
@@ -153,7 +154,7 @@ let         normal_pstamp         subset =
 let  latest_normal_p_hat        windows ts =    (* FOR: normal_p_hat latest_and_rtt_hat *)
     get ts Newest
 let         normal_p_hat params pstamp old_p_hat latest =
-    print_string (Printf.sprintf "normal_p_hat");
+    print_string (Printf.sprintf "NORMAL_P_HAT\n");
     let (old_p,  old_p_err)         = old_p_hat in
     let new_p = rate_of_pair latest pstamp in
     match new_p with
@@ -187,11 +188,10 @@ let  subset_normal_p_local      windows             ts =    (* FOR: normal_p_loc
 
     ((fun x y z -> (x, y, z)) <$> near) <*> far <*> latest
 let         normal_p_local params p_hat_and_error old_p_local subsets =
+    print_string (Printf.sprintf "NORMAL_P_LOCAL\n");
     let (p_hat,         _)      = p_hat_and_error in
     let (old_p_local,   _)      = old_p_local in
     let (near, far, latest)     = subsets in
-
-    let rtt_hat                 = snd latest in
 
     let best_in_near    = fst <$> (min_and_where rtt_of near) in
     let best_in_far     = fst <$> (min_and_where rtt_of far ) in
@@ -199,8 +199,8 @@ let         normal_p_local params p_hat_and_error old_p_local subsets =
     match (best_in_near, best_in_far, rate) with
     | (Some best_in_near, Some best_in_far, Some p_local) -> (
             let del_tb      = check_non_negative ((fst best_in_near).timestamps.tb -. (fst best_in_far).timestamps.tb) in
-            let far_error   = Int64.to_float @@ error_of best_in_far  rtt_hat in
-            let near_error  = Int64.to_float @@ error_of best_in_near rtt_hat in
+            let far_error   = Int64.to_float @@ error_of best_in_far  (snd best_in_far)  in
+            let near_error  = Int64.to_float @@ error_of best_in_near (snd best_in_near) in
             let plocal_error = (p_hat /. del_tb) *. (far_error +. near_error) in
             match (plocal_error < params.local_rate_error_threshold) with
             | false -> None
@@ -215,7 +215,7 @@ let         normal_p_local params p_hat_and_error old_p_local subsets =
 
 
 let normal_theta_point_error params p_hat latest sa =
-    let rtt_error   = dTSC p_hat @@ error_of sa (snd latest) in
+    let rtt_error   = dTSC p_hat @@ error_of sa (snd sa) in
     let age         = dTSC p_hat @@ baseline latest sa in
     rtt_error +. params.skm_rate *. age
 
@@ -224,6 +224,7 @@ let  subset_normal_theta_hat            windows         ts =        (* FOR: norm
     let offset_win  = range_of_window   windows.offset  ts in
     ((fun x y -> (x, y)) <$> latest) <*> offset_win
 let normal_theta_hat params p_hat_and_error p_local_and_error c old_theta_hat subsets =
+    print_string (Printf.sprintf "NORMAL_P_HAT\n");
     let (p_hat, _) = p_hat_and_error in
     let p_local    = fst <$> p_local_and_error in
     let (old_theta, old_theta_error, old_theta_sample) = old_theta_hat in
