@@ -38,10 +38,10 @@ let         warmup_p_hat subsets =
     match (best_in_near, best_in_far, p_hat) with
     | (Some best_in_near, Some best_in_far, Some p) ->
             let del_tb      = check_non_negative ((fst best_in_near).timestamps.tb -. (fst best_in_far).timestamps.tb) in
-            let far_error   = Int64.to_float @@ error_of best_in_far  (snd best_in_far)in
-            let near_error  = Int64.to_float @@ error_of best_in_near (snd best_in_near)in
+            let far_error   = Int64.to_float @@ error_of best_in_far  rtt_hat in
+            let near_error  = Int64.to_float @@ error_of best_in_near rtt_hat in
             let p_hat_error = (p /. del_tb) *. (far_error +. near_error) in
-            Some (p, 666.0)
+            Some (p, p_hat_error)
     | _ ->  None
 
 
@@ -74,7 +74,7 @@ let         c_fixup old_C old_p_hat_and_error new_p_hat_and_error subset =
 
 
 let warmup_theta_point_error params p_hat latest sa =
-    let rtt_error   = dTSC p_hat @@ error_of sa (snd sa) in
+    let rtt_error   = dTSC p_hat @@ error_of sa (snd latest) in
     let age         = dTSC p_hat @@ baseline latest sa in
     rtt_error +. params.skm_rate *. age
 
@@ -104,7 +104,7 @@ let         warmup_theta_hat params p_hat_and_error c subsets =
             let theta_hat   =   sum /. check_positive(sum_wts) in
             match (minET < params.e_offset_qual) with
             | false -> None
-            | true  -> Some (theta_hat, 0.420666, latest)
+            | true  -> Some (theta_hat, minET, latest)
 
 
 
