@@ -16,6 +16,10 @@ Library "tsc"
     Modules: Tsc
     CSources: rdtsc_caml.c
 
+Library "common"
+    Path: lib/common/
+    Modules: Tai
+
 Library "wire"
     Path: lib/wire/
     Modules: Wire
