@@ -1,0 +1,18 @@
+In the GPS/GNSS world, you can buy devices called "GPS simulators" which emit
+an RF signal equivalent to the signal received from the actual constellation of
+satellites. You can input a date/time and a position and the GPS simulator will
+output the same RF signal that would be received if you were actually standing
+at that position at that time with an antenna. In addition, GPS simulators let
+the test engineer precisely and repeatably introduce whatever errors (space
+vehicle clock errors, ionospheric effects, orbit errors, multipath, RF
+interference) they desire.
+
+This makes the testing and evaluation of GPS receivers (and systems that use
+them, from cars and phones to space launch vehicles) simpler, more complete,
+and repeatable.
+
+Similarly, the code in this directory simulates a hardware timer/counter (such
+as RDTSC or HPET) with the right kind of error/drift, a network with realistic
+latency/loss properties, and an NTP server -- and runs the NTP client code in
+../client/ and compares the algorithm's estimates of rate/offset to the
+parameters of the simulation.
