@@ -57,10 +57,34 @@
  * -- like GPS. Most NTP servers get time information from GPS so this would
  * not even be a difficult change.
  *
+ *
+ * information flow if we have a valid leap second table:
+ *
+ *                          NTP timestamps (UTC)
+ *                          |
+ *                          |
+ *                          V
+ *        leap table----> unbake
+ *                          |
+ *                          |
+ *                          T
+ *                          A
+ *                          I
+ *                          |      timestamp counter-----\                  leap table
+ *                          |                            |                      |
+ *                          |                            |                      |
+ *                          V                            V                      V
+ *                      rate/offset estimation ------> client ----TAI---> synthesize_UTC
+ *                                                                              |
+ *                                                                              |
+ *                                                                              V
+ *                                                                             UTC
  *)
+
 
 type tai = Int64
 type utc = Int64
+type unbaked = int64 * int64 (* timestamp in TAIlike scale, amount to add to it to get back UTC time *)
 
 type leap_event = {
     transition_time:    tai;
@@ -70,5 +94,16 @@ type leap_event = {
 type leap_table = {
     end_of_validity:    utc;
     events:             leap_event list;
-    }
-let tai_to_utc = 0
+}
+
+type synthetic_leap = {
+    transition_time:    tai;        (* this is not actually TAI, but blame the NTP people *)
+    offset_after:       int;
+}
+
+let run_table table idx =
+
+
+let unbake_utc table ntp_timestamp =
+    match (table.end_of_validity > ntp_timestamp) with
+    | true
