@@ -10,13 +10,13 @@
  * The absence of those fields makes it impossible to easily synthesize a
  * discontinuity-free timescale from the NTP timestamps.
  *
- * (IEEE 1588 / PTP expresses timestamps in TAI and also includes the current
+ * IEEE 1588 / PTP expresses timestamps in TAI and also includes the current
  * UTC/TAI offset in each packet and include a binary flag warning of an
  * upcoming leap second event. Similarly, GPS, BeiDou, and Galileo all use
  * timescales with no leap seconds (effectively, TAI) and include the current
  * UTC offset (and the time of an upcoming leap second event) in the navigation
  * messages transmitted from the space vehicles. None of those systems ever
- * have had issues with leap seconds.)
+ * have had issues with leap seconds.
  *
  * There is only a binary flag that indicates whether a leap second event is
  * coming -- the NTP client *must* either do complex calendar maths to find out
@@ -24,11 +24,8 @@
  * a copy of an up-to-date leap second table.
  *
  * It is difficult to come up with a more pointlessly fragile, baroque, and
- * overly complex system for coping with leap second events.
- *
- *
- * Unfortunately, we are required to implement this logic to have a correct NTP
- * client.
+ * overly complex system for coping with leap second events. Unfortunately,
+ * we are required to implement this logic to have a correct NTP client.
  *
  *
  * We check to see if we have a valid and up-to-date leap table -- if so, we
@@ -36,6 +33,30 @@
  * TAI offset after the leap event. We can thus use it to unbake UTC timestamps
  * into TAI timestamps that can be used for rate/offset estimation (and bake in
  * the TAI offset as desired for consumers who want UTC time).
+ *
+ * here's the information flow if we have a valid leap second table:
+ *
+ *                   NTP timestamps (UTC)
+ *                          |
+ *                          |
+ *                          V
+ *        leap table----> unbake
+ *                          |
+ *                          |
+ *                          T
+ *                          A
+ *                          I
+ *                          |      timestamp counter-----\                  leap table
+ *                          |                            |                      |
+ *                          |                            |                      |
+ *                          V                            V                      V
+ *                      rate/offset estimation ------> client ----TAI---> synthesize_UTC
+ *                                                                 |            |
+ *                                                                 |            |
+ *                                                                 V            V
+ *                                                                TAI          UTC
+ *
+ *
  *
  * If we do not have an up-to-date leap table we:
      * don't know the current TAI offset
@@ -51,34 +72,56 @@
  * doi://10.1007/978-3-319-30505-9_29. This is where the requirement for
  * calendar arithmetic comes in.
  *
- * All of this would be immaterial if NTP unambiguously encoded the current
- * TAI time and the current TAI/UTC offset, along with the TAI time of any
- * upcoming leap second event and the TAI/UTC offset after leap second event
- * -- like GPS. Most NTP servers get time information from GPS so this would
- * not even be a difficult change.
+ * Without a leap second table, we can't keep time in actual TAI, the
+ * timestamps we feed to the rate/offset estimator must still be in a
+ * continuous timescale -- we term this timescale "pseudo TAI" as it is
+ * TAI except with a constant offset (namely, the UTC/TAI offset when the
+ * NTP client started).
  *
+ * here's the information flow if we lack a valid leap second table:
  *
- * information flow if we have a valid leap second table:
- *
- *                          NTP timestamps (UTC)
- *                          |
- *                          |
- *                          V
- *        leap table----> unbake
- *                          |
- *                          |
- *                          T
- *                          A
- *                          I
- *                          |      timestamp counter-----\                  leap table
+ *    NTP leap       NTP timestamps (UTC)
+ *     flag                 |
+ *      |                   |
+ *      |                   V                   pseudoTAI / UTC offset
+ *      \---------->pseudoTAI_of_UTC--------------------------------------------\
+ *                          |                                                   |
+ *                          |                                                   |
+ *                          p                                                   |
+ *                          T                                                   |
+ *                          A                                                   |
+ *                          I                                                   |
+ *                          |      timestamp counter-----\                      |
  *                          |                            |                      |
  *                          |                            |                      |
  *                          V                            V                      V
- *                      rate/offset estimation ------> client ----TAI---> synthesize_UTC
- *                                                                              |
- *                                                                              |
- *                                                                              V
- *                                                                             UTC
+ *                      rate/offset estimation ------> client ---pTAI---> synthesize_UTC
+ *                                                                 |            |
+ *                                                                 |            |
+ *                                                                 V            V
+ *                                                             pseudoTAI       UTC
+ *
+ *
+ * All of this would be immaterial if NTP unambiguously encoded the current
+ * TAI time and the current TAI/UTC offset, along with the TAI time of any
+ * upcoming leap second event and the TAI/UTC offset after leap second event
+ * -- like GPS. Most NTP servers get time information from GPS so this is
+ * entirely feasible.
+ *
+ *
+ * for a PTP client, here's what the information flow looks like
+ *
+ *          PTP timestamps (TAI)
+ *              |
+ *              |      timestamp counter-----\              TAI/UTC offset (from the PTP packet)
+ *              |                            |                      |
+ *              V                            V                      V
+ *          rate/offset estimation ------> client ----TAI---> synthesize_UTC
+ *                                                     |            |
+ *                                                     V            V
+ *                                                    TAI          UTC
+ *
+ *
  *)
 
 
