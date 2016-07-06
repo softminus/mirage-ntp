@@ -1,4 +1,8 @@
 (*
+ *
+ * Introduction
+ *
+ *
  * NTP time is in the discontinuous UTC timescale and thus has duplicate values
  * because of leap seconds. This makes raw NTP timestamps unfit for feeding
  * into a rate/offset estimation algorithm.
@@ -28,13 +32,16 @@
  * we are required to implement this logic to have a correct NTP client.
  *
  *
+ * Case 1: we have a recent enough leap second table
+ *
+ *
  * We check to see if we have a valid and up-to-date leap table -- if so, we
  * know the current TAI offset, the time of the next leap second event, and the
  * TAI offset after the leap event. We can thus use it to unbake UTC timestamps
  * into TAI timestamps that can be used for rate/offset estimation (and bake in
  * the TAI offset as desired for consumers who want UTC time).
  *
- * here's the information flow if we have a valid leap second table:
+ * Here's the information flow if we have a valid leap second table:
  *
  *                   NTP timestamps (UTC)
  *                          |
@@ -58,10 +65,16 @@
  *
  *
  *
+ *
+ *
+ * Case 2: the leap second table we have is not up to date
+ *
+ *
  * If we do not have an up-to-date leap table we:
      * don't know the current TAI offset
      * we don't know the time of the leap second event
- *
+
+
  * The only information that NTP packets contain about leap second events is a
  * binary flag that indicates an upcoming leap second at the next UTC midnight.
  * This means we need to manually calculate when the next UTC midnight is, and
@@ -78,7 +91,7 @@
  * TAI except with a constant offset (namely, the UTC/TAI offset when the
  * NTP client started).
  *
- * here's the information flow if we lack a valid leap second table:
+ * Here's the information flow if we lack a valid leap second table:
  *
  *    NTP leap       NTP timestamps (UTC)
  *     flag                 |
@@ -102,16 +115,31 @@
  *                                                             pseudoTAI       UTC
  *
  *
+ * Note that calculations equivalent to either of above diagrams happen in every
+ * NTP client that handles leap seconds -- they are inherent to doing timekeeping
+ * based on NTP and are not an artefact of any implementation choices.
+ *
+ * Most traditional NTP daemons prod the kernel with ntp_adjtime(2)'s STA_INS
+ * to ask it to insert a leap second at the next UTC midnight -- but the
+ * calculations are morally the same even though there's no clean separation of
+ * UTC timestamps and TAI timestamps as there is here.
+ *
+ * This code attempts to properly handle leap seconds without having to modify
+ * shared mutable state in a tricky way.
+ *
+ *
+ * The better way:
+ *
+ *
  * All of this would be immaterial if NTP unambiguously encoded the current
  * TAI time and the current TAI/UTC offset, along with the TAI time of any
  * upcoming leap second event and the TAI/UTC offset after leap second event
  * -- like GPS. Most NTP servers get time information from GPS so this is
  * entirely feasible.
  *
+ * Indeed, for a PTP client, the information flow is much simpler:
  *
- * for a PTP client, here's what the information flow looks like
- *
- *          PTP timestamps (TAI)
+ *          TAI timestamps (from the PTP packet)
  *              |
  *              |      timestamp counter-----\              TAI/UTC offset (from the PTP packet)
  *              |                            |                      |
@@ -120,7 +148,6 @@
  *                                                     |            |
  *                                                     V            V
  *                                                    TAI          UTC
- *
  *
  *)
 
