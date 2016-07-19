@@ -5,6 +5,7 @@ open Wire
 open Int64
 open Ntp_client
 open OS
+open Diffabs
 
 
 let server = Ipaddr.V4.of_string_exn  "131.215.239.14"
@@ -53,11 +54,17 @@ module Main (C: V1_LWT.CONSOLE) (S: V1_LWT.STACKV4) = struct
                         rxto st >>= fun (wrapped) ->
                             match wrapped with
                             |Some rxd -> (
-                        C.log_s c (Printf.sprintf "recv ONE %Lx" (snd rxd)) >>= fun () ->
-                        let state = add_sample state (fst rxd) (fst q) (snd rxd) in
-                        C.log_s c (show_sync_state state) >>= fun() ->
-                        let state = update_estimators state in
-                        OS.Time.sleep 0.01 >>=fun() -> Lwt.return(state)
+                                            C.log_s c (Printf.sprintf "recv ONE %Lx" (snd rxd)) >>= fun () ->
+                                            let state = add_sample state (fst rxd) (fst q) (snd rxd) in
+                                            let state = update_estimators state in
+                                            let esti  = output_of_state state in
+                                            (
+                                            match esti with 
+                                            | Some e  -> C.log_s c (Printf.sprintf "time is %f" (absolute_time e @@ Int64.of_int @@ Tsc.rdtsc()))
+                                            | None -> Lwt.return()
+                                            ) >>= fun () ->
+                                                   
+                                            OS.Time.sleep 1.5 >>=fun() -> Lwt.return(state)
                         )
                             | None -> Lwt.return (state)
 						) >>=fun (state) -> do_it state (n-1)
