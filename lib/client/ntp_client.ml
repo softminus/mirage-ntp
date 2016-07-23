@@ -101,11 +101,10 @@ let sample_of_packet history txctx (pkt : pkt) rx_tsc =
     let rootdelay   = short_ts_to_float pkt.root_delay in
     let rootdisp    = short_ts_to_float pkt.root_dispersion in
     (* print_string (Printf.sprintf "RECV TS IS %Lx" (ts_to_int64 pkt.recv_ts)); *)
-    let timestamps  = {ta = txctx.when_sent; tb = to_float pkt.recv_ts; te = to_float pkt.trans_ts; tf = rx_tsc; zettai_rtt = 0x0L} in
+    let timestamps  = {ta = txctx.when_sent; tb = to_float pkt.recv_ts; te = to_float pkt.trans_ts; tf = rx_tsc} in
     let sample = {quality; ttl; stratum; leap; refid; rootdelay; rootdisp; timestamps} in
 
     let rtt = rtt_of_prime sample in
-    let timestamps = {timestamps with zettai_rtt = rtt} in
     let sample = {quality; ttl; stratum; leap; refid; rootdelay; rootdisp; timestamps} in
     let rtt_hat = match l with
     | None                  -> rtt

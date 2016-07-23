@@ -41,7 +41,6 @@ type timestamps = {
     tb:     float               [@printer fun fmt -> fprintf fmt "%.09f"];
     te:     float               [@printer fun fmt -> fprintf fmt "%.09f"];
     tf:     counter;
-    zettai_rtt:    counter;
 }
 [@@deriving show]
 
