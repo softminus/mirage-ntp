@@ -63,12 +63,12 @@ let query_pkt x =
     let trans_ts = x in
     {leap;version;mode; stratum; poll; precision; root_delay; root_dispersion; refid; reference_ts; origin_ts; recv_ts; trans_ts}
 
-let new_query tsc =
-    let txts:ts = int64_to_ts tsc in            (* FIXME: make this a random number *)
-    let nonce = {tsc; txts} in
-    (nonce, buf_of_pkt @@ query_pkt txts)
+let new_query when_sent rand =
+    let nonce:ts = int64_to_ts rand in
+    let queryctx = {when_sent; nonce} in
+    (queryctx, buf_of_pkt @@ query_pkt nonce)
 
-let validate_reply buf nonce =
+let validate_reply buf txctx =
     let pkt = pkt_of_buf buf in
     match pkt with
     | None -> None
@@ -78,11 +78,11 @@ let validate_reply buf nonce =
             if p.trans_ts   =   int64_to_ts Int64.zero  then None else (* server not sync'd *)
             if p.recv_ts    =   int64_to_ts Int64.zero  then None else (* server not sync'd *)
 
-            if p.origin_ts  <>  nonce.txts              then None else (* this packet doesn't have the timestamp
+            if p.origin_ts  <>  txctx.nonce             then None else (* this packet doesn't have the timestamp
                                                                           we struck in it *)
             Some p
 
-let sample_of_packet history nonce (pkt : pkt) rx_tsc =
+let sample_of_packet history txctx (pkt : pkt) rx_tsc =
     let l = get history Newest in
     let quality = match l with
     | None -> OK
@@ -101,7 +101,7 @@ let sample_of_packet history nonce (pkt : pkt) rx_tsc =
     let rootdelay   = short_ts_to_float pkt.root_delay in
     let rootdisp    = short_ts_to_float pkt.root_dispersion in
     (* print_string (Printf.sprintf "RECV TS IS %Lx" (ts_to_int64 pkt.recv_ts)); *)
-    let timestamps  = {ta = nonce.tsc; tb = to_float pkt.recv_ts; te = to_float pkt.trans_ts; tf = rx_tsc; zettai_rtt = 0x0L} in
+    let timestamps  = {ta = txctx.when_sent; tb = to_float pkt.recv_ts; te = to_float pkt.trans_ts; tf = rx_tsc; zettai_rtt = 0x0L} in
     let sample = {quality; ttl; stratum; leap; refid; rootdelay; rootdisp; timestamps} in
 
     let rtt = rtt_of_prime sample in
@@ -115,10 +115,10 @@ let sample_of_packet history nonce (pkt : pkt) rx_tsc =
     in
     (sample, rtt_hat)
 
-let add_sample old_state buf nonce rx_tsc =
-    match (validate_reply buf nonce) with
+let add_sample old_state buf txctx rx_tsc =
+    match (validate_reply buf txctx) with
     | None      ->  old_state
-    | Some pkt  -> {old_state with samples_and_rtt_hat = hcons (sample_of_packet old_state.samples_and_rtt_hat nonce pkt rx_tsc) old_state.samples_and_rtt_hat}
+    | Some pkt  -> {old_state with samples_and_rtt_hat = hcons (sample_of_packet old_state.samples_and_rtt_hat txctx pkt rx_tsc) old_state.samples_and_rtt_hat}
 
 let output_of_state state =
     let e = state.estimators in

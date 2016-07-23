@@ -31,9 +31,9 @@ type physical_parameters = {
 }
 [@@deriving show]
 
-type nonce = {
-    tsc:    counter;    (* the TSC value when we send it *)
-    txts:   ts;         (* the random number that was in the transmit_timestamp of the packet we sent *)
+type query_ctx = {
+    when_sent:  counter;    (* the TSC value when we send it *)
+    nonce:      ts;         (* the random number that was in the transmit_timestamp of the packet we sent *)
 }
 
 type timestamps = {
