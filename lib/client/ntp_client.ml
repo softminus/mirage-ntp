@@ -30,7 +30,7 @@ open Maybe
  *)
 
 let blank_state =
-    let regime              = ZERO                  in
+    let regime              = ZERO in
 
     let pstamp              = None in
     let p_hat_and_error     = None in
