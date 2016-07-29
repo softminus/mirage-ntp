@@ -55,8 +55,8 @@ module Main (C: V1_LWT.CONSOLE) (S: V1_LWT.STACKV4) = struct
                             match wrapped with
                             |Some rxd -> (
                                             C.log_s c (Printf.sprintf "recv ONE %Lx" (snd rxd)) >>= fun () ->
+                                            C.log_s c (show_sync_state state) >>= fun() ->
                                             let state = add_sample state (fst rxd) (fst q) (snd rxd) in
-                                            let state = update_estimators state in
                                             let esti  = output_of_state state in
                                             (
                                             match esti with 
