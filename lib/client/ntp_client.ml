@@ -114,10 +114,6 @@ let sample_of_packet history txctx (pkt : pkt) rx_tsc =
     in
     (sample, rtt_hat)
 
-let add_sample old_state buf txctx rx_tsc =
-    match (validate_reply buf txctx) with
-    | None      ->  old_state
-    | Some pkt  -> {old_state with samples_and_rtt_hat = hcons (sample_of_packet old_state.samples_and_rtt_hat txctx pkt rx_tsc) old_state.samples_and_rtt_hat}
 
 let output_of_state state =
     let e = state.estimators in
@@ -241,3 +237,15 @@ let update_estimators old_state =
             let new_ests = {pstamp; p_hat_and_error; p_local; c; theta_hat_and_error} in
 
             {old_state with samples_and_rtt_hat = samples; estimators = new_ests}
+
+
+
+
+
+let add_sample old_state buf txctx rx_tsc =
+    match (validate_reply buf txctx) with
+    | None      ->  old_state
+    | Some pkt  -> (let new_state =
+                       {old_state with
+                       samples_and_rtt_hat = hcons (sample_of_packet old_state.samples_and_rtt_hat txctx pkt rx_tsc) old_state.samples_and_rtt_hat} in
+                    update_estimators new_state)
