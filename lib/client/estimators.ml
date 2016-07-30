@@ -37,7 +37,7 @@ let         warmup_p_hat subsets =
     let p_hat = join (rate_of_pair <$> best_in_near <*> best_in_far) in
     match (best_in_near, best_in_far, p_hat) with
     | (Some best_in_near, Some best_in_far, Some p) ->
-            let del_tb      = check_non_negative ((fst best_in_near).timestamps.tb -. (fst best_in_far).timestamps.tb) in
+            let del_tb      = check_positive       ((fst best_in_near).timestamps.tb -. (fst best_in_far).timestamps.tb) in
             let far_error   = Int64.to_float @@ error_of best_in_far  rtt_hat in
             let near_error  = Int64.to_float @@ error_of best_in_near rtt_hat in
             let p_hat_error = (p /. del_tb) *. (far_error +. near_error) in
@@ -198,7 +198,7 @@ let         normal_p_local params p_hat_and_error old_p_local subsets =
     let rate            = join (rate_of_pair <$> best_in_near <*> best_in_far) in
     match (best_in_near, best_in_far, rate) with
     | (Some best_in_near, Some best_in_far, Some p_local) -> (
-            let del_tb      = check_non_negative ((fst best_in_near).timestamps.tb -. (fst best_in_far).timestamps.tb) in
+            let del_tb      = check_positive       ((fst best_in_near).timestamps.tb -. (fst best_in_far).timestamps.tb) in
             let far_error   = Int64.to_float @@ error_of best_in_far  (snd best_in_far)  in
             let near_error  = Int64.to_float @@ error_of best_in_near (snd best_in_near) in
             let plocal_error = (p_hat /. del_tb) *. (far_error +. near_error) in

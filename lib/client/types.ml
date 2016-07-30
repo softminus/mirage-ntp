@@ -2,6 +2,8 @@ open History
 open Wire
 open Maybe
 
+exception Counter_causality of int64
+
 type counter = Cstruct.uint64 [@printer fun fmt -> fprintf fmt "0x%Lx"]
 [@@deriving show]
 
@@ -229,11 +231,6 @@ let check_positive x =
     match (x > 0.0) with
     | true -> x
     | false -> failwith "should be positive!"
-
-let check_non_negative x =
-    match (x >= 0.0) with
-    | true -> x
-    | false -> failwith "should never be negative!"
 
 let error_of packet rtt_hat =
     delta_TSC (rtt_of packet) rtt_hat
