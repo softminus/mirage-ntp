@@ -49,15 +49,20 @@ type timestamps = {
 type quality = NG | OK
 [@@deriving show]
 
-type sample = {
-    quality:    quality;
+type private_data = {
     ttl:        int;
     stratum:    Wire.stratum;
     leap:       Wire.leap;
     refid:      Cstruct.uint32  [@printer fun fmt -> fprintf fmt "0x%lx"];
     rootdelay:  float;
     rootdisp:   float;
-    timestamps: timestamps;
+}
+[@@deriving show]
+
+type sample = {
+    quality:        quality;
+    timestamps:     timestamps;
+    private_data:   private_data;
 }
 [@@deriving show]
 
@@ -202,6 +207,19 @@ type sync_state = {
     estimators:             estimators;
 }
 [@@deriving show]
+
+let check_causalities prospective extant =
+    let newer = prospective.timestamps in
+    let older =      extant.timestamps in
+
+    let del_intra   = Int64.sub newer.tf newer.ta in
+
+    let delTa       = Int64.sub newer.ta older.ta in
+    let delTf       = Int64.sub newer.tf older.tf in
+
+    match (del_intra > 0L, delTa > 0L, delTf > 0L) with
+    | (true, true, true)    -> Some prospective
+    | (_   , _   , _   )    -> None
 
 let delta_TSC newer older =
     let del = Int64.sub newer older in
