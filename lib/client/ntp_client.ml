@@ -105,7 +105,7 @@ let sample_of_packet history txctx (pkt : pkt) rx_tsc =
     let sample = {quality; ttl; stratum; leap; refid; rootdelay; rootdisp; timestamps} in
 
     let rtt = rtt_of_prime sample in
-    let sample = {quality; ttl; stratum; leap; refid; rootdelay; rootdisp; timestamps} in
+
     let rtt_hat = match l with
     | None                  -> rtt
     | Some (_, last_rtt)    ->  match (rtt < last_rtt) with
