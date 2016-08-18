@@ -162,10 +162,10 @@ let         normal_p_hat params pstamp old_p_hat latest =
     | Some p    ->  match (dTSC old_p @@ error_of latest (snd latest) < params.point_error_thresh) with
                     | false ->  Some old_p_hat (* point error of our new packet is NG, let's not use it *)
 
-                    | true ->   let baseline      = ((fst latest).timestamps.tb -. (fst pstamp).timestamps.tb) in
+                    | true ->   let far_baseline  = ((fst latest).timestamps.tb -. (fst pstamp).timestamps.tb) in
                                 let point_errors  = Int64.to_float @@ Int64.add (error_of latest (snd latest)) (error_of pstamp (snd pstamp)) in
                                 let rtt_est_error = abs_float @@ Int64.to_float @@ Int64.sub (snd latest) (snd pstamp) in
-                                let new_p_error = old_p *. (point_errors +. rtt_est_error) /. baseline in
+                                let new_p_error = old_p *. (point_errors +. rtt_est_error) /. far_baseline in
 
                                 match ((new_p_error < old_p_err), (new_p_error < params.rate_error_threshold)) with
                                 | (false, false)    ->  Some old_p_hat  (* it's worse than the last one and also not under the error threshold *)
