@@ -1,6 +1,4 @@
 open History
-open Wire
-open Maybe
 
 exception Counter_causality of int64
 
@@ -49,7 +47,6 @@ type timestamps = {
 type quality = NG | OK
 [@@deriving show]
 
-
 type sample = {
     quality:        quality;
     timestamps:     timestamps;
@@ -66,7 +63,6 @@ type estimators = {
 }
 [@@deriving show]
 
-
 type output = {
     skm_scale:                      float;
     freshness:                      counter;
@@ -75,11 +71,6 @@ type output = {
     ca_and_error:           (float * float);
 }
 [@@deriving show]
-
-
-
-
-
 
 type windows    = {
     top_win_size:       int;
