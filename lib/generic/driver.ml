@@ -33,8 +33,6 @@ let default_parameters =
 
     {skm_scale; ts_limit; skm_rate; e_offset; e_offset_qual; initial_p; shift_thres; point_error_thresh; rate_error_threshold; rate_sanity; local_rate_sanity; local_rate_error_threshold; offset_sanity_zero; offset_sanity_aging}
 
-let range_of_window w ts =
-    range_of ts (fst w) (snd w)
 
 let default_windows params poll_period =
     let history_scale = 3600 * 24 * 7 in        (* seconds *)

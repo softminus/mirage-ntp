@@ -1,4 +1,7 @@
 open Types
+open Util
+open History
+
 let check_causalities prospective extant =
     let newer = prospective.timestamps in
     let older =      extant.timestamps in

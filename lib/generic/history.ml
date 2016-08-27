@@ -196,6 +196,8 @@ let range_of hist left right =
                                     | false -> invalid_arg "range ordering invalid")
     | (_,           _       )   -> invalid_arg "invalid points!"
 
+let range_of_window w ts =
+    range_of ts (fst w) (snd w)
 
 let valid h p =
     match validity h p with

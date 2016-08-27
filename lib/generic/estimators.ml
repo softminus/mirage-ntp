@@ -3,6 +3,7 @@
 open Types
 open History
 open Maybe
+open Sample_math
 
 
 (* WARMUP ESTIMATORS
