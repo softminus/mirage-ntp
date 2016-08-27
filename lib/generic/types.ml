@@ -47,19 +47,19 @@ type timestamps = {
 type quality = NG | OK
 [@@deriving show]
 
-type sample = {
+type 'a sample = {
     quality:        quality;
     timestamps:     timestamps;
-    private_data:   private_data;
+    private_data:   'a;
 }
 [@@deriving show]
 
-type estimators = {
+type 'a estimators = {
     pstamp:                          point  option; (* this is a point within samples, not rtt_hat *)
     p_hat_and_error:        (float * float) option;
     p_local:                (float * float) option;
     c:                               float  option;
-    theta_hat_and_error:    (float * float * (sample * counter)) option;
+    theta_hat_and_error:    (float * float * ('a sample * counter)) option;
 }
 [@@deriving show]
 
@@ -90,12 +90,12 @@ type windows    = {
 }
 [@@deriving show]
 
-type sync_state = {
+type 'a sync_state = {
     regime:                 regime;
     parameters:             physical_parameters;
     windows:                windows;
-    samples_and_rtt_hat:   (sample * counter) history;  (* sample history and RTT_hat history are zipped together *)
-    estimators:             estimators;
+    samples_and_rtt_hat:   ('a sample * counter) history;  (* sample history and RTT_hat history are zipped together *)
+    estimators:             'a estimators;
 }
 [@@deriving show]
 
