@@ -23,6 +23,10 @@ type ntp_private = {
     rootdelay:  float;
     rootdisp:   float;
 }
+type query_ctx = {
+    when_sent:  counter;    (* the TSC value when we send it *)
+    nonce:      ts;         (* the random number that was in the transmit_timestamp of the packet we sent *)
+}
 [@@deriving show]
 let add_sample old_state buf txctx rx_tsc =
     match (validate_reply buf txctx) with

@@ -31,11 +31,6 @@ type physical_parameters = {
 }
 [@@deriving show]
 
-type query_ctx = {
-    when_sent:  counter;    (* the TSC value when we send it *)
-    nonce:      ts;         (* the random number that was in the transmit_timestamp of the packet we sent *)
-}
-
 type timestamps = {
     ta:     counter;
     tb:     float               [@printer fun fmt -> fprintf fmt "%.09f"];
