@@ -16,16 +16,16 @@ let default_parameters =
 
     let initial_p       = (1e-9, 0.0) in            (* FIXME: set this to the right period based on nominal counter frequency *)
 
-    let e_offset        = 1000.0 *. 6.0 *. ts_limit in (* 6 = offset_ratio *)
-    let e_offset_qual   = 1000.0 *. 3.0 *. e_offset in
+    let e_offset        = 6.0 *. ts_limit in (* 6 = offset_ratio *)
+    let e_offset_qual   = 3.0 *. e_offset in
     let shift_thres     = 1L in                     (* FIXME *)
 
-    let point_error_thresh = 100.0 *. 3.0 *. ts_limit in
-    let rate_error_threshold    = 100.0 *. rate_error_bound /. 5.0 in
-    let rate_sanity             = 100.0 *. rate_error_bound *. 3.0 in
+    let point_error_thresh = 3.0 *. ts_limit in
+    let rate_error_threshold    = rate_error_bound /. 5.0 in
+    let rate_sanity             = rate_error_bound *. 3.0 in
 
-    let local_rate_sanity           = 1000.0 *. rate_error_bound *. 3.0   in
-    let local_rate_error_threshold  = 100.0 *. 8.0e-7                    in
+    let local_rate_sanity           = rate_error_bound *. 3.0   in
+    let local_rate_error_threshold  = 8.0e-7                    in
 
 
     let offset_sanity_zero      = 100.0 *.  ts_limit            in
