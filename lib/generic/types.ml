@@ -15,6 +15,7 @@ type physical_parameters = {
     e_offset:           float;
     e_offset_qual:      float;
 
+    e_shift:            float;
     shift_thres:        counter;    (* rtt shift detection *)
 
     point_error_thresh:     float;

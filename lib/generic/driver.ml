@@ -18,6 +18,8 @@ let default_parameters =
 
     let e_offset        = 6.0 *. ts_limit in (* 6 = offset_ratio *)
     let e_offset_qual   = 3.0 *. e_offset in
+
+    let e_shift         = 10.0 *. ts_limit in
     let shift_thres     = 1L in                     (* FIXME *)
 
     let point_error_thresh = 3.0 *. ts_limit in
@@ -31,7 +33,7 @@ let default_parameters =
     let offset_sanity_zero      = 100.0 *.  ts_limit            in
     let offset_sanity_aging     = 20.0 *.   rate_error_bound    in
 
-    {skm_scale; ts_limit; skm_rate; e_offset; e_offset_qual; initial_p; shift_thres; point_error_thresh; rate_error_threshold; rate_sanity; local_rate_sanity; local_rate_error_threshold; offset_sanity_zero; offset_sanity_aging}
+    {skm_scale; ts_limit; skm_rate; e_offset; e_offset_qual; initial_p; e_shift; shift_thres; point_error_thresh; rate_error_threshold; rate_sanity; local_rate_sanity; local_rate_error_threshold; offset_sanity_zero; offset_sanity_aging}
 
 
 let default_windows params poll_period =
