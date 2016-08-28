@@ -11,27 +11,31 @@ Plugins: META (0.4), DevFiles (0.4)
 BuildTools: ocamlbuild
 AlphaFeatures: pure_interface
 
-Library "tsc"
-    Path: lib/tsc/
-    Modules: Tsc
-    CSources: rdtsc_caml.c
-    XMETAExtraLines:  xen_linkopts = "-ltsc_stubs"
+#Library "tsc"
+#    Path: lib/tsc/
+#    Modules: Tsc
+#    CSources: rdtsc_caml.c
+#    XMETAExtraLines:  xen_linkopts = "-ltsc_stubs"
 
+#Library "common"
+#    Path: lib/common/
+#    Modules: Tai
+
+#Library "wire"
+#    Path: lib/wire/
+#    Modules: Wire
+#    BuildDepends: ipaddr, tcpip, cstruct (>= 2.1.0), cstruct.ppx, ppx_deriving.std
 Library "common"
-    Path: lib/common/
-    Modules: Tai
+    Path: lib/generic/
+    Modules: Util, Maybe, Types, History, Sample_math, Driver
+    BuildDepends: cstruct (>= 2.1.0), ppx_deriving.std
 
-Library "wire"
-    Path: lib/wire/
-    Modules: Wire
-    BuildDepends: ipaddr, tcpip, cstruct (>= 2.1.0), cstruct.ppx, ppx_deriving.std
+#Library "ntp_client"
+#    Path: lib/client/
+#    Modules: Util, Maybe, Types, History, Ntp_client, Estimators
+#    BuildDepends: wire, tsc, ipaddr, nocrypto, ppx_deriving.std
 
-Library "ntp_client"
-    Path: lib/client/
-    Modules: Util, Maybe, Types, History, Ntp_client, Estimators
-    BuildDepends: wire, tsc, ipaddr, nocrypto, ppx_deriving.std
-
-Library "clocklib"
-    Path: lib/clocklib/
-    Modules: Diffabs
-    BuildDepends: ntp_client, tsc
+#Library "clocklib"
+#    Path: lib/clocklib/
+#    Modules: Diffabs
+#    BuildDepends: ntp_client, tsc
