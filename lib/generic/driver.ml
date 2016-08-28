@@ -9,27 +9,42 @@ open Maybe
  *)
 
 let default_parameters =
+    (* physical constants *)
     let skm_scale           = 1024.0 in
     let ts_limit            = 1.5e-5 in
     let skm_rate            = 2e-7 in
     let rate_error_bound    = 5.0e-7 in
 
-    let initial_p       = (1e-9, 0.0) in            (* FIXME: set this to the right period based on nominal counter frequency *)
+    (* initial guess of timecounter frequency *)
+    let initial_p       = (1e-9, 0.0) in
 
-    let e_offset        = 6.0 *. ts_limit in (* 6 = offset_ratio *)
-    let e_offset_qual   = 3.0 *. e_offset in
-
+    (* shift detection, only shift_thres is used in the end *)
     let e_shift         = 10.0 *. ts_limit in
-    let shift_thres     = 1L in                     (* FIXME *)
+    let shift_thres     = 1L in
 
+    (* p_hat *)
+
+    (* point error threshold for using the current point to update p_hat *)
     let point_error_thresh = 3.0 *. ts_limit in
+    (* error threshold for p_hat estimate *)
     let rate_error_threshold    = rate_error_bound /. 5.0 in
+    (* bound on how fast p_hat can change over time *)
     let rate_sanity             = rate_error_bound *. 3.0 in
 
+    (* p_local *)
+
+    (* bound on how fast p_local can change over time *)
     let local_rate_sanity           = rate_error_bound *. 3.0   in
+    (* error threshold for p_local estimate *)
     let local_rate_error_threshold  = 8.0e-7                    in
 
+    (* theta *)
 
+    (* used to calculate point error when doing theta *)
+    let e_offset        = 6.0 *. ts_limit in (* 6 = offset_ratio *)
+    (* to update a theta estimate, minimum point error must be less than e_offset_qual *)
+    let e_offset_qual   = 3.0 *. e_offset in
+    (* linear model for how offset estimator can be expected to change over a given baseline *)
     let offset_sanity_zero      = 100.0 *.  ts_limit            in
     let offset_sanity_aging     = 20.0 *.   rate_error_bound    in
 
