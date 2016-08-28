@@ -112,6 +112,13 @@ let blank_state =
     let samples_and_rtt_hat = History (windows.top_win_size, 0, [])  in
     {regime; parameters; samples_and_rtt_hat; estimators; windows}
 
+let rtt_dependent_parameters rtt_hat estimators parameters =
+    match estimators.p_hat_and_error with
+    | None              -> parameters
+    | Some (p_hat, _)   ->
+            match (p_hat * rtt_hat < 3e-3) with
+            | true  -> {parameters with shift_thres = 
+
 let output_of_state state =
     let e = state.estimators in
     match get state.samples_and_rtt_hat Newest with
