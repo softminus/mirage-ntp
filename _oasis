@@ -27,7 +27,7 @@ AlphaFeatures: pure_interface
 #    BuildDepends: ipaddr, tcpip, cstruct (>= 2.1.0), cstruct.ppx, ppx_deriving.std
 Library "common"
     Path: lib/generic/
-    Modules: Util, Maybe, Types, History, Sample_math, Driver
+    Modules: Util, Maybe, Types, History, Sample_math, Estimators, Driver
     BuildDepends: cstruct (>= 2.1.0), ppx_deriving.std
 
 #Library "ntp_client"
