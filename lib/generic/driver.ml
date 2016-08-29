@@ -143,12 +143,12 @@ let output_of_state state =
     | Some (sample, rtt_hat)    ->
             match (e.p_hat_and_error, e.c, e.theta_hat_and_error) with
             | (Some (p_hat, p_error), Some c, Some (th, th_err, t_point)) ->
-                    let ca_and_error    = (c -. th, th_err) in
-                    let p_hat_and_error = (p_hat, p_error) in
-                    let freshness       = sample.timestamps.tf in
-                    let p_local         = state.estimators.p_local in
                     let skm_scale       = state.parameters.skm_scale in
-                    Some {skm_scale; freshness; p_hat_and_error; p_local; ca_and_error}
+                    let freshness       = sample.timestamps.tf in
+                    let rate            = (p_hat, p_error) in
+                    let local_rate      = state.estimators.p_local in
+                    let ca_and_error    = (c -. th, th_err) in
+                    Some {skm_scale; freshness; rate; local_rate; ca_and_error}
             | _ ->  None
 
 

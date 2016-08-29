@@ -60,11 +60,11 @@ type 'a estimators = {
 [@@deriving show]
 
 type output = {
-    skm_scale:                      float;
-    freshness:                      counter;
-    p_hat_and_error:        (float * float);
-    p_local:                (float * float) option;
-    ca_and_error:           (float * float);
+    skm_scale:          float;
+    freshness:          counter;
+    rate:               (float * float);
+    local_rate:         (float * float) option;
+    ca_and_error:       (float * float);
 }
 [@@deriving show]
 
