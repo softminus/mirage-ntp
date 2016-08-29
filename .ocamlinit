@@ -1,3 +1,3 @@
 #require "cstruct";;
 #require "io-page.unix";;
-#require "ntp_client";;
+#require "common";;
