@@ -2,6 +2,7 @@ open History
 open Types
 open Estimators
 open Maybe
+open Sample_math
 
 (*
  * This just adds data to the state and cranks the estimators and extracts the
@@ -133,8 +134,9 @@ let rtt_dependent_parameters rtt_hat estimators parameters =
     match estimators.p_hat_and_error with
     | None              -> parameters
     | Some (p_hat, _)   ->
-            match (p_hat * rtt_hat < 3e-3) with
-            | true  -> {parameters with shift_thres = 
+            match (dTSC p_hat rtt_hat < 3e-3) with
+            | true  -> {parameters with shift_thres = Int64.of_float @@       parameters.e_shift /. p_hat; e_offset_qual = 3.0 *. parameters.e_offset}
+            | false -> {parameters with shift_thres = Int64.of_float @@ 3. *. parameters.e_shift /. p_hat; e_offset_qual = 6.0 *. parameters.e_offset}
 
 let output_of_state state =
     let e = state.estimators in
