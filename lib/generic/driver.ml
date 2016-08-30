@@ -207,7 +207,13 @@ let update_estimators old_state =
             | Some x -> READY
             in
 
-            {old_state with samples_and_rtt_hat = samples; estimators = new_ests; regime = regime}
+            let rtt_hat = snd <$> get samples Newest in
+            let new_params = match (rtt_hat, (range_of_window wi.warmup_win samples)) with
+            | (Some rtthat, Some _) -> rtt_dependent_parameters rtthat new_ests params
+            | _, _                  -> params
+            in
+
+            {old_state with samples_and_rtt_hat = samples; estimators = new_ests; regime = regime; parameters = new_params}
 
 
 
