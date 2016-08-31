@@ -238,7 +238,7 @@ let normal_theta_hat params p_hat_and_error p_local_and_error c old_theta_hat su
         (* print_string (Printf.sprintf "weight calc, qual = %.9E, weight = %.9E\n" qual weight); *)
         weight
     in
-    let sum, sum_wts =  weighted_sum (plocal_theta_of p_hat c p_local latest) (wt params p_hat latest) offset_win in
+    let sum, sum_wts =  weighted_sum (refined_theta p_hat c p_local latest) (wt params p_hat latest) offset_win in
 
     let min          =  min_and_where (normal_theta_point_error params p_hat latest) offset_win in
     match min with

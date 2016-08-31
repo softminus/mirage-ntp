@@ -65,7 +65,7 @@ let theta_of p_hat c sample =
 
     twice_theta /. 2.0
 
-let plocal_theta_of         p_hat c p_local latest  sample =
+let refined_theta           p_hat c p_local latest  sample =
     let theta   =  theta_of p_hat c                 sample in
 
     match p_local with
