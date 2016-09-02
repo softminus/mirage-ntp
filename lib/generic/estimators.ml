@@ -37,12 +37,15 @@ let         warmup_p_hat subsets =
     let best_in_far     = fst <$> (min_and_where rtt_of far ) in
     let p_hat = join (rate_of_pair <$> best_in_near <*> best_in_far) in
     match (best_in_near, best_in_far, p_hat) with
-    | (Some best_in_near, Some best_in_far, Some p) ->
+    | (Some best_in_near, Some best_in_far, Some p) -> (
             let del_tb      = check_positive       ((fst best_in_near).timestamps.tb -. (fst best_in_far).timestamps.tb) in
             let far_error   = Int64.to_float @@ error_of best_in_far  rtt_hat in
             let near_error  = Int64.to_float @@ error_of best_in_near rtt_hat in
-            let p_hat_error = (p /. del_tb) *. (far_error +. near_error) in
-            Some (p, p_hat_error)
+            let p_hat_error = (fun x -> (p /. x ) *. (far_error +. near_error)) <$> del_tb in
+            match p_hat_error with
+            | None -> None
+            | Some p_hat_error -> Some (p, p_hat_error)
+    )
     | _ ->  None
 
 
@@ -102,10 +105,13 @@ let         warmup_theta_hat params p_hat_and_error c subsets =
             match sum_wts with
             | 0.0 -> None
             | sum_wts ->
-            let theta_hat   =   sum /. check_positive(sum_wts) in
-            match (minET < params.e_offset_qual) with
-            | false -> None
-            | true  -> Some (theta_hat, minET, latest)
+            let theta_hat   =   (fun x -> sum /. x) <$> check_positive(sum_wts) in
+            match theta_hat with
+            | None -> None
+            | Some theta_hat ->
+                match (minET < params.e_offset_qual) with
+                | false -> None
+                | true  -> Some (theta_hat, minET, latest)
 
 
 
@@ -202,14 +208,17 @@ let         normal_p_local params p_hat_and_error old_p_local subsets =
             let del_tb      = check_positive       ((fst best_in_near).timestamps.tb -. (fst best_in_far).timestamps.tb) in
             let far_error   = Int64.to_float @@ error_of best_in_far  (snd best_in_far)  in
             let near_error  = Int64.to_float @@ error_of best_in_near (snd best_in_near) in
-            let plocal_error = (p_hat /. del_tb) *. (far_error +. near_error) in
-            match (plocal_error < params.local_rate_error_threshold) with
-            | false -> None
-            | true  -> let change = abs_float @@ (p_local -. old_p_local) /. old_p_local in
-                match ((change < params.local_rate_sanity), (fst latest).quality) with
-                | (true, OK)    -> Some (p_local, plocal_error)
-                | _             -> None)
-    | _                         -> None
+            let plocal_error = (fun x -> (p_hat /. x ) *. (far_error +. near_error)) <$> del_tb in
+            match  plocal_error with
+            | None -> None
+            | Some plocal_error ->
+                match (plocal_error < params.local_rate_error_threshold) with
+                | false -> None
+                | true  -> let change = abs_float @@ (p_local -. old_p_local) /. old_p_local in
+                    match ((change < params.local_rate_sanity), (fst latest).quality) with
+                    | (true, OK)    -> Some (p_local, plocal_error)
+                    | _             -> None)
+        | _                         -> None
 
 
 
@@ -248,17 +257,20 @@ let normal_theta_hat params p_hat_and_error p_local_and_error c old_theta_hat su
             match sum_wts with
             | 0.0 -> None
             | sum_wts ->
-            let theta_hat   =   sum /. check_positive(sum_wts) in
-            match (minET < params.e_offset_qual) with
-            | false -> None
-            | true  ->
-                    let maxgap = max_gap offset_win in
-                    match maxgap with
-                    | None          -> None
-                    | Some maxgap   ->
-                            let maxgap = max (maxgap) (baseline latest old_theta_sample) in
-                            let gap    = dTSC p_hat maxgap in
-                            let change = abs_float @@ (old_theta -. theta_hat) in
-                            match ((change < params.offset_sanity_zero +. gap *. params.offset_sanity_aging), (fst latest).quality) with
-                            | (true, OK)    ->  Some (theta_hat, minET, latest)
-                            | _             ->  None
+            let theta_hat   =   (fun x -> sum /. x) <$> check_positive(sum_wts) in
+            match theta_hat with
+            | None -> None
+            | Some theta_hat ->
+                match (minET < params.e_offset_qual) with
+                | false -> None
+                | true  ->
+                        let maxgap = max_gap offset_win in
+                        match maxgap with
+                        | None          -> None
+                        | Some maxgap   ->
+                                let maxgap = max (maxgap) (baseline latest old_theta_sample) in
+                                let gap    = dTSC p_hat maxgap in
+                                let change = abs_float @@ (old_theta -. theta_hat) in
+                                match ((change < params.offset_sanity_zero +. gap *. params.offset_sanity_aging), (fst latest).quality) with
+                                | (true, OK)    ->  Some (theta_hat, minET, latest)
+                                | _             ->  None
