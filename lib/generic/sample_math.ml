@@ -1,6 +1,7 @@
 open Types
 open Util
 open History
+open Maybe
 
 let check_causalities prospective extant =
     let newer = prospective.timestamps in
@@ -41,8 +42,8 @@ let rtt_of sample =
 
 let check_positive x =
     match (x > 0.0) with
-    | true -> x
-    | false -> failwith "should be positive!"
+    | true  -> Some x
+    | false -> None
 
 let error_of packet rtt_hat =
     delta_TSC (rtt_of packet) rtt_hat
