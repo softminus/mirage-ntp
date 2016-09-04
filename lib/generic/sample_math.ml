@@ -3,6 +3,9 @@ open Util
 open History
 open Maybe
 
+let latest_sample state =
+    get state.samples_and_rtt_hat Newest
+
 let check_causalities prospective extant =
     let newer = prospective.timestamps in
     let older =      extant.timestamps in
