@@ -7,8 +7,8 @@ let latest_sample state =
     get state.samples_and_rtt_hat Newest
 
 let check_causalities prospective extant =
-    let newer = prospective.timestamps in
-    let older =      extant.timestamps in
+    let newer = (fst prospective).timestamps in
+    let older = (fst      extant).timestamps in
 
     let del_intra   = Int64.sub newer.tf newer.ta in
 

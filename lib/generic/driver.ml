@@ -140,7 +140,7 @@ let rtt_dependent_parameters rtt_hat estimators parameters =
 
 let output_of_state state =
     let e = state.estimators in
-    match get state.samples_and_rtt_hat Newest with
+    match latest_sample state with
     | None                      -> None
     | Some (sample, rtt_hat)    ->
             match (e.p_hat_and_error, e.c, e.theta_hat_and_error) with
@@ -267,3 +267,11 @@ let update_estimators old_state =
 
             {old_state with samples_and_rtt_hat = samples; estimators = new_ests}
 
+let add_sample old_state newsample =
+    match latest_sample old_state with
+    | None          ->  let new_state =             {old_state with samples_and_rtt_hat = hcons newsample old_state.samples_and_rtt_hat} in
+                        update_estimators new_state
+    | Some latest   ->  match check_causalities newsample latest with
+                    | None    -> old_state
+                    | Some x  -> let new_state =    {old_state with samples_and_rtt_hat = hcons x         old_state.samples_and_rtt_hat} in
+                        update_estimators new_state
