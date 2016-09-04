@@ -267,8 +267,18 @@ let update_estimators old_state =
 
             {old_state with samples_and_rtt_hat = samples; estimators = new_ests}
 
-let add_sample old_state newsample =
-    match latest_sample old_state with
+let add_sample old_state sample =
+    let rtt = rtt_of_prime sample in
+    let latest = latest_sample old_state in
+    let rtt_hat = match latest with
+    | None                  -> rtt
+    | Some (_, last_rtt)    ->  match (rtt < last_rtt) with
+                                | true  -> rtt
+                                | false -> last_rtt
+    in
+    let newsample = (sample, rtt_hat) in
+
+    match latest with
     | None          ->  let new_state =             {old_state with samples_and_rtt_hat = hcons newsample old_state.samples_and_rtt_hat} in
                         update_estimators new_state
     | Some latest   ->  match check_causalities newsample latest with

@@ -66,9 +66,8 @@ let validate_reply buf txctx =
                                                                           we struck in it *)
             Some p
 
-let sample_of_packet history txctx (pkt : pkt) rx_tsc =
-    let l = get history Newest in
-    let quality = match l with
+let sample_of_packet latest_sample txctx (pkt : pkt) rx_tsc =
+    let quality = match latest_sample with
     | None -> OK
     | Some (last, _) ->
             (* FIXME: check for TTL changes when we have a way to get ttl of
@@ -89,13 +88,5 @@ let sample_of_packet history txctx (pkt : pkt) rx_tsc =
     let private_data = {ttl; stratum; leap; refid; rootdelay; rootdisp} in
 
     let sample = {quality; timestamps; private_data} in
+    sample
 
-    let rtt = rtt_of_prime sample in
-
-    let rtt_hat = match l with
-    | None                  -> rtt
-    | Some (_, last_rtt)    ->  match (rtt < last_rtt) with
-                                | true  -> rtt
-                                | false -> last_rtt
-    in
-    (sample, rtt_hat)
