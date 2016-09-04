@@ -28,13 +28,6 @@ type query_ctx = {
     nonce:      ts;         (* the random number that was in the transmit_timestamp of the packet we sent *)
 }
 [@@deriving show]
-let add_sample old_state buf txctx rx_tsc =
-    match (validate_reply buf txctx) with
-    | None      ->  old_state
-    | Some pkt  -> (let new_state =
-                       {old_state with
-                       samples_and_rtt_hat = hcons (sample_of_packet old_state.samples_and_rtt_hat txctx pkt rx_tsc) old_state.samples_and_rtt_hat} in
-                    update_estimators new_state)
 let allzero:ts = {timestamp = 0x0L}
 
 let query_pkt x =
