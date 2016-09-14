@@ -25,10 +25,10 @@ AlphaFeatures: pure_interface
 #    Path: lib/wire/
 #    Modules: Wire
 #    BuildDepends: ipaddr, tcpip, cstruct (>= 2.1.0), cstruct.ppx, ppx_deriving.std
-Library "common"
+Library "tsc_clock"
     Path: lib/generic/
     InternalModules: Util, Maybe, Types, History, Sample_math, Estimators
-    Modules: Driver
+    Modules: Tsc_clock
     BuildDepends: cstruct (>= 2.1.0), ppx_deriving.std
 
 #Library "ntp_client"
