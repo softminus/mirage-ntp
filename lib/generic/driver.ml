@@ -1,8 +1,9 @@
 open History
-open Types
 open Estimators
 open Maybe
 open Sample_math
+
+include Types
 
 (*
  * This just adds data to the state and cranks the estimators and extracts the
