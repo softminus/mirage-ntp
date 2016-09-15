@@ -30,6 +30,11 @@ type query_ctx = {
 [@@deriving show]
 let allzero:ts = {timestamp = 0x0L}
 
+type ntp_client = {
+    inflight_query: query_ctx;
+    tsc_state:      ntp_private sync_state;
+}
+
 let query_pkt x =
     let leap = Unknown in
     let version = 4 in
@@ -90,3 +95,7 @@ let sample_of_packet latest_sample txctx (pkt : pkt) rx_tsc =
     let sample = {quality; timestamps; private_data} in
     sample
 
+let initial_state = 0
+let generate_query state = (0, 0)
+let process_reply reply_packet state = 0
+let output_of_state = 0
