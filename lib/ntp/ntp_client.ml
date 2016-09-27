@@ -14,6 +14,8 @@
  * number to make off-path attacks a little more difficult.
  *
  *)
+open Wire
+open Tsc_clock
 
 type ntp_private = {
     ttl:        int;
@@ -30,8 +32,8 @@ type query_ctx = {
 [@@deriving show]
 let allzero:ts = {timestamp = 0x0L}
 
-type ntp_client = {
-    inflight_query: query_ctx;
+type ntp_context = {
+    inflight_query: query_ctx option;
     tsc_state:      ntp_private sync_state;
 }
 
@@ -95,7 +97,12 @@ let sample_of_packet latest_sample txctx (pkt : pkt) rx_tsc =
     let sample = {quality; timestamps; private_data} in
     sample
 
-let initial_state = 0
+let initial_state =
+    let tsc_state = blank_state in
+    let inflight_query = None in
+    {tsc_state; inflight_query}
+
+
 let generate_query state = (0, 0)
 let process_reply reply_packet state = 0
 let output_of_state = 0
