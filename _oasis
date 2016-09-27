@@ -11,32 +11,14 @@ Plugins: META (0.4), DevFiles (0.4)
 BuildTools: ocamlbuild
 AlphaFeatures: pure_interface
 
-#Library "tsc"
-#    Path: lib/tsc/
-#    Modules: Tsc
-#    CSources: rdtsc_caml.c
-#    XMETAExtraLines:  xen_linkopts = "-ltsc_stubs"
-
-#Library "common"
-#    Path: lib/common/
-#    Modules: Tai
-
-#Library "wire"
-#    Path: lib/wire/
-#    Modules: Wire
-#    BuildDepends: ipaddr, tcpip, cstruct (>= 2.1.0), cstruct.ppx, ppx_deriving.std
 Library "tsc_clock"
     Path: lib/generic/
     InternalModules: Util, Maybe, Types, History, Sample_math, Estimators
     Modules: Tsc_clock
     BuildDepends: cstruct (>= 2.1.0), ppx_deriving.std
 
-#Library "ntp_client"
-#    Path: lib/client/
-#    Modules: Util, Maybe, Types, History, Ntp_client, Estimators
-#    BuildDepends: wire, tsc, ipaddr, nocrypto, ppx_deriving.std
+Library "ntp_client"
+    Path: lib/ntp/
+    Modules: Ntp_client
+    BuildDepends: tsc_clock, cstruct (>= 2.1.0), cstruct.ppx, ipaddr, nocrypto, ppx_deriving.std
 
-#Library "clocklib"
-#    Path: lib/clocklib/
-#    Modules: Diffabs
-#    BuildDepends: ntp_client, tsc
