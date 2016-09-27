@@ -62,8 +62,9 @@
 
 
 type ts = {
-    timestamp:  Cstruct.uint64
+    timestamp:  Cstruct.uint64 [@printer fun fmt -> fprintf fmt "0x%Lx"];
 }
+[@@deriving show]
 
 let ts_to_int64 ts =
     ts.timestamp
