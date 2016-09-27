@@ -37,7 +37,7 @@ type ntp_context = {
     tsc_state:      ntp_private sync_state;
 }
 
-let query_pkt x =
+let query_pkt nonce =
     let leap = Unknown in
     let version = 4 in
     let mode = Client in
@@ -51,7 +51,7 @@ let query_pkt x =
 
     let origin_ts = allzero in
     let recv_ts = allzero in
-    let trans_ts = x in
+    let trans_ts = nonce in
     {leap;version;mode; stratum; poll; precision; root_delay; root_dispersion; refid; reference_ts; origin_ts; recv_ts; trans_ts}
 
 let new_query when_sent rand =
@@ -103,6 +103,16 @@ let initial_state =
     {tsc_state; inflight_query}
 
 
-let generate_query state = (0, 0)
-let process_reply reply_packet state = 0
+let generate_query current_tsc state = (* returns a tuple of the query packet and the updated state *)
+    let nonce = Cstruct.LE.get_uint64 (Nocrypto.Rng.generate 8) 0 in
+
+    let (queryctx, packet) = new_query current_tsc nonce in
+
+    let newstate = {state with inflight_query = Some queryctx} in
+
+    (packet, newstate)
+
+
+
+let process_reply reply_packet state = 0 (* returns the updated state *)
 let output_of_state = 0
