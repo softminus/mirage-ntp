@@ -1,8 +1,8 @@
 open History
 open Estimators
 open Maybe
-open Sample_math
 
+include Sample_math
 include Types
 
 (*

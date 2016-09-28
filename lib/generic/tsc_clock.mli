@@ -33,6 +33,8 @@ val blank_state : 'a sync_state
 val output_of_state : 'a sync_state -> output option
 val add_sample : 'a sync_state -> 'a sample -> 'a sync_state
 
+val latest_sample : 'a sync_state -> ('a sample * counter) option
+
 
 (* only ppx_deriving stuff below *)
 val pp_counter : Format.formatter -> counter -> Ppx_deriving_runtime.unit
