@@ -125,4 +125,5 @@ let process_reply current_tsc reply_packet state = (* returns the updated state 
     | None      ->  state
 
 
-let output_of_state = 0
+let output_of_state state =
+    Tsc_clock.output_of_state state.tsc_state
