@@ -16,6 +16,7 @@
  *)
 open Wire
 open Tsc_clock
+open Maybe
 
 type ntp_private = {
     ttl:        int;
@@ -114,5 +115,14 @@ let generate_query current_tsc state = (* returns a tuple of the query packet an
 
 
 
-let process_reply reply_packet state = 0 (* returns the updated state *)
+let process_reply current_tsc reply_packet state = (* returns the updated state *)
+    let validated = join (validate_reply <$> reply_packet <*> state.inflight_query) in
+    let sample = sample_of_packet (latest_sample state.tsc_state) <$> state.inflight_query <*> validated <*> Some current_tsc in
+    let new_tsc_state = add_sample state.tsc_state <$> sample in
+
+    match new_tsc_state with
+    | Some upd  -> {state with tsc_state = upd}
+    | None      ->  state
+
+
 let output_of_state = 0
