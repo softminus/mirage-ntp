@@ -16,9 +16,11 @@ Library "tsc_clock"
     InternalModules: Util, Maybe, Types, History, Sample_math, Estimators
     Modules: Tsc_clock
     BuildDepends: cstruct (>= 2.1.0), ppx_deriving.std
+    XMETARequires: cstruct, ppx_deriving.std
 
 Library "ntp_client"
     Path: lib/ntp/
     Modules: Ntp_client
-    BuildDepends: tsc_clock, cstruct (>= 2.1.0), cstruct.ppx, ipaddr, nocrypto, ppx_deriving.std
+    BuildDepends: tsc_clock, cstruct (>= 2.1.0), cstruct.ppx, nocrypto, ppx_deriving.std
+    XMETARequires: tsc_clock, cstruct, nocrypto, ppx_deriving.std
 
