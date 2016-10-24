@@ -11,6 +11,8 @@
 *.mldylib
 *.mllib
 
+META
+
 # ocamlbuild working directory
 _build/
 
