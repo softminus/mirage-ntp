@@ -8,6 +8,9 @@
 *.cmxs
 *.cmxa
 
+*.mldylib
+*.mllib
+
 # ocamlbuild working directory
 _build/
 
