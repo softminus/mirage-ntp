@@ -14,32 +14,19 @@
  * number to make off-path attacks a little more difficult.
  *
  *)
-open Wire
-open Tsc_clock
+
 open Maybe
 
-type ntp_private = {
-    ttl:        int;
-    stratum:    Wire.stratum;
-    leap:       Wire.leap;
-    refid:      Cstruct.uint32  [@printer fun fmt -> fprintf fmt "0x%lx"];
-    rootdelay:  float;
-    rootdisp:   float;
-}
-type query_ctx = {
-    when_sent:  counter;    (* the TSC value when we send it *)
-    nonce:      ts;         (* the random number that was in the transmit_timestamp of the packet we sent *)
-}
-[@@deriving show]
+open Wire
+open Tsc_clock
+open Tai
+
+include Ntp_types
+
 let allzero:ts = {timestamp = 0x0L}
 
-type ntp_context = {
-    inflight_query: query_ctx option;
-    tsc_state:      ntp_private sync_state;
-}
-
 let query_pkt nonce =
-    let leap = Unknown in
+    let leap = Unsync in
     let version = 4 in
     let mode = Client in
     let stratum = Unsynchronized in
