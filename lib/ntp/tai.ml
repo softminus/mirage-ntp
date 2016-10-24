@@ -1,179 +1,61 @@
-(*
+(* we need to:
+ * 
+ * infer when the next leap second transition is (from data in NTP packets and
+ * with calendar math)
  *
- * Introduction
+ * convert time from the wire (which is in UTC) to a timescale that is
+ * continuous (TAI or TAI + a constant offset) that we can feed to the maths
  *
- *
- * NTP time is in the discontinuous UTC timescale and thus has duplicate values
- * because of leap seconds. This makes raw NTP timestamps unfit for feeding
- * into a rate/offset estimation algorithm.
- *
- * The NTP protocol is flawed and does not include an explicit field for the
- * current TAI/UTC offset. Furthermore, there is no field in NTP packets that
- * tells us (in any timescale) when the next leap second event is scheduled.
- *
- * The absence of those fields makes it impossible to easily synthesize a
- * discontinuity-free timescale from the NTP timestamps.
- *
- * IEEE 1588 / PTP expresses timestamps in TAI and also includes the current
- * UTC/TAI offset in each packet and include a binary flag warning of an
- * upcoming leap second event. Similarly, GPS, BeiDou, and Galileo all use
- * timescales with no leap seconds (effectively, TAI) and include the current
- * UTC offset (and the time of an upcoming leap second event) in the navigation
- * messages transmitted from the space vehicles. None of those systems ever
- * have had issues with leap seconds.
- *
- * There is only a binary flag that indicates whether a leap second event is
- * coming -- the NTP client *must* either do complex calendar maths to find out
- * *when* the leap event is or (from an out-of-band source) have been provided
- * a copy of an up-to-date leap second table.
- *
- * It is difficult to come up with a more pointlessly fragile, baroque, and
- * overly complex system for coping with leap second events. Unfortunately,
- * we are required to implement this logic to have a correct NTP client.
- *
- *
- * Case 1: we have a recent enough leap second table
- *
- *
- * We check to see if we have a valid and up-to-date leap table -- if so, we
- * know the current TAI offset, the time of the next leap second event, and the
- * TAI offset after the leap event. We can thus use it to unbake UTC timestamps
- * into TAI timestamps that can be used for rate/offset estimation (and bake in
- * the TAI offset as desired for consumers who want UTC time).
- *
- * Here's the information flow if we have a valid leap second table:
- *
- *                   NTP timestamps (UTC)
- *                          |
- *                          |
- *                          V
- *        leap table----> unbake
- *                          |
- *                          |
- *                          T
- *                          A
- *                          I
- *                          |      timestamp counter-----\                  leap table
- *                          |                            |                      |
- *                          |                            |                      |
- *                          V                            V                      V
- *                      rate/offset estimation ------> client ----TAI---> synthesize_UTC
- *                                                                 |            |
- *                                                                 |            |
- *                                                                 V            V
- *                                                                TAI          UTC
- *
- *
- *
- *
- *
- * Case 2: the leap second table we have is not up to date
- *
- *
- * If we do not have an up-to-date leap table we:
-     * don't know the current TAI offset
-     * we don't know the time of the leap second event
-
-
- * The only information that NTP packets contain about leap second events is a
- * binary flag that indicates an upcoming leap second at the next UTC midnight.
- * This means we need to manually calculate when the next UTC midnight is, and
- * proceed accordingly.
- *
- * We also need to verify that the upcoming UTC midnight is the end of 30 June
- * or 31 December because some NTP servers set the leap flag prematurely -- see
- * doi://10.1007/978-3-319-30505-9_29. This is where the requirement for
- * calendar arithmetic comes in.
- *
- * Without a leap second table, we can't keep time in actual TAI, the
- * timestamps we feed to the rate/offset estimator must still be in a
- * continuous timescale -- we term this timescale "pseudo TAI" as it is
- * TAI except with a constant offset (namely, the UTC/TAI offset when the
- * NTP client started).
- *
- * Here's the information flow if we lack a valid leap second table:
- *
- *    NTP leap       NTP timestamps (UTC)
- *     flag                 |
- *      |                   |
- *      |                   V                   pseudoTAI / UTC offset
- *      \---------->pseudoTAI_of_UTC--------------------------------------------\
- *                          |                                                   |
- *                          |                                                   |
- *                          p                                                   |
- *                          T                                                   |
- *                          A                                                   |
- *                          I                                                   |
- *                          |      timestamp counter-----\                      |
- *                          |                            |                      |
- *                          |                            |                      |
- *                          V                            V                      V
- *                      rate/offset estimation ------> client ---pTAI---> synthesize_UTC
- *                                                                 |            |
- *                                                                 |            |
- *                                                                 V            V
- *                                                             pseudoTAI       UTC
- *
- *
- * Note that calculations equivalent to either of above diagrams happen in every
- * NTP client that handles leap seconds -- they are inherent to doing timekeeping
- * based on NTP and are not an artefact of any implementation choices.
- *
- * Most traditional NTP daemons prod the kernel with ntp_adjtime(2)'s STA_INS
- * to ask it to insert a leap second at the next UTC midnight -- but the
- * calculations are morally the same even though there's no clean separation of
- * UTC timestamps and TAI timestamps as there is here.
- *
- * This code attempts to properly handle leap seconds without having to modify
- * shared mutable state in a tricky way.
- *
- *
- * The better way:
- *
- *
- * All of this would be immaterial if NTP unambiguously encoded the current
- * TAI time and the current TAI/UTC offset, along with the TAI time of any
- * upcoming leap second event and the TAI/UTC offset after leap second event
- * -- like GPS. Most NTP servers get time information from GPS so this is
- * entirely feasible.
- *
- * Indeed, for a PTP client, the information flow is much simpler:
- *
- *          TAI timestamps (from the PTP packet)
- *              |
- *              |      timestamp counter-----\              TAI/UTC offset (from the PTP packet)
- *              |                            |                      |
- *              V                            V                      V
- *          rate/offset estimation ------> client ----TAI---> synthesize_UTC
- *                                                     |            |
- *                                                     V            V
- *                                                    TAI          UTC
- *
+ * be able to convert that timescale back to UTC for consumers
  *)
 
+open Maybe
+open Wire
+open Ntp_types
+open Tsc_clock
 
-type tai = Int64
-type utc = Int64
-type unbaked = int64 * int64 (* timestamp in TAIlike scale, amount to add to it to get back UTC time *)
+(* we need state to infer when the next leap is gonna happen because NTP
+ * protocol fails to explicitly encode the time at which the next leap occurs *)
 
-type leap_event = {
-    transition_time:    tai;
+type leap_infer_state = {
+    time_seen:          float;  (* the last time we've seen an packet with the same LI values *)
+    how_many:           int;    (* how many times we've seen the same LI values in reply packets *)
+    flavor:             leap_flavor; (* negative or positive leap *)
+}
+
+let leap_update_aux state packet =
+    match (state.flavor = packet.private_data.leap) with
+    | false -> None
+    | true  -> Some {state with how_many = state.how_many + 1; time_seen = packet.timestamps.te}
+
+    
+let leap_detect pkt lis =
+    match pkt.private_data.leap with
+    | Unsync    -> None (* seeing an Unsync   packet forces reset of leap infer state *)
+    | NoWarning -> None (* seeing a NoWarning packet forces reset of leap infer state *)
+
+
+
+type leap_translate_ctx = {
+    bandsize:           int64;
+    tai_offset_before:  int;
+    transition_time:    int64;
     tai_offset_after:   int;
 }
 
-type leap_table = {
-    end_of_validity:    utc;
-    events:             leap_event list;
-}
 
-type synthetic_leap = {
-    transition_time:    tai;        (* this is not actually TAI, but blame the NTP people *)
-    offset_after:       int;
-}
+let in_deadband width center value =
+    let dist = Int64.abs @@ Int64.sub center value in
+    match (dist < width) with
+    | true ->  Some value
+    | false -> None
 
-let run_table table idx =
+(* not a function for all x -- thus we restrict its domain *)
+let wire_to_continous context x =
+    match (in_deadband context.bandsize context.transition_time x) with
+    | None -> None
+    | Some utc ->
+        match (utc < context.transition_time) with
+        | true  -> Some (Int64.add utc (Int64.of_int context.tai_offset_before),context.tai_offset_before)
+        | false -> Some (Int64.add utc (Int64.of_int context.tai_offset_after), context.tai_offset_after)
 
-
-let unbake_utc table ntp_timestamp =
-    match (table.end_of_validity > ntp_timestamp) with
-    | true
