@@ -111,7 +111,7 @@ let log_to_float x =
 type span    = Span    of int64 (* span represents a monotonic time value as measured by our clock -- what RFC 5905 calls "process time" *)
 type seconds = Seconds of float (* all the statistical calculations are on floats *)
 
-type leap = NoWarning | Minute61 | Minute59 | Unknown (* leap seconds were a mistake *)
+type leap_flavor = NoWarning | Minute61 | Minute59 | Unsync (* leap seconds were a mistake *)
 [@@deriving show]
 
 type version = int
@@ -123,7 +123,7 @@ let lvm_to_int l v m =
     | NoWarning -> 0 lsl 6
     | Minute61  -> 1 lsl 6
     | Minute59  -> 2 lsl 6
-    | Unknown   -> 3 lsl 6 in
+    | Unsync    -> 3 lsl 6 in
     let vi = v lsl 3 in
     let mi = match m with
     | Reserved  -> 0
@@ -143,7 +143,7 @@ let flags_to_leap       f =
     | 0 -> NoWarning
     | 1 -> Minute61
     | 2 -> Minute59
-    | 3 -> Unknown
+    | 3 -> Unsync
     | _ -> failwith ":("
 
 let flags_to_version    f = (f land 0x38) lsr 3
@@ -200,7 +200,7 @@ type ntp = {
 
 
 type pkt = {
-    leap            : leap;
+    leap            : leap_flavor;
     version         : version;
     mode            : mode;
     stratum         : stratum;
