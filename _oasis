@@ -13,14 +13,14 @@ AlphaFeatures: pure_interface
 
 Library "tsc_clock"
     Path: lib/generic/
-    InternalModules: Util, Maybe, Types, History, Sample_math, Estimators
+    InternalModules: Util, Maybe, Tsc_types, History, Sample_math, Estimators
     Modules: Tsc_clock
     BuildDepends: cstruct (>= 2.1.0), ppx_deriving.std
     XMETARequires: cstruct, ppx_deriving.std
 
 Library "ntp_client"
     Path: lib/ntp/
-    Modules: Ntp_client
+    Modules: Ntp_types, Ntp_client, Tai
     BuildDepends: tsc_clock, cstruct (>= 2.1.0), cstruct.ppx, nocrypto, ppx_deriving.std
     XMETARequires: tsc_clock, cstruct, nocrypto, ppx_deriving.std
 
