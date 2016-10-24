@@ -1,4 +1,4 @@
-open Types
+open Tsc_types
 open Util
 open History
 open Maybe

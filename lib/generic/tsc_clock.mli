@@ -5,22 +5,22 @@ type 'a sync_state (* intentionally an abstract type *)
 
 
 type timestamps =
-  Types.timestamps = {
+  Tsc_types.timestamps = {
   ta : counter;
   tb : float;
   te : float;
   tf : counter;
 }
-type quality = Types.quality = NG | OK
+type quality = Tsc_types.quality = NG | OK
 type 'a sample =
-  'a Types.sample = {
+  'a Tsc_types.sample = {
   quality : quality;
   timestamps : timestamps;
   private_data : 'a;
 }
 
 type output =
-  Types.output = {
+  Tsc_types.output = {
   skm_scale : float;
   freshness : counter;
   rate : float * float;

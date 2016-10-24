@@ -3,7 +3,7 @@ open Estimators
 open Maybe
 
 include Sample_math
-include Types
+include Tsc_types
 
 (*
  * This just adds data to the state and cranks the estimators and extracts the

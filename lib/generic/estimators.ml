@@ -1,6 +1,6 @@
 (* sync stuff *)
 
-open Types
+open Tsc_types
 open History
 open Maybe
 open Sample_math
